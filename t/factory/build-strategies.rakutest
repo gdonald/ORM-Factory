@@ -1,0 +1,69 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+class Person {
+  has Str  $.fname is rw;
+  has Str  $.lname is rw;
+  has Str  $.email is rw;
+  has Str  $.role  is rw;
+  has Bool $.saved is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+sub fresh-registry {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(True);
+
+  ORM::Factory.define: {
+    .factory: 'person', {
+      .fname: 'Greg';
+      .lname: 'Donald';
+      .email: { .fname.lc ~ '@example.com' };
+
+      .variant: 'admin', {
+        .role: 'admin';
+      };
+    };
+  };
+}
+
+{
+  fresh-registry;
+  isa-ok ORM::Factory.build('person'), Person, 'build returns an instance of the factory class';
+  is ORM::Factory.build('person').fname, 'Greg', 'build populates static attributes';
+  is ORM::Factory.build('person').email, 'greg@example.com', 'build populates dynamic attributes';
+  nok ORM::Factory.build('person').saved, 'build does not save';
+}
+
+{
+  fresh-registry;
+  isa-ok ORM::Factory.create('person'), Person, 'create returns an instance of the factory class';
+  ok ORM::Factory.create('person').saved, 'create persists the instance';
+}
+
+{
+  fresh-registry;
+  my %attrs = ORM::Factory.attributes-for('person');
+  isa-ok %attrs, Hash, 'attributes-for returns a Hash';
+  is %attrs<fname>, 'Greg', 'attributes-for includes static attributes';
+  is %attrs<email>, 'greg@example.com', 'attributes-for evaluates dynamic attributes';
+}
+
+{
+  fresh-registry;
+  isa-ok ORM::Factory.build-stubbed('person'), Person, 'build-stubbed returns an instance';
+  nok ORM::Factory.build-stubbed('person').saved, 'build-stubbed does not persist with Generic adapter';
+}
+
+{
+  fresh-registry;
+  is ORM::Factory.build('person', 'admin').role, 'admin',
+    'variant application at build time';
+  dies-ok { ORM::Factory.build('person', 'ghost') },
+    'unknown variant raises X::ORM::Factory::UnknownVariant';
+}
+
+done-testing;

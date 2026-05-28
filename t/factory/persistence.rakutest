@@ -1,0 +1,78 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+use ORM::Factory::Persistence;
+use ORM::Factory::Persistence::Generic;
+
+class PlainWithSaveOrDie {
+  has Str  $.name  is rw;
+  has Bool $.saved is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+class PlainWithSaveOnly {
+  has Str  $.name  is rw;
+  has Bool $.saved is rw = False;
+  method save { $!saved = True; self }
+}
+
+class PlainNoPersistence {
+  has Str $.name is rw;
+}
+
+{
+  my $adapter = ORM::Factory::Persistence::Generic.new;
+
+  ok $adapter ~~ ORM::Factory::Persistence,
+    'Generic adapter does the Persistence role';
+
+  my $inst = $adapter.instantiate(PlainWithSaveOrDie, { :name<Greg> });
+  is $inst.name, 'Greg',
+    'instantiate builds via Class.new(|%attrs)';
+
+  dies-ok { $adapter.instantiate(Mu, %()) },
+    'instantiate raises a clear error when no class is set';
+
+  my $s1 = PlainWithSaveOrDie.new(name => 'X');
+  $adapter.persist($s1);
+  ok $s1.saved, 'persist prefers save-or-die when available';
+
+  my $s2 = PlainWithSaveOnly.new(name => 'X');
+  $adapter.persist($s2);
+  ok $s2.saved, 'persist falls back to save when save-or-die is absent';
+
+  dies-ok { $adapter.persist(PlainNoPersistence.new(name => 'X')) },
+    'persist raises a clear error when neither method exists';
+
+  ok $adapter.is-valid(PlainNoPersistence.new),
+    'is-valid defaults to True';
+
+  is $adapter.primary-key(PlainNoPersistence), 'id',
+    'primary-key defaults to id';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(False);
+
+  isa-ok ORM::Factory.persistence, ORM::Factory::Persistence::Generic,
+    'defaults to the Generic adapter when no AR adapter is installed';
+
+  ok ORM::Factory.persistence === ORM::Factory.persistence,
+    'caches the resolved adapter across calls';
+
+  my $custom = ORM::Factory::Persistence::Generic.new;
+  ORM::Factory.set-persistence($custom);
+  ok ORM::Factory.persistence === $custom,
+    'explicit set-persistence overrides auto-detection';
+
+  ORM::Factory.reset-persistence;
+  isa-ok ORM::Factory.persistence, ORM::Factory::Persistence::Generic,
+    'reset-persistence restores auto-detection on next access';
+
+  ORM::Factory.set-allow-class-lookup(True);
+}
+
+done-testing;

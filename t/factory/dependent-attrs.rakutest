@@ -1,0 +1,48 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+ORM::Factory.set-allow-class-lookup(False);
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: {
+    .factory: 'user', {
+      .fname: 'Greg';
+      .email: { .fname ~ '@example.com' };
+    };
+  };
+
+  my $attr = ORM::Factory.factory-by-name('user').attributes[1];
+
+  ok $attr.dynamic,
+    'captures the dependent attribute as dynamic';
+
+  isa-ok $attr.block, Callable,
+    'stores the block unchanged';
+
+  my $eval-stub = class :: { method fname { 'Greg' } }.new;
+  is $attr.block.($eval-stub), 'Greg@example.com',
+    'invoking the block with a stand-in evaluator resolves the reference';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: {
+    .factory: 'user', {
+      .fname:    'Greg';
+      .lname:    'Donald';
+      .email:    { .fname ~ '@example.com' };
+      .nickname: { .fname.lc };
+    };
+  };
+
+  is-deeply
+    ORM::Factory.factory-by-name('user').attributes.map(*.name).List,
+    List.new('fname', 'lname', 'email', 'nickname'),
+    'preserves the order of dependent and non-dependent attributes';
+}
+
+ORM::Factory.set-allow-class-lookup(True);
+done-testing;

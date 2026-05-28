@@ -1,0 +1,100 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+class User {
+  has Str $.fname;
+  has Str $.lname;
+}
+
+class Admin {
+  has Str $.role;
+}
+
+# In a normal compunit (prove6 .rakutest), top-level class declarations are
+# stored in GLOBAL, so name-based inference resolves them.
+ok GLOBAL::{'User'}:exists,
+  'sanity: User is in GLOBAL when declared at compunit top level';
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.set-allow-class-lookup(True);
+
+  ORM::Factory.define: {
+    .factory: 'user', { ; };
+  };
+
+  is ORM::Factory.factory-by-name('user').class-name, 'User',
+    'inference derives the camelized class name';
+
+  is ORM::Factory.factory-by-name('user').class.^name, 'User',
+    'inference resolves the User class from GLOBAL';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.set-allow-class-lookup(False);
+
+  ORM::Factory.define: {
+    .factory: 'super-admin',   { ; };
+    .factory: 'team_lead',     { ; };
+    .factory: 'top-level_mix', { ; };
+  };
+
+  is ORM::Factory.factory-by-name('super-admin').class-name, 'SuperAdmin',
+    'camelize: kebab splits on hyphen';
+
+  is ORM::Factory.factory-by-name('team_lead').class-name, 'TeamLead',
+    'camelize: snake splits on underscore';
+
+  is ORM::Factory.factory-by-name('top-level_mix').class-name, 'TopLevelMix',
+    'camelize: mixed kebab + snake';
+
+  ORM::Factory.set-allow-class-lookup(True);
+}
+
+{
+  ORM::Factory.reload;
+
+  ORM::Factory.define: {
+    .factory: 'super-admin', :class(Admin), { ; };
+  };
+
+  isa-ok ORM::Factory.factory-by-name('super-admin').class, Admin,
+    'explicit :class override stores the supplied class';
+
+  is ORM::Factory.factory-by-name('super-admin').class-name, 'SuperAdmin',
+    'explicit :class still computes the inferred class-name';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.set-allow-class-lookup(False);
+
+  ORM::Factory.define: {
+    .factory: 'user', { ; };
+  };
+
+  nok ORM::Factory.factory-by-name('user').class.defined,
+    'allow-class-lookup toggle off leaves the class undefined';
+
+  ORM::Factory.set-allow-class-lookup(True);
+}
+
+{
+  ORM::Factory.reload;
+
+  ORM::Factory.define: {
+    .factory: 'phantom-thing', { ; };
+  };
+
+  nok ORM::Factory.factory-by-name('phantom-thing').class.defined,
+    'class stays undefined when no class matches';
+
+  dies-ok {
+    ORM::Factory.factory-by-name('phantom-thing').lookup-class;
+  }, 'lookup-class raises X::ORM::Factory::UnknownClass on miss';
+}
+
+done-testing;

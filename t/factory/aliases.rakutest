@@ -1,0 +1,81 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+ORM::Factory.set-allow-class-lookup(False);
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: {
+    .factory: 'user', :aliases<author commenter>, {
+      .fname: 'Greg';
+    };
+  };
+
+  is-deeply
+    ORM::Factory.factory-by-name('user').aliases.List,
+    List.new('author', 'commenter'),
+    'records the aliases on the definition';
+
+  is ORM::Factory.aliases<author>, 'user',
+    'registers each alias in the global alias map';
+
+  is ORM::Factory.factory-by-name('author').name, 'user',
+    'looks up the factory by its alias';
+
+  ok ORM::Factory.factory-by-name('commenter') === ORM::Factory.factory-by-name('user'),
+    'returns the same FactoryDefinition for alias and canonical name';
+}
+
+{
+  ORM::Factory.reload;
+
+  dies-ok {
+    ORM::Factory.define: {
+      .factory: 'user',  { ; };
+      .factory: 'other', :aliases<user>, { ; };
+    };
+  }, 'rejects an alias that already names another factory';
+}
+
+{
+  ORM::Factory.reload;
+
+  dies-ok {
+    ORM::Factory.define: {
+      .factory: 'user',  :aliases<author>, { ; };
+      .factory: 'other', :aliases<author>, { ; };
+    };
+  }, 'rejects two factories claiming the same alias';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: {
+    .factory: 'user', :aliases<author>, { ; };
+  };
+
+  dies-ok {
+    ORM::Factory.define: {
+      .factory: 'author', { ; };
+    };
+  }, 'rejects a factory name that collides with an existing alias';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: {
+    .factory: 'user', :aliases<author>, { ; };
+  };
+  ORM::Factory.reload;
+
+  is ORM::Factory.aliases.elems, 0, 'reload clears aliases';
+
+  dies-ok {
+    ORM::Factory.factory-by-name('author');
+  }, 'lookup by old alias raises X::ORM::Factory::UnknownFactory';
+}
+
+ORM::Factory.set-allow-class-lookup(True);
+done-testing;

@@ -1,0 +1,63 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+class Greeting {
+  has Str $.text is rw;
+}
+
+sub fresh-registry {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(True);
+
+  ORM::Factory.define: {
+    .factory: 'greeting', {
+      .transient: {
+        .upcase: False;
+        .who:    'World';
+      };
+
+      .text: { .upcase ?? "HELLO, {.who.uc}" !! "Hello, {.who}" };
+    };
+  };
+}
+
+{
+  fresh-registry;
+
+  my @attrs = ORM::Factory.factory-by-name('greeting').attributes;
+
+  is-deeply
+    @attrs.grep(*.transient).map(*.name).List,
+    ('upcase', 'who'),
+    'transient block marks its attributes transient';
+
+  is-deeply
+    @attrs.grep(!*.transient).map(*.name).List,
+    ('text',),
+    'non-transient attributes are not marked transient';
+
+  is ORM::Factory.build('greeting').text, 'Hello, World',
+    'dynamic attribute reads transient values via the evaluator';
+
+  is ORM::Factory.build('greeting', :who<Greg>).text, 'Hello, Greg',
+    'overriding a transient flows through dependent attributes';
+
+  is ORM::Factory.build('greeting', :upcase(True)).text, 'HELLO, WORLD',
+    'overriding a transient Bool flips a conditional branch';
+
+  is-deeply
+    ORM::Factory.attributes-for('greeting').keys.sort.List,
+    ('text',),
+    'attributes-for excludes transient attributes';
+
+  is ORM::Factory.attributes-for('greeting')<text>, 'Hello, World',
+    'attributes-for still evaluates non-transient dynamics';
+
+  isa-ok ORM::Factory.build('greeting'), Greeting,
+    'transient values are not passed to the model constructor';
+}
+
+done-testing;

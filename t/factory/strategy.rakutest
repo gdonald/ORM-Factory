@@ -1,0 +1,21 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+use ORM::Factory::Persistence::Generic;
+
+my $persistence = ORM::Factory::Persistence::Generic.new;
+
+is ORM::Factory::BuildStrategy.new(:$persistence).to-sym,         'build',         'BuildStrategy.to-sym';
+is ORM::Factory::CreateStrategy.new(:$persistence).to-sym,        'create',        'CreateStrategy.to-sym';
+is ORM::Factory::AttributesForStrategy.new(:$persistence).to-sym, 'attributes-for', 'AttributesForStrategy.to-sym';
+is ORM::Factory::BuildStubbedStrategy.new(:$persistence).to-sym,  'build-stubbed', 'BuildStubbedStrategy.to-sym';
+
+ok ORM::Factory::BuildStrategy.new(:$persistence)         ~~ ORM::Factory::Strategy, 'BuildStrategy does Strategy';
+ok ORM::Factory::AttributesForStrategy.new(:$persistence) ~~ ORM::Factory::Strategy, 'AttributesForStrategy does Strategy';
+
+dies-ok {
+  ORM::Factory::BuildStrategy.new(:$persistence).association('any');
+}, 'association placeholder raises until associations land';
+
+done-testing;

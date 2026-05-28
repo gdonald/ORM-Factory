@@ -1,0 +1,115 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+ORM::Factory.set-allow-class-lookup(False);
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: {
+    .sequence: 'email', -> $n { "user{$n}\@example.com" };
+  };
+
+  is ORM::Factory.generate('email'), 'user1@example.com',
+    'global sequence with block generates the first value';
+
+  is ORM::Factory.generate('email'), 'user2@example.com',
+    'global sequence increments on each call';
+
+  is-deeply ORM::Factory.generate-list('email', 3).List,
+    ('user3@example.com', 'user4@example.com', 'user5@example.com'),
+    'generate-list returns N successive values';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: { .sequence: 'counter'; };
+
+  is ORM::Factory.generate('counter'), 1, 'sequence without a block returns the raw counter';
+  is ORM::Factory.generate('counter'), 2, 'counter increments';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: { .sequence: 'id', :start(1000); };
+
+  is ORM::Factory.generate('id'), 1000, 'custom numeric start';
+  is ORM::Factory.generate('id'), 1001, 'increments from start';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: { .sequence: 'letter', :start('a'); };
+
+  is ORM::Factory.generate('letter'), 'a', 'custom string start';
+  is ORM::Factory.generate('letter'), 'b', 'advances via .succ';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: {
+    .sequence: 'a';
+    .sequence: 'b';
+  };
+  ORM::Factory.generate('a');
+  ORM::Factory.generate('a');
+  ORM::Factory.generate('b');
+  ORM::Factory.rewind-sequences;
+
+  is ORM::Factory.generate('a'), 1, 'rewind-sequences resets sequence a';
+  is ORM::Factory.generate('b'), 1, 'rewind-sequences resets sequence b';
+}
+
+{
+  ORM::Factory.reload;
+  dies-ok { ORM::Factory.generate('ghost') },
+    'unknown sequence raises X::ORM::Factory::UnknownSequence';
+}
+
+{
+  ORM::Factory.reload;
+  dies-ok {
+    ORM::Factory.define: { .sequence: 'email', -> $n { "a$n" }; };
+    ORM::Factory.define: { .sequence: 'email', -> $n { "b$n" }; };
+  }, 'duplicate global sequence raises X::ORM::Factory::DuplicateSequence';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: {
+    .sequence: 'fib', :iterator((1, 1, *+* ... *).iterator);
+  };
+
+  is-deeply ORM::Factory.generate-list('fib', 5).List, (1, 1, 2, 3, 5),
+    'sequence from a custom iterator';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: { .sequence: 'email'; };
+  ORM::Factory.reload;
+
+  is ORM::Factory.sequences.elems, 0, 'reload clears sequences';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.define: {
+    .factory: 'thing', :class(Hash), {
+      .sequence: 'token', -> $n { "tok-$n" };
+    };
+  };
+
+  is ORM::Factory.factory-by-name('thing').attributes[0].name, 'token',
+    'inline sequence binds as an attribute on the factory';
+
+  is ORM::Factory.attributes-for('thing')<token>, 'tok-1',
+    'first build produces the first value';
+
+  is ORM::Factory.attributes-for('thing')<token>, 'tok-2',
+    'second build advances the counter';
+}
+
+ORM::Factory.set-allow-class-lookup(True);
+done-testing;

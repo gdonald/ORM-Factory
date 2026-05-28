@@ -1,0 +1,72 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+class Profile {
+  has Str  $.fname is rw;
+  has Str  $.email is rw;
+  has Str  $.nick  is rw;
+  has Bool $.saved is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+sub fresh-registry {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(True);
+
+  ORM::Factory.define: {
+    .factory: 'profile', {
+      .fname: 'Greg';
+      .email: { .fname.lc ~ '@example.com' };
+      .nick:  'gd';
+    };
+  };
+}
+
+{
+  fresh-registry;
+  is ORM::Factory.build('profile', :fname<Alice>).fname, 'Alice',
+    'static override of a static attribute replaces the value';
+  is ORM::Factory.build('profile', :fname<Alice>).nick, 'gd',
+    'static override leaves other attributes unchanged';
+}
+
+{
+  fresh-registry;
+  is ORM::Factory.build('profile', :email<x@y.z>).email, 'x@y.z',
+    'static override of a dynamic attribute replaces the block';
+}
+
+{
+  fresh-registry;
+  my $obj = ORM::Factory.build('profile', :fname<Alice>, :nick({ .fname.uc }));
+  is $obj.nick, 'ALICE',
+    'block override of a static attribute evaluated in the evaluator context';
+}
+
+{
+  fresh-registry;
+  my $obj = ORM::Factory.build('profile', :email({ 'literal@example.com' }));
+  is $obj.email, 'literal@example.com',
+    'block override of a dynamic attribute replaces the original block';
+}
+
+{
+  fresh-registry;
+  is ORM::Factory.build('profile', :fname<Alice>).email, 'alice@example.com',
+    'a dependent attribute sees the overridden value';
+}
+
+{
+  fresh-registry;
+  is ORM::Factory.attributes-for('profile', :fname<Carol>)<fname>, 'Carol',
+    'attributes-for sees the override';
+  is ORM::Factory.create('profile', :fname<Carol>).fname, 'Carol',
+    'create sees the override';
+  is ORM::Factory.build-stubbed('profile', :fname<Carol>).fname, 'Carol',
+    'build-stubbed sees the override';
+}
+
+done-testing;

@@ -32,6 +32,58 @@ A *static* attribute takes any non-`Callable` value: `.fname: 'Greg'`. A
 *dynamic* attribute takes a single `Callable` and is evaluated lazily:
 `.email: { 'user@example.com' }`.
 
+## Class inference and overrides
+
+`ORM::Factory` camelizes the factory name (`'user'` → `User`, `'super-admin'` →
+`SuperAdmin`, `'team_lead'` → `TeamLead`) and looks the result up in `GLOBAL`.
+A top-level `class User { … }` in any compunit will be found.
+
+When the camelized name doesn't match your class — or the class lives in a
+namespace — pass it explicitly:
+
+```perl6
+ORM::Factory.define: {
+  .factory: 'super-admin', :class(MyApp::Admin), {
+    .role: 'admin';
+  };
+};
+```
+
+To turn off name-based inference entirely (e.g. you only want explicit
+classes):
+
+```perl6
+ORM::Factory.set-allow-class-lookup(False);
+```
+
+`lookup-class` on a `FactoryDefinition` raises
+`X::ORM::Factory::UnknownClass` if the class can't be resolved and no
+override was supplied.
+
+> behave EVALs each spec file. `our class Foo { … }` declared during EVAL
+> does **not** land in `GLOBAL` the way a normal compunit does, so name
+> inference may miss it. In behave specs, either bind explicitly
+> (`BEGIN GLOBAL::<Foo> := Foo;`) or pass `:class(Foo)` per factory.
+
+## Aliases
+
+A factory can be registered under additional names:
+
+```perl6
+ORM::Factory.define: {
+  .factory: 'user', :aliases<author commenter>, {
+    .fname: 'Greg';
+  };
+};
+
+say ORM::Factory.factory-by-name('author').name;   # 'user'
+say ORM::Factory.aliases<commenter>;               # 'user'
+```
+
+Aliases collide with both factory names and other aliases — the
+duplicate-registration guard raises `X::ORM::Factory::DuplicateAlias` if you
+try to claim a name that's already in use.
+
 ## Reading the registry
 
 Definitions land in a process-global registry keyed by name:

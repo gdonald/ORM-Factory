@@ -1,0 +1,83 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+class Item {
+  has Str  $.label is rw;
+  has Str  $.role  is rw;
+  has Int  $.index is rw;
+  has Bool $.saved is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+sub fresh-registry {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(True);
+
+  ORM::Factory.define: {
+    .factory: 'item', {
+      .label: 'default';
+
+      .variant: 'admin', {
+        .role: 'admin';
+      };
+    };
+  };
+}
+
+{
+  fresh-registry;
+
+  is ORM::Factory.build-list('item', 3).elems, 3, 'build-list returns N instances';
+  isa-ok ORM::Factory.build-list('item', 2)[0], Item, 'build-list yields the factory class';
+  nok ORM::Factory.build-list('item', 2)[0].saved, 'build-list does not save';
+  is ORM::Factory.build-list('item', 2, 'admin')[0].role, 'admin',
+    'build-list applies a positional variant to every instance';
+  is ORM::Factory.build-list('item', 2, :label<X>)[1].label, 'X',
+    'build-list applies overrides to every instance';
+
+  my @list = ORM::Factory.build-list('item', 3, -> $it, $i { $it.index = $i });
+  is-deeply @list.map(*.index).List, (0, 1, 2),
+    'build-list block form runs once per instance with its index';
+}
+
+{
+  fresh-registry;
+  my @list = ORM::Factory.create-list('item', 2);
+  is @list.map(*.saved).grep(?*).elems, 2,
+    'create-list returns N persisted instances';
+}
+
+{
+  fresh-registry;
+  is ORM::Factory.build-stubbed-list('item', 2).elems, 2,
+    'build-stubbed-list returns N stubbed instances';
+  nok ORM::Factory.build-stubbed-list('item', 2)[0].saved,
+    'build-stubbed-list does not persist with Generic adapter';
+}
+
+{
+  fresh-registry;
+  is ORM::Factory.attributes-for-list('item', 3).elems, 3,
+    'attributes-for-list returns N hashes';
+  is ORM::Factory.attributes-for-list('item', 1)[0]<label>, 'default',
+    'attributes-for-list contains the resolved attributes';
+}
+
+{
+  fresh-registry;
+  is ORM::Factory.build-pair('item').elems, 2,
+    'build-pair returns two instances';
+  ok ORM::Factory.create-pair('item')[0].saved,
+    'create-pair returns two persisted instances';
+
+  my @v = ORM::Factory.build-pair('item', 'admin', :label<X>);
+  is @v[0].role, 'admin', 'pair forms accept variants and overrides';
+
+  my @b = ORM::Factory.build-pair('item', -> $it, $i { $it.index = $i });
+  is @b[1].index, 1, 'pair forms accept the block form';
+}
+
+done-testing;

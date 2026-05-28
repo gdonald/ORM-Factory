@@ -3,6 +3,10 @@ nav:
   - Home: index.md
   - Getting started: getting-started.md
   - DSL design: dsl-design.md
+  - Build strategies: build-strategies.md
+  - Sequences: sequences.md
+  - Transient attributes: transient.md
+  - Persistence: persistence.md
   - Tests: tests.md
 theme:
   name: 'material'
