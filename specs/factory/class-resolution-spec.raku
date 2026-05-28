@@ -121,7 +121,7 @@ describe 'factory class resolution', {
     it 'lookup-class raises X::ORM::Factory::UnknownClass', {
       expect({
         ORM::Factory.factory-by-name('phantom-thing').lookup-class;
-      }).to.throw(X::ORM::Factory::UnknownClass);
+      }).to.raise-error(X::ORM::Factory::UnknownClass);
     }
   }
 }

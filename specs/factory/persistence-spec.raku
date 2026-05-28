@@ -41,7 +41,7 @@ describe 'ORM::Factory::Persistence::Generic', {
     }
 
     it 'raises a clear error when no class is set', {
-      expect({ $adapter.instantiate(Mu, %()) }).to.throw;
+      expect({ $adapter.instantiate(Mu, %()) }).to.raise-error;
     }
   }
 
@@ -60,7 +60,7 @@ describe 'ORM::Factory::Persistence::Generic', {
 
     it 'raises a clear error when neither method exists', {
       my $inst = PlainNoPersistence.new(name => 'X');
-      expect({ $adapter.persist($inst) }).to.throw;
+      expect({ $adapter.persist($inst) }).to.raise-error;
     }
   }
 

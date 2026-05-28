@@ -106,7 +106,7 @@ describe 'sequences', {
 
   context 'unknown sequence', {
     it 'raises X::ORM::Factory::UnknownSequence', {
-      expect({ ORM::Factory.generate('ghost') }).to.throw(X::ORM::Factory::UnknownSequence);
+      expect({ ORM::Factory.generate('ghost') }).to.raise-error(X::ORM::Factory::UnknownSequence);
     }
   }
 
@@ -119,7 +119,7 @@ describe 'sequences', {
         ORM::Factory.define: {
           .sequence: 'email', -> $n { "b$n" };
         };
-      }).to.throw(X::ORM::Factory::DuplicateSequence);
+      }).to.raise-error(X::ORM::Factory::DuplicateSequence);
     }
   }
 

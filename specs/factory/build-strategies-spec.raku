@@ -97,7 +97,7 @@ describe 'core build strategies', {
     }
 
     it 'unknown variant raises X::ORM::Factory::UnknownVariant', {
-      expect({ ORM::Factory.build('person', 'ghost') }).to.throw(X::ORM::Factory::UnknownVariant);
+      expect({ ORM::Factory.build('person', 'ghost') }).to.raise-error(X::ORM::Factory::UnknownVariant);
     }
   }
 }

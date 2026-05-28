@@ -39,7 +39,7 @@ describe 'strategy plumbing', {
     it 'association raises until associations land', {
       expect({
         ORM::Factory::BuildStrategy.new(:$persistence).association('any');
-      }).to.throw(X::ORM::Factory::UsageError);
+      }).to.raise-error(X::ORM::Factory::UsageError);
     }
   }
 }

@@ -25,7 +25,7 @@ describe 'ORM::Factory.define', {
     }
 
     it 'raises on unknown factory lookup', {
-      expect({ ORM::Factory.factory-by-name('ghost') }).to.throw;
+      expect({ ORM::Factory.factory-by-name('ghost') }).to.raise-error;
     }
 
     it 'raises on duplicate factory registration', {
@@ -33,7 +33,7 @@ describe 'ORM::Factory.define', {
         ORM::Factory.define: {
           .factory: 'user', { ; };
         };
-      }).to.throw;
+      }).to.raise-error;
     }
   }
 
@@ -128,7 +128,7 @@ describe 'ORM::Factory.define', {
             .variant: 'admin', { ; };
           };
         };
-      }).to.throw;
+      }).to.raise-error;
     }
   }
 

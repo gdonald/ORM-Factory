@@ -46,7 +46,7 @@ describe 'factory aliases', {
           .factory: 'user',  { ; };
           .factory: 'other', :aliases<user>, { ; };
         };
-      }).to.throw(X::ORM::Factory::DuplicateAlias);
+      }).to.raise-error(X::ORM::Factory::DuplicateAlias);
     }
 
     it 'rejects two factories claiming the same alias', {
@@ -55,7 +55,7 @@ describe 'factory aliases', {
           .factory: 'user',  :aliases<author>, { ; };
           .factory: 'other', :aliases<author>, { ; };
         };
-      }).to.throw(X::ORM::Factory::DuplicateAlias);
+      }).to.raise-error(X::ORM::Factory::DuplicateAlias);
     }
 
     it 'rejects a factory name that collides with an existing alias', {
@@ -66,7 +66,7 @@ describe 'factory aliases', {
         ORM::Factory.define: {
           .factory: 'author', { ; };
         };
-      }).to.throw(X::ORM::Factory::DuplicateAlias);
+      }).to.raise-error(X::ORM::Factory::DuplicateAlias);
     }
   }
 
@@ -83,7 +83,7 @@ describe 'factory aliases', {
     }
 
     it 'lookup by old alias raises X::ORM::Factory::UnknownFactory', {
-      expect({ ORM::Factory.factory-by-name('author') }).to.throw(X::ORM::Factory::UnknownFactory);
+      expect({ ORM::Factory.factory-by-name('author') }).to.raise-error(X::ORM::Factory::UnknownFactory);
     }
   }
 }
