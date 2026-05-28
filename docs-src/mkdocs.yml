@@ -13,6 +13,7 @@ nav:
   - Sequences: sequences.md
   - Transient attributes: transient.md
   - Inheritance: inheritance.md
+  - Variants: variants.md
   - Associations: associations.md
   - Persistence: persistence.md
   - Tests: tests.md

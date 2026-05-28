@@ -273,6 +273,16 @@ class FactoryBuilder {
     %!variants{$name} = VariantDefinition.new(:$name, :attributes($vb.attributes));
   }
 
+  method variants-for-enum(Str:D $attr-name, @values --> Nil) {
+    for @values -> $v {
+      my $vname = $v.Str;
+      my $vval  = $v;
+      self.variant($vname, -> $vb {
+        $vb.add-attribute($attr-name, $vval);
+      });
+    }
+  }
+
   method factory(Str:D $name, &block, *%opts --> Nil) {
     @!children.push: { :$name, :&block, :%opts };
   }
@@ -326,6 +336,8 @@ class DefinitionBuilder {
   has %.local-aliases;
   has %.sequences;
   has @.sequences-order;
+  has %.variants;
+  has @.variants-order;
 
   method sequence(Str:D $name, &block?, :$start = 1, Iterator :$iterator --> Nil) {
     die X::ORM::Factory::DuplicateSequence.new(
@@ -339,6 +351,20 @@ class DefinitionBuilder {
       :$iterator,
     );
     @!sequences-order.push: $name;
+  }
+
+  method variant(Str:D $name, &block --> Nil) {
+    die X::ORM::Factory::DuplicateVariant.new(
+      message => "global variant '$name' already defined"
+    ) if %!variants{$name}:exists;
+
+    my $vb = FactoryBuilder.new(:$name);
+    $vb.run(&block);
+    %!variants{$name} = VariantDefinition.new(
+      :$name,
+      :attributes($vb.attributes),
+    );
+    @!variants-order.push: $name;
   }
 
   method resolve-parent-factory(Str:D $parent) {
@@ -439,6 +465,7 @@ my Bool $ALLOW-CLASS-LOOKUP = True;
 my %FACTORIES;
 my %ALIASES;
 my %SEQUENCES;
+my %GLOBAL-VARIANTS;
 
 method allow-class-lookup(--> Bool) { $ALLOW-CLASS-LOOKUP }
 
@@ -453,6 +480,13 @@ method define(&block --> Nil) {
       message => "sequence '$name' already defined"
     ) if %SEQUENCES{$name}:exists;
     %SEQUENCES{$name} = $db.sequences{$name};
+  }
+
+  for $db.variants-order -> $name {
+    die X::ORM::Factory::DuplicateVariant.new(
+      message => "global variant '$name' already defined"
+    ) if %GLOBAL-VARIANTS{$name}:exists;
+    %GLOBAL-VARIANTS{$name} = $db.variants{$name};
   }
 
   for $db.factories-order -> $name {
@@ -537,12 +571,15 @@ method factory-exists(Str:D $name --> Bool) {
 }
 
 method reload(--> Nil) {
-  %FACTORIES = ();
-  %ALIASES   = ();
-  %SEQUENCES = ();
+  %FACTORIES        = ();
+  %ALIASES          = ();
+  %SEQUENCES        = ();
+  %GLOBAL-VARIANTS  = ();
 }
 
 method sequences(--> Hash) { %SEQUENCES }
+
+method variants(--> Hash) { %GLOBAL-VARIANTS }
 
 method generate(Str:D $name) {
   die X::ORM::Factory::UnknownSequence.new(
@@ -601,6 +638,30 @@ sub find-variant-in-chain(FactoryDefinition $factory, Str:D $name) {
   Nil;
 }
 
+sub find-variant-anywhere(FactoryDefinition $factory, Str:D $name) {
+  my $local = find-variant-in-chain($factory, $name);
+  return $local with $local;
+  %GLOBAL-VARIANTS{$name}:exists ?? %GLOBAL-VARIANTS{$name} !! Nil;
+}
+
+sub is-known-variant(FactoryDefinition $factory, Str:D $name --> Bool) {
+  find-variant-anywhere($factory, $name).defined;
+}
+
+sub split-bare-variant-refs(FactoryDefinition $factory, @input --> List) {
+  my @attrs;
+  my @bare-applied;
+  for @input -> $a {
+    if !$a.dynamic && !$a.has-value && !$a.association
+         && is-known-variant($factory, $a.name) {
+      @bare-applied.push: $a.name;
+    } else {
+      @attrs.push: $a;
+    }
+  }
+  (@attrs, @bare-applied);
+}
+
 sub merge-variants(FactoryDefinition $factory, @runtime-variants --> Array) {
   my @chain = resolve-chain($factory);
 
@@ -612,20 +673,37 @@ sub merge-variants(FactoryDefinition $factory, @runtime-variants --> Array) {
     }
   }
 
+  my ($keep, $bare-applied) = split-bare-variant-refs($factory, @attrs);
+  @attrs = $keep.list;
+
   my @applied;
   for @chain -> $f { @applied.append: $f.applied-variants.list }
+  @applied.append: $bare-applied.list;
   @applied.append: @runtime-variants;
 
-  for @applied -> $vname {
-    my $variant = find-variant-in-chain($factory, $vname);
+  sub apply-variant-rec(Str:D $vname, @cycle is copy) {
+    return if @cycle.first(* eq $vname).defined;
+    @cycle.push: $vname;
+
+    my $variant = find-variant-anywhere($factory, $vname);
     die X::ORM::Factory::UnknownVariant.new(
       message => "no variant '$vname' on factory '{$factory.name}'"
     ) without $variant;
 
-    for $variant.attributes.list -> $a {
+    my ($v-attrs, $v-bare-applied) = split-bare-variant-refs($factory, $variant.attributes);
+
+    for $v-bare-applied.list -> $nested {
+      apply-variant-rec($nested, @cycle);
+    }
+
+    for $v-attrs.list -> $a {
       @attrs = @attrs.grep(*.name ne $a.name).Array;
       @attrs.push: $a;
     }
+  }
+
+  for @applied -> $vname {
+    apply-variant-rec($vname, []);
   }
 
   @attrs;

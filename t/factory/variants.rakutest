@@ -1,0 +1,322 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+class User {
+  has Str  $.fname    is rw;
+  has Str  $.role     is rw;
+  has Str  $.status   is rw;
+  has Str  $.greeting is rw;
+  has Bool $.flag     is rw;
+  has Bool $.saved    is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+class Post {
+  has Str  $.title  is rw;
+  has User $.author is rw;
+  has Bool $.saved  is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+sub fresh {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(False);
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .variant: 'admin', { .role: 'admin' };
+    };
+  };
+
+  nok ORM::Factory.build('user').role.defined,
+    'no role without the variant';
+
+  is ORM::Factory.build('user', 'admin').role, 'admin',
+    'build applies the variant when named';
+
+  is ORM::Factory.create('user', 'admin').role, 'admin',
+    'create applies the variant';
+
+  is ORM::Factory.build-stubbed('user', 'admin').role, 'admin',
+    'build-stubbed applies the variant';
+
+  is ORM::Factory.attributes-for('user', 'admin')<role>, 'admin',
+    'attributes-for applies the variant';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .variant: 'admin',  { .role: 'admin' };
+      .variant: 'guest',  { .role: 'guest' };
+      .variant: 'active', { .status: 'active' };
+    };
+  };
+
+  is ORM::Factory.build('user', 'admin', 'guest').role, 'guest',
+    'multiple variants: later wins on overlap';
+
+  is ORM::Factory.build('user', 'admin', 'active').role, 'admin',
+    'multiple variants: non-overlapping earlier preserved';
+
+  is ORM::Factory.build('user', 'admin', 'active').status, 'active',
+    'multiple variants: non-overlapping later applied';
+
+  is ORM::Factory.build('user', 'guest', 'admin').role, 'admin',
+    'reversed order flips precedence';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .variant: 'admin', { .role: 'admin' };
+    };
+  };
+
+  is ORM::Factory.build('user').role, 'member',
+    'base attribute without variant';
+
+  is ORM::Factory.build('user', 'admin').role, 'admin',
+    'variant overrides the base attribute';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), { .fname: 'Greg' };
+
+    .factory: 'post', :class(Post), {
+      .title: 'Hello';
+      .variant: 'authored', {
+        .association: 'author', :factory<user>;
+      };
+    };
+  };
+
+  nok ORM::Factory.build('post').author.defined,
+    'no association without the variant';
+
+  isa-ok ORM::Factory.build('post', 'authored').author, User,
+    'variant adds the association';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .greeting: { "Hello, {.salute}" };
+      .variant: 'shouty', {
+        .transient: { .salute: 'WORLD' };
+      };
+    };
+  };
+
+  is ORM::Factory.build('user', 'shouty').greeting, 'Hello, WORLD',
+    'variant transient default flows into dynamic attribute';
+
+  is-deeply ORM::Factory.attributes-for('user', 'shouty').keys.sort.List,
+    ('fname', 'greeting'),
+    'attributes-for excludes the variant-added transient';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .variant: 'active', { .status: 'active' };
+      .variant: 'admin',  { .active; .role: 'admin' };
+    };
+  };
+
+  is ORM::Factory.build('user', 'admin').status, 'active',
+    'nested variant reference: inner applied';
+
+  is ORM::Factory.build('user', 'admin').role, 'admin',
+    'nested variant reference: outer also applied';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .variant: 'a', { .b; .role: 'a' };
+      .variant: 'b', { .a; .status: 'b' };
+    };
+  };
+
+  is ORM::Factory.build('user', 'a').role, 'a',
+    'cyclic variant: applying one endpoint sets its attribute';
+
+  is ORM::Factory.build('user', 'a').status, 'b',
+    'cyclic variant: other side runs once';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .variant: 'admin',  { .role: 'admin' };
+      .variant: 'active', { .status: 'active' };
+
+      .factory: 'admin-active-user', {
+        .admin;
+        .active;
+      };
+    };
+  };
+
+  is ORM::Factory.build('admin-active-user').fname, 'Greg',
+    'composed-of-variants factory inherits parent attributes';
+
+  is ORM::Factory.build('admin-active-user').role, 'admin',
+    'composed-of-variants factory applies first variant';
+
+  is ORM::Factory.build('admin-active-user').status, 'active',
+    'composed-of-variants factory applies second variant';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .variant: 'admin', { .role: 'admin' };
+    };
+  };
+
+  is-deeply
+    ORM::Factory.build-list('user', 3, 'admin').map(*.role).List,
+    ('admin', 'admin', 'admin'),
+    'build-list applies the variant to every element';
+
+  is-deeply
+    ORM::Factory.create-list('user', 2, 'admin').map(*.role).List,
+    ('admin', 'admin'),
+    'create-list applies the variant to every element';
+
+  is-deeply
+    ORM::Factory.build-stubbed-list('user', 2, 'admin').map(*.role).List,
+    ('admin', 'admin'),
+    'build-stubbed-list applies the variant to every element';
+
+  is-deeply
+    ORM::Factory.attributes-for-list('user', 2, 'admin').map(*<role>).List,
+    ('admin', 'admin'),
+    'attributes-for-list applies the variant to every element';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .variant: 'greeted', {
+        .transient: { .salute: 'World' };
+        .greeting:  { "Hello, {.salute}" };
+      };
+    };
+  };
+
+  is ORM::Factory.build('user', 'greeted').greeting, 'Hello, World',
+    'parameterised variant uses transient default';
+
+  is ORM::Factory.build('user', 'greeted', :salute<Greg>).greeting,
+    'Hello, Greg',
+    'caller override of variant transient flows into dynamic attribute';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .variant: 'flagged', { .flag: True };
+
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+    };
+  };
+
+  ok ORM::Factory.variants<flagged>.defined,
+    'global variant is registered';
+
+  ok ORM::Factory.build('user', 'flagged').flag,
+    'applies the global variant at build time';
+
+  dies-ok {
+    ORM::Factory.define: {
+      .variant: 'flagged', { .flag: False };
+    };
+  }, 'duplicate global variant raises';
+
+  ORM::Factory.reload;
+  is ORM::Factory.variants.elems, 0, 'reload clears global variants';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .variant: 'flagged', { .flag: True };
+
+    .factory: 'flagged-user', :class(User), {
+      .fname: 'Greg';
+      .flagged;
+    };
+  };
+
+  ok ORM::Factory.build('flagged-user').flag,
+    'global variant composed into a factory body';
+
+  is ORM::Factory.build('flagged-user').fname, 'Greg',
+    'untouched attribute alongside composed global variant';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), { .fname: 'Greg' };
+  };
+
+  dies-ok { ORM::Factory.build('user', 'ghost') },
+    'unknown variant at build time raises';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .variants-for-enum: 'role', <admin guest member>;
+    };
+  };
+
+  is-deeply
+    ORM::Factory.factory-by-name('user').variants.keys.sort.List,
+    ('admin', 'guest', 'member'),
+    'variants-for-enum registers one variant per value';
+
+  is ORM::Factory.build('user', 'admin').role, 'admin',
+    'variants-for-enum: admin variant sets role to admin';
+
+  is ORM::Factory.build('user', 'guest').role, 'guest',
+    'variants-for-enum: guest variant sets role to guest';
+
+  is ORM::Factory.build('user', 'member').role, 'member',
+    'variants-for-enum: member variant sets role to member';
+}
+
+done-testing;
