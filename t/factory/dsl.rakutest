@@ -1,0 +1,144 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+sub reset-registry { ORM::Factory.reload }
+
+{
+  reset-registry;
+  ORM::Factory.define: {
+    .factory: 'user', { .fname: 'Greg'; };
+  };
+
+  ok ORM::Factory.factories<user>.defined,
+    'factory registration registers the named factory';
+
+  is ORM::Factory.factory-by-name('user').name, 'user',
+    'factory registration exposes the factory by name';
+
+  dies-ok { ORM::Factory.factory-by-name('ghost') },
+    'factory registration raises on unknown factory lookup';
+
+  dies-ok {
+    ORM::Factory.define: {
+      .factory: 'user', { ; };
+    };
+  }, 'factory registration raises on duplicate factory registration';
+}
+
+{
+  reset-registry;
+  ORM::Factory.define: {
+    .factory: 'user', {
+      .fname: 'Greg';
+      .lname: 'Donald';
+    };
+  };
+
+  is ORM::Factory.factory-by-name('user').attributes.elems, 2,
+    'static attribute capture records two attributes';
+
+  is-deeply
+    ORM::Factory.factory-by-name('user').attributes.map(*.name).list,
+    ('fname', 'lname'),
+    'static attribute capture preserves declaration order';
+
+  my @attrs = ORM::Factory.factory-by-name('user').attributes;
+  is @attrs.map(*.dynamic).grep(?*).elems, 0,
+    'static attribute capture marks static attributes as non-dynamic';
+
+  is @attrs[0].value, 'Greg',
+    'static attribute capture stores the literal static value';
+}
+
+{
+  reset-registry;
+  ORM::Factory.define: {
+    .factory: 'user', {
+      .email: { 'literal@example.com' };
+    };
+  };
+
+  my $attr = ORM::Factory.factory-by-name('user').attributes[0];
+
+  ok $attr.dynamic,
+    'dynamic block attribute marks block attributes as dynamic';
+
+  isa-ok $attr.block, Callable,
+    'dynamic block attribute captures the block';
+
+  is $attr.block.(), 'literal@example.com',
+    'dynamic block attribute block evaluates to its body';
+}
+
+{
+  reset-registry;
+  ORM::Factory.define: {
+    .factory: 'user', {
+      .fname: 'Greg';
+      .variant: 'admin', {
+        .role: 'admin';
+      };
+      .admin;
+    };
+  };
+
+  ok ORM::Factory.factory-by-name('user').variants<admin>.defined,
+    'variant definition and application registers the variant';
+
+  my @vattrs = ORM::Factory.factory-by-name('user').variants<admin>.attributes;
+  is @vattrs[0].name, 'role',
+    'variant definition and application records variant attributes';
+
+  is-deeply
+    ORM::Factory.factory-by-name('user').applied-variants.List,
+    List.new('admin'),
+    'variant definition and application tracks the bare-name variant application';
+
+  dies-ok {
+    ORM::Factory.reload;
+    ORM::Factory.define: {
+      .factory: 'user', {
+        .variant: 'admin', { ; };
+        .variant: 'admin', { ; };
+      };
+    };
+  }, 'variant definition and application raises on duplicate variant in the same factory';
+}
+
+{
+  reset-registry;
+  ORM::Factory.define: {
+    .factory: 'user', {
+      .add-attribute: 'factory', 'acme';
+    };
+  };
+
+  my $attr = ORM::Factory.factory-by-name('user').attributes[0];
+
+  is $attr.name, 'factory',
+    'add-attribute escape hatch records the colliding name as an attribute';
+
+  is $attr.value, 'acme',
+    'add-attribute escape hatch stores its static value';
+}
+
+{
+  reset-registry;
+  ORM::Factory.define: {
+    .factory: 'user', { ; };
+  };
+  ORM::Factory.reload;
+
+  is ORM::Factory.factories.elems, 0, 'reload clears the registry';
+
+  ORM::Factory.define: {
+    .factory: 'user', { ; };
+  };
+
+  is ORM::Factory.factory-by-name('user').name, 'user',
+    'reload allows redefining a previously-registered factory';
+}
+
+done-testing;

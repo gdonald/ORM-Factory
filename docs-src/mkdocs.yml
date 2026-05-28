@@ -1,0 +1,11 @@
+site_name: ORM::Factory
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - DSL design: dsl-design.md
+  - Tests: tests.md
+theme:
+  name: 'material'
+markdown_extensions:
+  - codehilite:
+      linenums: true
