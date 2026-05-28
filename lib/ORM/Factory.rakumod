@@ -124,9 +124,15 @@ class FactoryDefinition {
   has           %.variants;
   has Str       @.applied-variants;
   has Str       @.aliases;
+  has           $.parent-name;
+  has Bool      $.explicit-class = False;
 
   method lookup-class(--> Mu) {
     return $!class if $!class.^name ne 'Mu' && $!class.^name ne 'Any';
+
+    if $!parent-name.defined && !$!explicit-class {
+      return resolve-parent-class(self);
+    }
 
     my $found = resolve-class($!class-name);
     die X::ORM::Factory::UnknownClass.new(
@@ -145,6 +151,10 @@ class FactoryBuilder {
   has           %.variants;
   has Str       @.applied-variants;
   has Bool      $!in-transient = False;
+  has           $.parent-name;
+  has Bool      $.explicit-class = False;
+  has           $.parent-factory;
+  has           @.children;
 
   method add-attribute(Str:D $name, |c --> Nil) {
     my @pos = c.list;
@@ -197,12 +207,28 @@ class FactoryBuilder {
     %!variants{$name} = VariantDefinition.new(:$name, :attributes($vb.attributes));
   }
 
+  method factory(Str:D $name, &block, *%opts --> Nil) {
+    @!children.push: { :$name, :&block, :%opts };
+  }
+
   method run(&block --> Nil) {
     block(self);
   }
 
+  method has-variant(Str:D $name --> Bool) {
+    return True if %!variants{$name}:exists;
+    my $cur = $!parent-factory;
+    while $cur.defined {
+      return True if $cur.variants{$name}:exists;
+      my $pn = $cur.parent-name;
+      last without $pn;
+      $cur = lookup-factory-by-name($pn);
+    }
+    False;
+  }
+
   method FALLBACK($name, |c --> Nil) {
-    if %!variants{$name}:exists {
+    if self.has-variant($name) {
       die X::ORM::Factory::UsageError.new(
         message => "variant '$name' applied with arguments; bare .$name; applies a registered variant"
       ) if c.list.elems || c.hash.elems;
@@ -222,6 +248,8 @@ class FactoryBuilder {
       :variants(%!variants),
       :applied-variants(@!applied-variants),
       :aliases(@!aliases),
+      :$!parent-name,
+      :$!explicit-class,
     );
   }
 }
@@ -229,6 +257,7 @@ class FactoryBuilder {
 class DefinitionBuilder {
   has %.factories;
   has @.factories-order;
+  has %.local-aliases;
   has %.sequences;
   has @.sequences-order;
 
@@ -246,7 +275,15 @@ class DefinitionBuilder {
     @!sequences-order.push: $name;
   }
 
-  method factory(Str:D $name, &block, Mu :$class = Mu, :$aliases --> Nil) {
+  method resolve-parent-factory(Str:D $parent) {
+    my $real = %!local-aliases{$parent} // $parent;
+    return %!factories{$real} if %!factories{$real}:exists;
+
+    my $global-real = lookup-alias($parent) // $parent;
+    lookup-factory-by-name($global-real);
+  }
+
+  method factory(Str:D $name, &block, Mu :$class = Mu, :$aliases, :$parent --> Nil) {
     die X::ORM::Factory::DuplicateFactory.new(
       message => "factory '$name' already defined"
     ) if %!factories{$name}:exists;
@@ -256,18 +293,75 @@ class DefinitionBuilder {
       !! ();
 
     my $class-name = camelize($name);
+    my $explicit-class = $class !=== Mu;
 
     my $resolved-class = Mu;
-    if $class !=== Mu {
+    if $explicit-class {
       $resolved-class = $class;
-    } elsif ORM::Factory.allow-class-lookup {
+    } elsif !$parent.defined && ORM::Factory.allow-class-lookup {
       $resolved-class = resolve-class($class-name);
     }
 
-    my $fb = FactoryBuilder.new(:$name, :$class-name, :class($resolved-class), :@aliases);
+    my $parent-factory;
+    if $parent.defined {
+      $parent-factory = self.resolve-parent-factory($parent);
+      die X::ORM::Factory::UnknownFactory.new(
+        message => "parent factory '$parent' for '$name' is not defined"
+      ) without $parent-factory;
+    }
+
+    my $fb = FactoryBuilder.new(
+      :$name,
+      :$class-name,
+      :class($resolved-class),
+      :@aliases,
+      :parent-name($parent),
+      :$explicit-class,
+      :$parent-factory,
+    );
     $fb.run(&block);
     %!factories{$name} = $fb.compile;
     @!factories-order.push: $name;
+
+    for @aliases -> $a {
+      %!local-aliases{$a} = $name;
+    }
+
+    for $fb.children.list -> %child {
+      self.factory(%child<name>, %child<block>, |%child<opts>, :parent($name));
+    }
+  }
+
+  method run(&block --> Nil) {
+    block(self);
+  }
+}
+
+class ModifyBuilder {
+  has @.updates;
+
+  method factory(Str:D $name, &block --> Nil) {
+    my $existing = lookup-factory-by-name($name);
+    die X::ORM::Factory::UnknownFactory.new(
+      message => "no factory named '$name' to modify"
+    ) without $existing;
+
+    my $fb = FactoryBuilder.new(
+      :name($existing.name),
+      :class-name($existing.class-name),
+      :class($existing.class),
+      :parent-name($existing.parent-name),
+      :explicit-class($existing.explicit-class),
+      :parent-factory($existing.parent-name.defined
+        ?? lookup-factory-by-name($existing.parent-name) !! Nil),
+    );
+    $fb.run(&block);
+
+    die X::ORM::Factory::UsageError.new(
+      message => "cannot define nested factories inside modify"
+    ) if $fb.children.elems;
+
+    @!updates.push: { :existing($existing), :fb($fb) };
   }
 
   method run(&block --> Nil) {
@@ -323,6 +417,43 @@ method define(&block --> Nil) {
   }
 }
 
+method modify(&block --> Nil) {
+  my $mb = ModifyBuilder.new;
+  $mb.run(&block);
+
+  for $mb.updates.list -> %u {
+    my $existing = %u<existing>;
+    my $fb       = %u<fb>;
+    my $name     = $existing.name;
+
+    my @new-attrs = $existing.attributes.list.Array;
+    for $fb.attributes.list -> $a {
+      @new-attrs = @new-attrs.grep(*.name ne $a.name).Array;
+      @new-attrs.push: $a;
+    }
+
+    my %new-variants = $existing.variants;
+    for $fb.variants.kv -> $k, $v { %new-variants{$k} = $v }
+
+    my @new-applied = $existing.applied-variants.list.Array;
+    for $fb.applied-variants.list -> $av {
+      @new-applied.push: $av;
+    }
+
+    %FACTORIES{$name} = FactoryDefinition.new(
+      :name($existing.name),
+      :class-name($existing.class-name),
+      :class($existing.class),
+      :parent-name($existing.parent-name),
+      :explicit-class($existing.explicit-class),
+      :attributes(@new-attrs),
+      :variants(%new-variants),
+      :applied-variants(@new-applied),
+      :aliases($existing.aliases),
+    );
+  }
+}
+
 method factories(--> Hash) { %FACTORIES }
 
 method aliases(--> Hash) { %ALIASES }
@@ -358,12 +489,65 @@ method rewind-sequences(--> Nil) {
   for %SEQUENCES.values -> $seq { $seq.rewind }
 }
 
-sub merge-variants(FactoryDefinition $factory, @runtime-variants --> Array) {
-  my @attrs = $factory.attributes.list.Array;
-  my @all-variants = (|$factory.applied-variants, |@runtime-variants);
+sub lookup-alias(Str:D $name) {
+  %ALIASES{$name}:exists ?? %ALIASES{$name} !! Nil;
+}
 
-  for @all-variants -> $vname {
-    my $variant = $factory.variants{$vname};
+sub lookup-factory-by-name(Str:D $name) {
+  return %FACTORIES{$name} if %FACTORIES{$name}:exists;
+  my $aliased = %ALIASES{$name};
+  return Nil unless $aliased.defined;
+  return %FACTORIES{$aliased} if %FACTORIES{$aliased}:exists;
+  Nil;
+}
+
+sub resolve-parent-class(FactoryDefinition $factory --> Mu) {
+  return Mu unless $factory.parent-name.defined;
+  my $parent = lookup-factory-by-name($factory.parent-name);
+  die X::ORM::Factory::UnknownFactory.new(
+    message => "factory '{$factory.name}' has parent '{$factory.parent-name}' which is not defined"
+  ) without $parent;
+  $parent.lookup-class;
+}
+
+sub resolve-chain(FactoryDefinition $factory --> Array) {
+  my @chain = $factory,;
+  my $cur = $factory;
+  while $cur.parent-name.defined {
+    my $parent = lookup-factory-by-name($cur.parent-name);
+    die X::ORM::Factory::UnknownFactory.new(
+      message => "factory '{$cur.name}' has parent '{$cur.parent-name}' which is not defined"
+    ) without $parent;
+    @chain.unshift($parent);
+    $cur = $parent;
+  }
+  @chain;
+}
+
+sub find-variant-in-chain(FactoryDefinition $factory, Str:D $name) {
+  for resolve-chain($factory).reverse -> $f {
+    return $f.variants{$name} if $f.variants{$name}:exists;
+  }
+  Nil;
+}
+
+sub merge-variants(FactoryDefinition $factory, @runtime-variants --> Array) {
+  my @chain = resolve-chain($factory);
+
+  my @attrs;
+  for @chain -> $f {
+    for $f.attributes.list -> $a {
+      @attrs = @attrs.grep(*.name ne $a.name).Array;
+      @attrs.push: $a;
+    }
+  }
+
+  my @applied;
+  for @chain -> $f { @applied.append: $f.applied-variants.list }
+  @applied.append: @runtime-variants;
+
+  for @applied -> $vname {
+    my $variant = find-variant-in-chain($factory, $vname);
     die X::ORM::Factory::UnknownVariant.new(
       message => "no variant '$vname' on factory '{$factory.name}'"
     ) without $variant;

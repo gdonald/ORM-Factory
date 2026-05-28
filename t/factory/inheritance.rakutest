@@ -1,0 +1,212 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+class Person {
+  has Str  $.fname is rw;
+  has Str  $.email is rw;
+  has Str  $.role  is rw;
+  has Bool $.flag  is rw;
+}
+
+class Worker {
+  has Str $.title is rw;
+}
+
+sub fresh {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(True);
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'person', {
+      .fname: 'Greg';
+      .email: 'greg@example.com';
+
+      .factory: 'admin', {
+        .role: 'admin';
+      };
+    };
+  };
+
+  ok ORM::Factory.factories<admin>.defined,
+    'nested child factory is registered';
+
+  is ORM::Factory.factory-by-name('admin').parent-name, 'person',
+    'child records parent-name';
+
+  is ORM::Factory.build('admin').fname, 'Greg',
+    'child inherits parent fname';
+
+  is ORM::Factory.build('admin').email, 'greg@example.com',
+    'child inherits parent email';
+
+  is ORM::Factory.build('admin').role, 'admin',
+    'child has its own role';
+
+  is ORM::Factory.factory-by-name('admin').lookup-class, Person,
+    'child uses parent class by default';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'person', { .fname: 'Greg' };
+    .factory: 'admin-person', :parent('person'), { .fname: 'Admin Greg' };
+  };
+
+  is ORM::Factory.build('admin-person').fname, 'Admin Greg',
+    'child overrides parent attribute';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'person', {
+      .transient: {
+        .upcase: False;
+      };
+      .fname: { .upcase ?? 'GREG' !! 'Greg' };
+    };
+    .factory: 'admin-person', :parent('person'), { ; };
+  };
+
+  is ORM::Factory.build('admin-person').fname, 'Greg',
+    'child inherits parent transient default';
+
+  is ORM::Factory.build('admin-person', :upcase(True)).fname, 'GREG',
+    'override of inherited transient flows through';
+
+  is-deeply ORM::Factory.attributes-for('admin-person').keys.sort.List,
+    ('fname',),
+    'attributes-for on child excludes inherited transients';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'person', { .fname: 'Greg' };
+    .factory: 'manager', :parent('person'), { .role: 'manager' };
+  };
+
+  is ORM::Factory.factory-by-name('manager').parent-name, 'person',
+    'explicit :parent recorded';
+
+  is ORM::Factory.build('manager').fname, 'Greg',
+    'explicit parent inherits attribute';
+
+  is ORM::Factory.build('manager').role, 'manager',
+    'explicit parent child adds own attribute';
+
+  fresh;
+  dies-ok {
+    ORM::Factory.define: {
+      .factory: 'manager', :parent('ghost'), { ; };
+    };
+  }, 'unknown parent raises';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'person', { .fname: 'Greg' };
+    .factory: 'manager', :parent('person'), { .role: 'manager' };
+    .factory: 'cto', :parent('manager'), { .flag: True };
+  };
+
+  is ORM::Factory.build('cto').fname, 'Greg',
+    'multi-level chains grandparent attr';
+
+  is ORM::Factory.build('cto').role, 'manager',
+    'multi-level chains parent attr';
+
+  ok ORM::Factory.build('cto').flag,
+    'multi-level own attr';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'person', { .fname: 'Greg' };
+    .factory: 'admin-person', :parent('person'), { .role: 'admin' };
+    .factory: 'worker-person', :parent('person'), :class(Worker), { .title: 'Eng' };
+  };
+
+  is ORM::Factory.factory-by-name('admin-person').lookup-class, Person,
+    'child without :class uses parent class';
+
+  is ORM::Factory.factory-by-name('worker-person').lookup-class, Worker,
+    'child with :class overrides parent';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'person', {
+      .fname: 'Greg';
+      .variant: 'admin', { .role: 'admin' };
+    };
+    .factory: 'admin-person', :parent('person'), {
+      .admin;
+    };
+  };
+
+  is ORM::Factory.build('admin-person').role, 'admin',
+    'child applies parent-defined variant by bare name';
+
+  is ORM::Factory.build('admin-person').fname, 'Greg',
+    'parent attribute flows through with applied variant';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'person', {
+      .fname: 'Greg';
+      .email: 'greg@example.com';
+    };
+  };
+
+  ORM::Factory.modify: {
+    .factory: 'person', { .fname: 'Modified' };
+  };
+
+  is ORM::Factory.build('person').fname, 'Modified',
+    'modify overrides matched attribute';
+
+  is ORM::Factory.build('person').email, 'greg@example.com',
+    'modify leaves untouched attributes alone';
+
+  dies-ok {
+    ORM::Factory.modify: {
+      .factory: 'ghost', { ; };
+    };
+  }, 'modify of unknown factory raises';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'person', { .fname: 'Greg' };
+    .factory: 'admin-person', :parent('person'), { .role: 'admin' };
+  };
+
+  ORM::Factory.modify: {
+    .factory: 'person', { .fname: 'Patched' };
+  };
+
+  is ORM::Factory.build('admin-person').fname, 'Patched',
+    'child sees modified parent attribute';
+
+  is ORM::Factory.build('person').fname, 'Patched',
+    'parent build reflects modification';
+
+  is ORM::Factory.build('admin-person').role, 'admin',
+    'child-defined attribute is preserved through parent modify';
+}
+
+done-testing;

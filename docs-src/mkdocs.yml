@@ -6,6 +6,7 @@ nav:
   - Build strategies: build-strategies.md
   - Sequences: sequences.md
   - Transient attributes: transient.md
+  - Inheritance: inheritance.md
   - Persistence: persistence.md
   - Tests: tests.md
 theme:
