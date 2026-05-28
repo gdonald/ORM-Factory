@@ -4,9 +4,16 @@ nav:
   - Getting started: getting-started.md
   - DSL design: dsl-design.md
   - Build strategies: build-strategies.md
+  - Strategies: strategy.md
+  - Collections: collections.md
+  - Overrides: overrides.md
+  - Dependent attributes: dependent-attrs.md
+  - Aliases: aliases.md
+  - Class resolution: class-resolution.md
   - Sequences: sequences.md
   - Transient attributes: transient.md
   - Inheritance: inheritance.md
+  - Associations: associations.md
   - Persistence: persistence.md
   - Tests: tests.md
 theme:

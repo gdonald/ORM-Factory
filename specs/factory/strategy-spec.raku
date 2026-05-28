@@ -3,6 +3,12 @@ use BDD::Behave;
 use ORM::Factory;
 use ORM::Factory::Persistence::Generic;
 
+our class Tag {
+  has Str $.name is rw;
+}
+
+GLOBAL::<Tag> := Tag;
+
 describe 'strategy plumbing', {
   my $persistence;
   before-each { $persistence = ORM::Factory::Persistence::Generic.new; }
@@ -35,11 +41,10 @@ describe 'strategy plumbing', {
     }
   }
 
-  context 'association placeholder', {
-    it 'association raises until associations land', {
-      expect({
-        ORM::Factory::BuildStrategy.new(:$persistence).association('any');
-      }).to.raise-error(X::ORM::Factory::UsageError);
+  context 'association dispatch', {
+    it 'AttributesForStrategy.association returns Nil without persistence', {
+      my $result = ORM::Factory::AttributesForStrategy.new(:$persistence).association('tag', [], {});
+      expect($result).to.be(Nil);
     }
   }
 }

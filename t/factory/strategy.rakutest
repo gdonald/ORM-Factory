@@ -14,8 +14,7 @@ is ORM::Factory::BuildStubbedStrategy.new(:$persistence).to-sym,  'build-stubbed
 ok ORM::Factory::BuildStrategy.new(:$persistence)         ~~ ORM::Factory::Strategy, 'BuildStrategy does Strategy';
 ok ORM::Factory::AttributesForStrategy.new(:$persistence) ~~ ORM::Factory::Strategy, 'AttributesForStrategy does Strategy';
 
-dies-ok {
-  ORM::Factory::BuildStrategy.new(:$persistence).association('any');
-}, 'association placeholder raises until associations land';
+is ORM::Factory::AttributesForStrategy.new(:$persistence).association('tag', [], {}),
+  Nil, 'AttributesForStrategy.association returns Nil';
 
 done-testing;

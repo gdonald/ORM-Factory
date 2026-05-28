@@ -1,0 +1,199 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+class User {
+  has Str  $.fname is rw;
+  has Str  $.role  is rw;
+  has Bool $.saved is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+class Post {
+  has Str  $.title  is rw;
+  has User $.author is rw;
+  has Bool $.saved  is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+class Comment {
+  has Str $.body         is rw;
+  has     $.commentable  is rw;
+  has     $.author       is rw;
+  has Bool $.saved       is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+sub fresh {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(True);
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :aliases<author>, { .fname: 'Greg' };
+    .factory: 'post', {
+      .title: 'Hello';
+      .author;
+    };
+  };
+
+  isa-ok ORM::Factory.build('post').author, User,
+    'implicit association resolves bare-name to a built association';
+
+  is ORM::Factory.build('post').author.fname, 'Greg',
+    'implicit association inherits target factory values';
+
+  is-deeply ORM::Factory.attributes-for('post').keys.sort.List, ('title',),
+    'attributes-for excludes implicit associations';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', { .fname: 'Greg' };
+    .factory: 'post', {
+      .title: 'Hello';
+      .association: 'author', :factory<user>;
+    };
+  };
+
+  isa-ok ORM::Factory.build('post').author, User,
+    'explicit association via :factory builds the target';
+
+  my @assoc-names = ORM::Factory.factory-by-name('post').attributes.grep(*.association).map(*.name).list;
+  is-deeply @assoc-names, ['author'],
+    'definition records the association attribute';
+
+  is-deeply ORM::Factory.attributes-for('post').keys.sort.List, ('title',),
+    'attributes-for omits explicit associations';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', { .fname: 'Greg'; .role: 'member' };
+    .factory: 'post', {
+      .title: 'Hello';
+      .association: 'author', :factory<user>, :role<owner>;
+    };
+  };
+
+  is ORM::Factory.build('post').author.role, 'owner',
+    'association forwards override keys to target factory';
+
+  is ORM::Factory.build('post').author.fname, 'Greg',
+    'association leaves other target attributes alone';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', {
+      .fname: 'Greg';
+      .variant: 'admin', { .role: 'admin' };
+    };
+    .factory: 'post', {
+      .association: 'author', 'admin', :factory<user>;
+    };
+  };
+
+  is ORM::Factory.build('post').author.role, 'admin',
+    'association applies the named variant to the target';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', { .fname: 'Greg' };
+    .factory: 'post', {
+      .title: 'Hello';
+      .association: 'author', :factory<user>, :strategy<build>;
+    };
+  };
+
+  nok ORM::Factory.create('post').author.saved,
+    'per-association :strategy<build> overrides parent create';
+
+  ok ORM::Factory.create('post').saved,
+    'parent record still persists when association uses build';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :aliases<author>, { .fname: 'Greg' };
+    .factory: 'post', { .title: 'Hello'; .author };
+  };
+
+  nok ORM::Factory.build('post').author.saved,
+    'use-parent-strategy: build cascades to a built association';
+
+  ok ORM::Factory.create('post').author.saved,
+    'use-parent-strategy: create cascades to a created association';
+
+  isa-ok ORM::Factory.build-stubbed('post').author, User,
+    'use-parent-strategy: build-stubbed cascades to a stubbed association';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', { .fname: 'Greg' };
+    .factory: 'post', {
+      .transient: { .author-name: 'Inline' };
+      .author: { ORM::Factory.build('user', :fname(.author-name)) };
+    };
+  };
+
+  is ORM::Factory.build('post').author.fname, 'Inline',
+    'inline association block uses transient value';
+
+  is ORM::Factory.build('post', :author-name<Override>).author.fname, 'Override',
+    'transient override flows into the inline association';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'post', { .title: 'Hello' };
+    .factory: 'comment', {
+      .body: 'Nice';
+      .association: 'commentable', :factory<post>;
+    };
+  };
+
+  isa-ok ORM::Factory.build('comment').commentable, Post,
+    'polymorphic-style association targets the named factory';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'post', {
+      .association: 'author', :factory<ghost>;
+    };
+  };
+
+  dies-ok { ORM::Factory.build('post') },
+    'unknown association target raises MissingAssociation';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :aliases<author>, {
+      .fname: 'Greg';
+      .association: 'best-post', :factory<post>;
+    };
+    .factory: 'post', { .title: 'Hello'; .author };
+  };
+
+  dies-ok { ORM::Factory.build('post') },
+    'self-referential association loop raises CyclicAssociation';
+}
+
+done-testing;

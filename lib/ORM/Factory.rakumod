@@ -18,6 +18,8 @@ class X::ORM::Factory::UnknownAttribute is X::ORM::Factory {}
 class X::ORM::Factory::UnknownSequence  is X::ORM::Factory {}
 class X::ORM::Factory::DuplicateSequence is X::ORM::Factory {}
 class X::ORM::Factory::UsageError       is X::ORM::Factory {}
+class X::ORM::Factory::MissingAssociation is X::ORM::Factory {}
+class X::ORM::Factory::CyclicAssociation  is X::ORM::Factory {}
 
 class Sequence {
   has Str      $.name;
@@ -58,7 +60,13 @@ sub resolve-class(Str:D $name --> Mu) {
 class Attribute {
   has Str      $.name;
   has Bool     $.dynamic;
-  has Bool     $.transient = False;
+  has Bool     $.transient   = False;
+  has Bool     $.association = False;
+  has Bool     $.has-value   = False;
+  has Str      $.factory-name;
+  has          @.assoc-variants;
+  has          %.assoc-overrides;
+  has Str      $.assoc-strategy;
   has Mu       $.value;
   has Callable $.block;
 }
@@ -69,6 +77,7 @@ class Evaluator {
   has %.overrides;
   has %!cache;
   has Mu        $.instance is rw;
+  has           $.strategy is rw;
 
   method value-for(Str:D $name) {
     return %!cache{$name} if %!cache{$name}:exists;
@@ -83,9 +92,37 @@ class Evaluator {
       message => "no attribute '$name' on factory '{$!factory.name}'"
     ) without $attr;
 
+    if $attr.association {
+      return %!cache{$name} = self!resolve-association($attr);
+    }
+
+    if !$attr.dynamic && !$attr.has-value && is-implicit-association($attr.name) {
+      return %!cache{$name} = self!resolve-implicit-association($attr.name);
+    }
+
     %!cache{$name} = $attr.dynamic
       ?? $attr.block.(self)
       !! $attr.value;
+  }
+
+  method !resolve-association(Attribute:D $attr) {
+    my $factory-name = $attr.factory-name // $attr.name;
+    die X::ORM::Factory::MissingAssociation.new(
+      message => "association '{$attr.name}' on factory '{$!factory.name}' targets unknown factory '$factory-name'"
+    ) unless ORM::Factory.factory-exists($factory-name);
+
+    my $strategy = self!pick-strategy($attr.assoc-strategy);
+    build-association($strategy, $factory-name, $attr.assoc-variants, $attr.assoc-overrides);
+  }
+
+  method !resolve-implicit-association(Str:D $name) {
+    my $strategy = self!pick-strategy(Str);
+    build-association($strategy, $name, [], {});
+  }
+
+  method !pick-strategy($override-name) {
+    return $!strategy unless $override-name.defined;
+    return ORM::Factory.strategy-for($override-name);
   }
 
   method has-value(Str:D $name --> Bool) {
@@ -93,10 +130,14 @@ class Evaluator {
       @!effective-attributes.first(*.name eq $name).defined;
   }
 
-  method attributes-hash(--> Hash) {
+  method attributes-hash(Bool :$skip-associations = False --> Hash) {
     my %out;
     for @!effective-attributes -> $attr {
       next if $attr.transient;
+      if $skip-associations {
+        next if $attr.association;
+        next if !$attr.dynamic && !$attr.has-value && is-implicit-association($attr.name);
+      }
       %out{$attr.name} = self.value-for($attr.name);
     }
     for %!overrides.kv -> $k, $v {
@@ -165,16 +206,41 @@ class FactoryBuilder {
     my $transient = $!in-transient;
 
     if @pos.elems == 0 {
-      @!attributes.push: Attribute.new(:$name, :!dynamic, :$transient);
+      @!attributes.push: Attribute.new(:$name, :!dynamic, :!has-value, :$transient);
       return;
     }
 
     my $arg = @pos[0];
     if $arg ~~ Callable {
-      @!attributes.push: Attribute.new(:$name, :dynamic, :$transient, :block($arg));
+      @!attributes.push: Attribute.new(:$name, :dynamic, :has-value, :$transient, :block($arg));
     } else {
-      @!attributes.push: Attribute.new(:$name, :!dynamic, :$transient, :value($arg));
+      @!attributes.push: Attribute.new(:$name, :!dynamic, :has-value, :$transient, :value($arg));
     }
+  }
+
+  method association(Str:D $name, *@pos, *%opts --> Nil) {
+    my $factory-name = (%opts<factory>:exists) ?? %opts<factory>.Str !! $name;
+    my $strategy     = (%opts<strategy>:exists) ?? %opts<strategy>.Str !! Str;
+
+    my @variants = @pos.map(*.Str);
+
+    my %overrides;
+    for %opts.kv -> $k, $v {
+      next if $k eq 'factory' || $k eq 'strategy';
+      %overrides{$k} = $v;
+    }
+
+    @!attributes.push: Attribute.new(
+      :$name,
+      :!dynamic,
+      :has-value,
+      :association,
+      :factory-name($factory-name),
+      :assoc-variants(@variants),
+      :assoc-overrides(%overrides),
+      :assoc-strategy($strategy),
+      :transient($!in-transient),
+    );
   }
 
   method transient(&block --> Nil) {
@@ -466,6 +532,10 @@ method factory-by-name(Str:D $name --> FactoryDefinition) {
   %FACTORIES{$real};
 }
 
+method factory-exists(Str:D $name --> Bool) {
+  (%FACTORIES{$name}:exists) || (%ALIASES{$name}:exists);
+}
+
 method reload(--> Nil) {
   %FACTORIES = ();
   %ALIASES   = ();
@@ -569,16 +639,20 @@ sub build-evaluator(FactoryDefinition $factory, @variants, %overrides --> Evalua
   );
 }
 
+sub is-implicit-association(Str:D $name --> Bool) {
+  (%FACTORIES{$name}:exists) || (%ALIASES{$name}:exists);
+}
+
+sub build-association($strategy, Str:D $name, @variants, %overrides) {
+  $strategy.association($name, @variants, %overrides);
+}
+
 role Strategy {
   has ORM::Factory::Persistence $.persistence;
 
   method to-sym(--> Str) { ... }
   method result(Evaluator $eval) { ... }
-  method association(Str:D $name, *@variants, *%overrides) {
-    die X::ORM::Factory::UsageError.new(
-      message => "association handling for strategy '{self.to-sym}' is not implemented yet"
-    );
-  }
+  method association(Str:D $name, @variants, %overrides) { ... }
 }
 
 class BuildStrategy does Strategy {
@@ -587,6 +661,9 @@ class BuildStrategy does Strategy {
     my $instance = $!persistence.instantiate($eval.factory.lookup-class, $eval.attributes-hash);
     $eval.instance = $instance;
     $instance;
+  }
+  method association(Str:D $name, @variants, %overrides) {
+    ORM::Factory.build($name, |@variants, |%overrides);
   }
 }
 
@@ -598,11 +675,17 @@ class CreateStrategy does Strategy {
     $!persistence.persist($instance);
     $instance;
   }
+  method association(Str:D $name, @variants, %overrides) {
+    ORM::Factory.create($name, |@variants, |%overrides);
+  }
 }
 
 class AttributesForStrategy does Strategy {
   method to-sym(--> Str) { 'attributes-for' }
-  method result(Evaluator $eval) { $eval.attributes-hash }
+  method result(Evaluator $eval) { $eval.attributes-hash(:skip-associations) }
+  method association(Str:D $name, @variants, %overrides) {
+    Nil;
+  }
 }
 
 class BuildStubbedStrategy does Strategy {
@@ -612,12 +695,53 @@ class BuildStubbedStrategy does Strategy {
     $eval.instance = $instance;
     $!persistence.stub($instance);
   }
+  method association(Str:D $name, @variants, %overrides) {
+    ORM::Factory.build-stubbed($name, |@variants, |%overrides);
+  }
 }
+
+method strategy-for(Str:D $name) {
+  given $name {
+    when 'build'          { BuildStrategy.new(:persistence(self.persistence))         }
+    when 'create'         { CreateStrategy.new(:persistence(self.persistence))        }
+    when 'build-stubbed'  { BuildStubbedStrategy.new(:persistence(self.persistence))  }
+    when 'attributes-for' { AttributesForStrategy.new(:persistence(self.persistence)) }
+    default {
+      die X::ORM::Factory::UsageError.new(
+        message => "unknown strategy '$name' (use build/create/build-stubbed/attributes-for)"
+      );
+    }
+  }
+}
+
+my @BUILD-CHAIN;
 
 method !run-strategy(Strategy:D $strategy, Str:D $name, @variants, %overrides) {
   my $factory = self.factory-by-name($name);
+
+  if @BUILD-CHAIN.first({ $_ eq $factory.name }).defined {
+    my @full = (|@BUILD-CHAIN, $factory.name);
+    die X::ORM::Factory::CyclicAssociation.new(
+      message => "cyclic association detected building '{$factory.name}' (chain: {@full.join(' -> ')})"
+    );
+  }
+
   my $eval    = build-evaluator($factory, @variants, %overrides);
-  $strategy.result($eval);
+  $eval.strategy = $strategy;
+
+  @BUILD-CHAIN.push: $factory.name;
+  my $result;
+  {
+    $result = $strategy.result($eval);
+    CATCH {
+      default {
+        @BUILD-CHAIN.pop;
+        .rethrow;
+      }
+    }
+  }
+  @BUILD-CHAIN.pop;
+  $result;
 }
 
 method build(Str:D $name, *@variants, *%overrides) {
