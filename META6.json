@@ -1,0 +1,40 @@
+{
+  "name": "ORM::Factory",
+  "description": "Factory-based test fixtures for ORM::ActiveRecord",
+  "version": "0.1.0",
+  "api": "1",
+  "perl": "6.d",
+  "authors": ["Greg Donald"],
+  "auth": "zef:gdonald",
+  "depends": [],
+  "build-depends": [],
+  "test-depends": [
+    "BDD::Behave:auth<zef:gdonald>",
+    "DBIish",
+    "JSON::Tiny",
+    "META6",
+    "URI",
+    "ORM::ActiveRecord:auth<zef:gdonald>"
+  ],
+  "provides": {
+    "ORM::Factory": "lib/ORM/Factory.rakumod"
+  },
+  "resources": [],
+  "support": {
+    "source": "https://github.com/gdonald/ORM-Factory.git",
+    "bugtracker": "https://github.com/gdonald/ORM-Factory/issues"
+  },
+  "license": "Artistic-2.0",
+  "tags": [
+    "Factory",
+    "FactoryBot",
+    "Fixtures",
+    "Testing",
+    "BDD",
+    "ORM",
+    "ActiveRecord",
+    "Model",
+    "Database"
+  ],
+  "source-url": "git://github.com/gdonald/ORM-Factory.git"
+}

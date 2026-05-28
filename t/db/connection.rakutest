@@ -1,0 +1,13 @@
+use v6.d;
+use lib 'specs/lib';
+use Test;
+use Factory::Test::Db;
+
+my $dbh = connect-database(%*ENV<DATABASE_URL>);
+LEAVE $dbh.dispose if $dbh;
+
+my $value = $dbh.execute('SELECT 1').row[0];
+
+is $value.Int, 1, 'configured database answers a trivial query';
+
+done-testing;

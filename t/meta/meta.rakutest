@@ -1,0 +1,45 @@
+use v6.d;
+use lib 'lib';
+use lib 'specs/lib';
+use Test;
+use Factory::Test::Meta;
+use URI;
+
+my %facts          = meta-facts();
+my $meta-file      = %facts<file>;
+my $meta           = %facts<meta>;
+my @provides       = %facts<provides>.list;
+my %provided-paths = %facts<provided-paths>;
+my @lib-rakumod    = %facts<lib-rakumod>.list;
+
+ok $meta-file.e, 'META6.json exists at the project root';
+
+like $meta.name, /\:\:/, "name uses '::' as the module separator";
+unlike $meta.name, /\-/, 'name does not contain a hyphen';
+
+ok $meta.version.defined, 'version is defined';
+is $meta.version.parts.grep('*').elems, 0, 'version has no wildcard parts';
+
+like ($meta.description // ''), /\S/, 'description is non-empty';
+
+ok $meta.authors.elems > 0, 'authors has at least one entry';
+nok $meta.author.defined, "uses 'authors' rather than the deprecated 'author'";
+
+like ($meta.auth // ''), /^ 'zef:' \S+ $/, 'auth is in zef:<user> format';
+
+like ($meta.license // ''), /\S/, 'license is non-empty';
+
+ok $meta.source-url.defined, 'source-url is defined';
+ok URI.new($meta.source-url).host, 'source-url parses as a URI with a host';
+
+ok @provides.elems > 0, 'provides has at least one entry';
+
+for @provides -> $p {
+  ok $p.value.IO.e, "provides path exists: {$p.key} → {$p.value}";
+}
+
+for @lib-rakumod -> $rel {
+  ok %provided-paths{$rel}:exists, "lib module declared in provides: $rel";
+}
+
+done-testing;

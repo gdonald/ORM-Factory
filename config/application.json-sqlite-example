@@ -1,0 +1,6 @@
+{
+  "db": {
+    "adapter": "sqlite",
+    "name": "db/orm_factory_test.sqlite3"
+  }
+}
