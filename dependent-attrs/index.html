@@ -1113,7 +1113,7 @@ to <code>$_</code> inside the block, so the dot-syntax stays terse.</p>
 <span class="normal">5</span>
 <span class="normal">6</span>
 <span class="normal">7</span>
-<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">email:</span> { .<span class="n">fname</span>.<span class="nb">lc</span> ~ <span class="s">&#39;@example.com&#39;</span> };
@@ -1140,7 +1140,7 @@ sees the cached result regardless of textual order:</p>
 <span class="normal"> 8</span>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
-<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span>    <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">lname:</span>    <span class="s">&#39;Donald&#39;</span>;

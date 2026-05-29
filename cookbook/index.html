@@ -1226,7 +1226,7 @@ hard-coding values:</p>
 <span class="normal"> 8</span>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
-<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">sequence:</span> <span class="s">&#39;email&#39;</span>, -&gt; <span class="nv">$n</span> { <span class="s">&quot;user{$n}\@example.com&quot;</span> };
 
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
@@ -1262,7 +1262,7 @@ hard-coding values:</p>
 <span class="normal">10</span>
 <span class="normal">11</span>
 <span class="normal">12</span>
-<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">role:</span>  <span class="s">&#39;user&#39;</span>;
@@ -1282,7 +1282,7 @@ hard-coding values:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
 <span class="normal">2</span>
 <span class="normal">3</span>
-<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, { .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span> };
   .<span class="n">factory:</span> <span class="s">&#39;post&#39;</span>, { .<span class="n">title:</span> <span class="s">&#39;Hi&#39;</span>; .<span class="n">user</span> };       <span class="c1"># bare reference</span>
 };
@@ -1408,7 +1408,7 @@ make it into the persisted attribute hash:</p>
   <span class="k">method</span> <span class="n">save-or-die</span> { <span class="nb">self</span> }                     <span class="c1"># or .save, or omit if you only build</span>
 }
 
-<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, :<span class="n">class</span>(<span class="n">User</span>), {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
   };
@@ -1435,7 +1435,7 @@ whatever you like:</p>
 <span class="normal">10</span>
 <span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">Fake::Person</span>;       <span class="c1"># any Faker-equivalent</span>
 
-<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="n">define</span> {
   .<span class="n">sequence:</span> <span class="s">&#39;email-id&#39;</span>;
 
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {

@@ -1118,7 +1118,7 @@ a single string or a list:</p>
 <span class="normal">6</span>
 <span class="normal">7</span>
 <span class="normal">8</span>
-<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, :<span class="n">aliases</span><span class="s">&lt;author commenter&gt;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
   };
@@ -1154,22 +1154,22 @@ same record.</p>
 <span class="normal">17</span>
 <span class="normal">18</span>
 <span class="normal">19</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="c1"># alias would shadow an existing factory</span>
-<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>,  { ; };
   .<span class="n">factory:</span> <span class="s">&#39;other&#39;</span>, :<span class="n">aliases</span><span class="s">&lt;user&gt;</span>, { ; };   <span class="c1"># raises</span>
 };
 
 <span class="c1"># two factories cannot claim the same alias</span>
-<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>,  :<span class="n">aliases</span><span class="s">&lt;author&gt;</span>, { ; };
   .<span class="n">factory:</span> <span class="s">&#39;other&#39;</span>, :<span class="n">aliases</span><span class="s">&lt;author&gt;</span>, { ; }; <span class="c1"># raises</span>
 };
 
 <span class="c1"># a new factory cannot reuse an existing alias</span>
-<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, :<span class="n">aliases</span><span class="s">&lt;author&gt;</span>, { ; };
 };
-<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;author&#39;</span>, { ; };   <span class="c1"># raises</span>
 };
 </code></pre></div></td></tr></table></div>

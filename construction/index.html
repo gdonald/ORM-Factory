@@ -1245,7 +1245,7 @@ Three hooks override that adapter when the default behaviour does not fit:</p>
 <li><code>skip-create</code> — turns <code>create</code> into <code>build</code> (no persistence at all).</li>
 </ul>
 <p>Each hook can be set per-factory (inside the <code>factory</code> block), globally
-(at the top level of <code>ORM::Factory.define</code>), or both. Per-factory wins over
+(at the top level of <code>define</code>), or both. Per-factory wins over
 global; child factories inherit the parent hook but can override it.</p>
 <h2 id="initialize-with"><code>initialize-with</code></h2>
 <p>By default <code>build</code> / <code>create</code> / <code>build-stubbed</code> instantiate via the
@@ -1262,7 +1262,7 @@ a per-factory hook:</p>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
-<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">role:</span>  <span class="s">&#39;member&#39;</span>;
@@ -1301,7 +1301,7 @@ per-factory hook:</p>
 <span class="normal">6</span>
 <span class="normal">7</span>
 <span class="normal">8</span>
-<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">initialize-with:</span> -&gt; <span class="nv">$eval</span> {
     <span class="nv">$eval</span>.<span class="n">factory</span>.<span class="n">lookup-class</span>.<span class="nb">new</span>(|<span class="nv">$eval</span>.<span class="nb">attributes</span>, :<span class="n">via</span>(<span class="s">&#39;global&#39;</span>));
   };
@@ -1328,7 +1328,7 @@ store wants:</p>
 <span class="normal"> 7</span>
 <span class="normal"> 8</span>
 <span class="normal"> 9</span>
-<span class="normal">10</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">10</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;document&#39;</span>, {
     .<span class="n">title:</span> <span class="s">&#39;Hello&#39;</span>;
 
@@ -1349,7 +1349,7 @@ and <code>build-stubbed</code> never consult <code>to-create</code>.</p>
 <span class="normal">4</span>
 <span class="normal">5</span>
 <span class="normal">6</span>
-<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">to-create:</span> -&gt; <span class="nv">$instance</span>, <span class="nv">$eval</span> {
     <span class="nv">$persistence-bus</span>.<span class="nb">send</span>(<span class="nv">$instance</span>);
   };
@@ -1371,7 +1371,7 @@ every callback still fires:</p>
 <span class="normal">6</span>
 <span class="normal">7</span>
 <span class="normal">8</span>
-<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;ephemeral&#39;</span>, {
     .<span class="n">title:</span> <span class="s">&#39;in-memory only&#39;</span>;
 
@@ -1393,7 +1393,7 @@ persist via an explicit <code>to-create</code>:</p>
 <span class="normal"> 7</span>
 <span class="normal"> 8</span>
 <span class="normal"> 9</span>
-<span class="normal">10</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">10</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">skip-create</span>;
 
   .<span class="n">factory:</span> <span class="s">&#39;log-event&#39;</span>, { .<span class="n">text:</span> <span class="s">&#39;noop&#39;</span> };
@@ -1413,7 +1413,7 @@ first match wins:</p>
 <ol>
 <li>The factory's own hook;</li>
 <li>each parent factory's hook, child-first;</li>
-<li>the global hook from <code>ORM::Factory.define</code>;</li>
+<li>the global hook from <code>define</code>;</li>
 <li>the adapter default (<code>instantiate</code> / <code>persist</code>).</li>
 </ol>
 <p>For <code>create</code>, <code>to-create</code> and <code>skip-create</code> share the same chain — whichever

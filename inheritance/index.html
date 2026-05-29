@@ -1266,7 +1266,7 @@ a child of the outer one. The child's <code>parent-name</code> is set implicitly
 <span class="normal">11</span>
 <span class="normal">12</span>
 <span class="normal">13</span>
-<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;person&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">email:</span> <span class="s">&#39;greg@example.com&#39;</span>;
@@ -1295,7 +1295,7 @@ instead of nesting:</p>
 <span class="normal">6</span>
 <span class="normal">7</span>
 <span class="normal">8</span>
-<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;person&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
   };
@@ -1321,7 +1321,7 @@ block or in a previous one. Unknown parents raise
 <span class="normal"> 8</span>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
-<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;person&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
   };
@@ -1345,7 +1345,7 @@ last:</p>
 <span class="normal">6</span>
 <span class="normal">7</span>
 <span class="normal">8</span>
-<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;person&#39;</span>,  { .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span> };
   .<span class="n">factory:</span> <span class="s">&#39;manager&#39;</span>, :<span class="n">parent</span>(<span class="s">&#39;person&#39;</span>),  { .<span class="n">role:</span> <span class="s">&#39;manager&#39;</span> };
   .<span class="n">factory:</span> <span class="s">&#39;cto&#39;</span>,     :<span class="n">parent</span>(<span class="s">&#39;manager&#39;</span>), { .<span class="n">flag:</span> <span class="nb">True</span> };
@@ -1370,7 +1370,7 @@ camelized child name. Pass <code>:class(...)</code> explicitly to override:</p>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
-<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;person&#39;</span>, { .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span> };
 
   <span class="c1"># &#39;admin-person&#39;.lookup-class is Person (inherited from parent),</span>
@@ -1399,7 +1399,7 @@ attributes and overrides, exactly as if it had been declared on the child:</p>
 <span class="normal">10</span>
 <span class="normal">11</span>
 <span class="normal">12</span>
-<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;person&#39;</span>, {
     .<span class="n">transient:</span> {
       .<span class="n">upcase:</span> <span class="nb">False</span>;
@@ -1432,7 +1432,7 @@ apply them by bare name:</p>
 <span class="normal">11</span>
 <span class="normal">12</span>
 <span class="normal">13</span>
-<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;person&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">variant:</span> <span class="s">&#39;admin&#39;</span>, {
@@ -1465,7 +1465,7 @@ attributes (or add new ones). Anything you don't touch is left alone:</p>
 <span class="normal">12</span>
 <span class="normal">13</span>
 <span class="normal">14</span>
-<span class="normal">15</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">15</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;person&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">email:</span> <span class="s">&#39;greg@example.com&#39;</span>;
@@ -1500,7 +1500,7 @@ overridden the attribute itself:</p>
 <span class="normal">11</span>
 <span class="normal">12</span>
 <span class="normal">13</span>
-<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;person&#39;</span>, { .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span> };
 
   .<span class="n">factory:</span> <span class="s">&#39;admin-person&#39;</span>, :<span class="n">parent</span>(<span class="s">&#39;person&#39;</span>), {

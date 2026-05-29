@@ -1209,7 +1209,7 @@ factory:</p>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
-<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, :<span class="n">aliases</span><span class="s">&lt;author&gt;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
   };
@@ -1237,7 +1237,7 @@ association explicitly with the <code>:factory</code> adverb:</p>
 <span class="normal"> 7</span>
 <span class="normal"> 8</span>
 <span class="normal"> 9</span>
-<span class="normal">10</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">10</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
   };
@@ -1266,7 +1266,7 @@ applied as variants:</p>
 <span class="normal">11</span>
 <span class="normal">12</span>
 <span class="normal">13</span>
-<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">role:</span>  <span class="s">&#39;member&#39;</span>;
@@ -1296,7 +1296,7 @@ stubs it. Override per association with <code>:strategy</code>:</p>
 <span class="normal"> 8</span>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
-<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, { .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span> };
 
   .<span class="n">factory:</span> <span class="s">&#39;post&#39;</span>, {
@@ -1326,7 +1326,7 @@ returns the built object:</p>
 <span class="normal">10</span>
 <span class="normal">11</span>
 <span class="normal">12</span>
-<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, { .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span> };
 
   .<span class="n">factory:</span> <span class="s">&#39;post&#39;</span>, {
@@ -1342,9 +1342,8 @@ returns the built object:</p>
 </code></pre></div></td></tr></table></div>
 
 <h2 id="has_many-style-collections"><code>has_many</code>-style collections</h2>
-<p><code>factory_bot</code> builds <code>has_many</code> collections by combining a transient count
-with an <code>after(:build)</code> callback that pushes children. The Raku port follows
-the same recipe:</p>
+<p>A <code>has_many</code> collection is a transient count plus an <code>after build</code> callback
+that pushes children:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
 <span class="normal"> 2</span>
 <span class="normal"> 3</span>
@@ -1363,7 +1362,7 @@ the same recipe:</p>
 <span class="normal">16</span>
 <span class="normal">17</span>
 <span class="normal">18</span>
-<span class="normal">19</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">19</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, { .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span> };
 
   .<span class="n">factory:</span> <span class="s">&#39;post&#39;</span>, {
@@ -1386,9 +1385,9 @@ the same recipe:</p>
 
 <p>See <a href="../callbacks/">Callbacks</a> for the full list of hook events.</p>
 <h2 id="polymorphic-style-associations">Polymorphic-style associations</h2>
-<p><code>factory_bot</code>'s polymorphic associations are nothing more than an explicit
-target factory, so the <code>:factory</code> adverb handles them. The attribute type on
-the model holds whichever instance the chosen factory produces:</p>
+<p>A polymorphic association is just an explicit target factory, so the
+<code>:factory</code> adverb handles it. The attribute type on the model holds
+whichever instance the chosen factory produces:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
 <span class="normal"> 2</span>
 <span class="normal"> 3</span>
@@ -1400,7 +1399,7 @@ the model holds whichever instance the chosen factory produces:</p>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
-<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;post&#39;</span>, {
     .<span class="n">title:</span> <span class="s">&#39;Hello&#39;</span>;
   };

@@ -1235,9 +1235,9 @@
 
 <h1 id="callbacks">Callbacks</h1>
 <p>Callbacks hook into the build lifecycle so a factory can mutate its instance
-or trigger side-effects at well-defined points. They mirror <code>factory_bot</code>'s
-<code>after(:build)</code>, <code>before(:create)</code>, <code>after(:create)</code>, and <code>after(:stub)</code>, and
-extend to custom names invoked by hand from other callbacks or custom build
+or trigger side-effects at well-defined points. The built-in events are
+<code>after build</code>, <code>before create</code>, <code>after create</code>, and <code>after stub</code>; custom
+names can be invoked by hand from other callbacks or custom build
 strategies.</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
 <span class="normal">2</span>
@@ -1246,7 +1246,7 @@ strategies.</p>
 <span class="normal">5</span>
 <span class="normal">6</span>
 <span class="normal">7</span>
-<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="o">after</span>: <span class="s">&#39;build&#39;</span>, -&gt; <span class="nv">$u</span>, <span class="nv">$eval</span> { <span class="nv">$u</span>.<span class="n">fname</span> = <span class="nv">$u</span>.<span class="n">fname</span>.<span class="nb">uc</span> };
@@ -1298,7 +1298,7 @@ ever instantiating the model.</p>
 <span class="normal">6</span>
 <span class="normal">7</span>
 <span class="normal">8</span>
-<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
 
@@ -1354,7 +1354,7 @@ own callbacks at its position in the chain:</p>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
-<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="o">after</span>: <span class="s">&#39;build&#39;</span>, -&gt; <span class="nv">$u</span>, <span class="nv">$e</span> { <span class="nv">$u</span>.<span class="n">events</span>.<span class="n">push:</span> <span class="s">&#39;parent&#39;</span> };
 
@@ -1382,7 +1382,7 @@ applied, its callbacks are appended after the factory's own:</p>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
-<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="o">after</span>: <span class="s">&#39;build&#39;</span>, -&gt; <span class="nv">$u</span>, <span class="nv">$e</span> { <span class="nv">$u</span>.<span class="n">events</span>.<span class="n">push:</span> <span class="s">&#39;base&#39;</span> };
 
@@ -1397,7 +1397,7 @@ applied, its callbacks are appended after the factory's own:</p>
 </code></pre></div></td></tr></table></div>
 
 <h2 id="global-callbacks">Global callbacks</h2>
-<p>A <code>before</code> / <code>after</code> at the top of an <code>ORM::Factory.define</code> block — without a
+<p>A <code>before</code> / <code>after</code> at the top of a <code>define</code> block — without a
 surrounding <code>factory</code> — applies to <strong>every</strong> factory. Global callbacks fire
 <strong>before</strong> any factory-specific callbacks for the same event:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
@@ -1409,7 +1409,7 @@ surrounding <code>factory</code> — applies to <strong>every</strong> factory. 
 <span class="normal"> 7</span>
 <span class="normal"> 8</span>
 <span class="normal"> 9</span>
-<span class="normal">10</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">10</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="o">after</span>: <span class="s">&#39;build&#39;</span>, -&gt; <span class="nv">$i</span>, <span class="nv">$e</span> { <span class="nv">$i</span>.<span class="n">events</span>.<span class="n">push:</span> <span class="s">&#39;global&#39;</span> };
 
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
@@ -1437,7 +1437,7 @@ also chain to a custom name:</p>
 <span class="normal">6</span>
 <span class="normal">7</span>
 <span class="normal">8</span>
-<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">callback:</span> <span class="s">&#39;shouted&#39;</span>, -&gt; <span class="nv">$u</span>, <span class="nv">$e</span> { <span class="nv">$u</span>.<span class="n">fname</span> = <span class="nv">$u</span>.<span class="n">fname</span>.<span class="nb">uc</span> };
@@ -1449,9 +1449,8 @@ also chain to a custom name:</p>
 </code></pre></div></td></tr></table></div>
 
 <h2 id="has_many-style-collections"><code>has_many</code>-style collections</h2>
-<p>The combination of a <a href="../transient/">transient attribute</a> and an <code>after build</code>
-callback gives the same shape as <code>factory_bot</code>'s <code>has_many</code> collection
-factories — a count knob plus a side-effect that builds the children:</p>
+<p>A <a href="../transient/">transient attribute</a> plus an <code>after build</code> callback gives
+a count knob and a side-effect that builds the children:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
 <span class="normal"> 2</span>
 <span class="normal"> 3</span>
@@ -1470,7 +1469,7 @@ factories — a count knob plus a side-effect that builds the children:</p>
 <span class="normal">16</span>
 <span class="normal">17</span>
 <span class="normal">18</span>
-<span class="normal">19</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">19</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, { .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span> };
 
   .<span class="n">factory:</span> <span class="s">&#39;post&#39;</span>, {

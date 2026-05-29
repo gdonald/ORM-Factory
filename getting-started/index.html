@@ -1235,15 +1235,13 @@
 
 <h1 id="getting-started">Getting started</h1>
 <p>This page walks you through defining your first factory, reading it back from
-the registry, and resetting state between tests. The build strategies
-(<code>build</code>, <code>create</code>, <code>attributes-for</code>, <code>build-stubbed</code>) come in later
-milestones — see the <a href="https://github.com/gdonald/ORM-Factory/blob/main/ROADMAP.md">ROADMAP</a>.</p>
+the registry, and resetting state between tests.</p>
 <h2 id="install">Install</h2>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code>zef install --/test ORM::Factory
 </code></pre></div></td></tr></table></div>
 
 <h2 id="defining-a-factory">Defining a factory</h2>
-<p><code>ORM::Factory.define</code> opens a definition block. Inside, the topic (<code>$_</code>) is
+<p><code>define</code> opens a definition block. Inside, the topic (<code>$_</code>) is
 bound to a <code>DefinitionBuilder</code>, so DSL calls use the leading-dot shorthand:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
 <span class="normal">2</span>
@@ -1255,7 +1253,7 @@ bound to a <code>DefinitionBuilder</code>, so DSL calls use the leading-dot shor
 <span class="normal">8</span>
 <span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">ORM::Factory</span>;
 
-<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">lname:</span> <span class="s">&#39;Donald&#39;</span>;
@@ -1277,7 +1275,7 @@ namespace — pass it explicitly:</p>
 <span class="normal">2</span>
 <span class="normal">3</span>
 <span class="normal">4</span>
-<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;super-admin&#39;</span>, :<span class="n">class</span>(<span class="n">MyApp::Admin</span>), {
     .<span class="n">role:</span> <span class="s">&#39;admin&#39;</span>;
   };
@@ -1307,7 +1305,7 @@ inference may miss it. In behave specs, either bind explicitly
 <span class="normal">5</span>
 <span class="normal">6</span>
 <span class="normal">7</span>
-<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, :<span class="n">aliases</span><span class="s">&lt;author commenter&gt;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
   };
@@ -1339,9 +1337,9 @@ try to claim a name that's already in use.</p>
 
 <p>Looking up an unregistered name raises <code>X::ORM::Factory::UnknownFactory</code>.</p>
 <h2 id="variants">Variants</h2>
-<p>A <em>variant</em> (the term <code>factory_bot</code> calls a "trait") is an alternate set of
-overrides scoped to one factory. Define one with <code>.variant</code>, apply it inside
-the same factory body with a bare leading-dot call:</p>
+<p>A <em>variant</em> is an alternate set of overrides scoped to one factory. Define
+one with <code>.variant</code>, apply it inside the same factory body with a bare
+leading-dot call:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
 <span class="normal"> 2</span>
 <span class="normal"> 3</span>
@@ -1352,7 +1350,7 @@ the same factory body with a bare leading-dot call:</p>
 <span class="normal"> 8</span>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
-<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
 

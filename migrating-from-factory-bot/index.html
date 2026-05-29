@@ -1227,7 +1227,7 @@ changed.</p>
 <tbody>
 <tr>
 <td><code>FactoryBot.define { ... }</code></td>
-<td><code>ORM::Factory.define: { ... }</code></td>
+<td><code>define { ... }</code></td>
 </tr>
 <tr>
 <td><code>FactoryBot.modify { ... }</code></td>
@@ -1434,7 +1434,7 @@ same as <code>factory_bot</code>'s <code>ActiveRecord::RecordInvalid</code>.</p>
 <span class="normal">19</span>
 <span class="normal">20</span>
 <span class="normal">21</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="c1"># ORM::Factory</span>
-<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="n">define</span> {
   .<span class="n">sequence:</span> <span class="s">&#39;email&#39;</span>, -&gt; <span class="nv">$n</span> { <span class="s">&quot;user{$n}\@example.com&quot;</span> };
 
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {

@@ -1257,8 +1257,7 @@
 
 <h1 id="variants">Variants</h1>
 <p>A <strong>variant</strong> captures a named cluster of attribute, association, or transient
-changes that you can layer onto a factory on demand. <code>factory_bot</code> calls these
-<em>traits</em>; the term is the same idea.</p>
+changes that you can layer onto a factory on demand.</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
 <span class="normal"> 2</span>
 <span class="normal"> 3</span>
@@ -1270,7 +1269,7 @@ changes that you can layer onto a factory on demand. <code>factory_bot</code> ca
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
-<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
 
@@ -1314,7 +1313,7 @@ helpers.</p>
 <span class="normal">6</span>
 <span class="normal">7</span>
 <span class="normal">8</span>
-<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">variant:</span> <span class="s">&#39;admin&#39;</span>, { .<span class="n">role:</span> <span class="s">&#39;admin&#39;</span> };
     .<span class="n">variant:</span> <span class="s">&#39;guest&#39;</span>, { .<span class="n">role:</span> <span class="s">&#39;guest&#39;</span> };
@@ -1353,7 +1352,7 @@ helpers.</p>
 <span class="normal">13</span>
 <span class="normal">14</span>
 <span class="normal">15</span>
-<span class="normal">16</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">16</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, { .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span> };
 
   .<span class="n">factory:</span> <span class="s">&#39;post&#39;</span>, {
@@ -1382,7 +1381,7 @@ short-circuited, so two variants can safely reference each other:</p>
 <span class="normal">6</span>
 <span class="normal">7</span>
 <span class="normal">8</span>
-<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">variant:</span> <span class="s">&#39;active&#39;</span>, { .<span class="n">status:</span> <span class="s">&#39;active&#39;</span> };
     .<span class="n">variant:</span> <span class="s">&#39;admin&#39;</span>,  { .<span class="n">active</span>; .<span class="n">role:</span> <span class="s">&#39;admin&#39;</span> };   <span class="c1"># applies :active first</span>
@@ -1410,7 +1409,7 @@ definition time:</p>
 <span class="normal">12</span>
 <span class="normal">13</span>
 <span class="normal">14</span>
-<span class="normal">15</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">15</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">variant:</span> <span class="s">&#39;admin&#39;</span>,  { .<span class="n">role:</span> <span class="s">&#39;admin&#39;</span> };
@@ -1443,7 +1442,7 @@ child body, or pass them at build time:</p>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
-<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;person&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">variant:</span> <span class="s">&#39;admin&#39;</span>, { .<span class="n">role:</span> <span class="s">&#39;admin&#39;</span> };
@@ -1470,7 +1469,7 @@ child body, or pass them at build time:</p>
 <span class="normal"> 8</span>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
-<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">variant:</span> <span class="s">&#39;greeted&#39;</span>, {
       .<span class="n">transient:</span> { .<span class="n">salute:</span> <span class="s">&#39;World&#39;</span> };
@@ -1486,7 +1485,7 @@ child body, or pass them at build time:</p>
 <p>The transient is excluded from <code>attributes-for</code> and never reaches the model
 constructor.</p>
 <h2 id="global-variants">Global variants</h2>
-<p>A variant declared at the top of an <code>ORM::Factory.define</code> block — without a
+<p>A variant declared at the top of a <code>define</code> block — without a
 surrounding <code>factory</code> — is <strong>global</strong>. Any factory can apply it, by name at
 build time or as a bare reference in its body:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
@@ -1501,7 +1500,7 @@ build time or as a bare reference in its body:</p>
 <span class="normal">10</span>
 <span class="normal">11</span>
 <span class="normal">12</span>
-<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">variant:</span> <span class="s">&#39;flagged&#39;</span>, { .<span class="n">flag:</span> <span class="nb">True</span> };
 
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, { .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span> };
@@ -1530,7 +1529,7 @@ attribute to its value:</p>
 <span class="normal">6</span>
 <span class="normal">7</span>
 <span class="normal">8</span>
-<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">variants-for-enum:</span> <span class="s">&#39;role&#39;</span>, <span class="s">&lt;admin guest member&gt;</span>;
   };

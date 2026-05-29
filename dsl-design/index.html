@@ -310,17 +310,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-factory_bot-does" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What factory_bot does
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#candidate-mechanisms" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1124,17 +1113,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-factory_bot-does" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What factory_bot does
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#candidate-mechanisms" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1246,29 +1224,12 @@
 
 
 <h1 id="dsl-design">DSL design</h1>
-<p><code>ORM::Factory</code> ports a DSL whose ergonomics rest on Ruby's <code>instance_eval</code> +
-<code>method_missing</code>. Neither has a drop-in Raku equivalent, so the mechanism must
-be picked deliberately — it shapes every later piece of the library. This page
-surveys the candidate mechanisms and records the chosen design.</p>
-<h2 id="what-factory_bot-does">What <code>factory_bot</code> does</h2>
-<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
-<span class="normal">2</span>
-<span class="normal">3</span>
-<span class="normal">4</span>
-<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">factory</span><span class="w"> </span><span class="ss">:user</span><span class="w"> </span><span class="k">do</span>
-<span class="w">  </span><span class="n">fname</span><span class="w"> </span><span class="s1">&#39;Greg&#39;</span><span class="w">                       </span><span class="c1"># static attribute</span>
-<span class="w">  </span><span class="n">email</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;user</span><span class="si">#{</span><span class="n">n</span><span class="si">}</span><span class="s2">@example.com&quot;</span><span class="w"> </span><span class="p">}</span><span class="w">   </span><span class="c1"># dynamic attribute (lazy block)</span>
-<span class="w">  </span><span class="n">admin</span><span class="w">                              </span><span class="c1"># apply a previously-defined trait</span>
-<span class="k">end</span>
-</code></pre></div></td></tr></table></div>
-
-<p>Inside the block, Ruby's <code>instance_eval</code> re-binds <code>self</code> to a builder, and
-<code>method_missing</code> on that builder accepts <em>any</em> identifier as an attribute
-name. The block is therefore open-ended: you never declare attributes
-up-front, you just name them.</p>
-<p>Raku's identifier resolution is lexical and compile-time; arbitrary
-bare-identifier calls cannot resolve to runtime-discovered names without
-either parser surgery or topic-driven method dispatch.</p>
+<p><code>ORM::Factory</code>'s DSL needs to capture arbitrary attribute names inside a
+block without pre-declaring them. Raku's identifier resolution is lexical
+and compile-time; arbitrary bare-identifier calls cannot resolve to
+runtime-discovered names without either parser surgery or topic-driven
+method dispatch. This page surveys the candidate mechanisms and records
+the chosen design.</p>
 <h2 id="candidate-mechanisms">Candidate mechanisms</h2>
 <h3 id="1-topic-_-builder-fallback">1. Topic-<code>$_</code> builder + <code>FALLBACK</code></h3>
 <p>The block is run with <code>$_</code> bound to a <code>FactoryBuilder</code> instance, so method
@@ -1292,7 +1253,7 @@ calls on the topic use the leading-dot shorthand. The builder defines
   attributes on the same object.</li>
 <li><strong>Cons:</strong> the leading <code>.</code> is mandatory — <code>fname 'Greg'</code> would parse as a
   sub call, not a method, and Raku will not synthesize an unknown sub on
-  demand. The Ruby surface gains one character per line.</li>
+  demand.</li>
 <li><strong>Disambiguation:</strong> a <code>Callable</code> arg means <em>dynamic</em>; everything else means
   <em>static</em>. <code>add-attribute</code> is the escape hatch for a literal <code>Callable</code>
   value or a name that collides with a DSL method.</li>
@@ -1316,7 +1277,7 @@ would need to know each user-defined attribute name at compile time.</p>
 <p><code>postcircumfix:&lt;{ }&gt;</code> and similar are operator overloads on the <em>container</em>,
 not a way to capture an identifier call. Attribute access would degenerate
 into <code>&lt;fname&gt; = 'Greg'</code> syntax (subscript-on-builder), which loses the
-attribute-as-statement shape <code>factory_bot</code> users expect.</p>
+attribute-as-statement shape.</p>
 <ul>
 <li><strong>Pros:</strong> none meaningful here.</li>
 <li><strong>Cons:</strong> does not solve the identifier problem. <strong>Rejected.</strong></li>
@@ -1325,7 +1286,7 @@ attribute-as-statement shape <code>factory_bot</code> users expect.</p>
 <p>Define a sub-grammar that re-parses the inside of <code>factory { ... }</code> to turn
 bare identifiers into builder method calls.</p>
 <ul>
-<li><strong>Pros:</strong> can mimic Ruby exactly: <code>fname 'Greg'</code>.</li>
+<li><strong>Pros:</strong> can drop the leading dot: <code>fname 'Greg'</code>.</li>
 <li><strong>Cons:</strong> slang code is non-trivial, fragile across Rakudo releases, hard
   to debug (mis-tokenisation reports point into the slang), and bleeds into
   editor / static-analysis tooling. Every later piece of the library pays an
@@ -1340,7 +1301,7 @@ identifiers inside the block resolve to.</p>
 <li><strong>Pros:</strong> could produce factory declarations that look like class
   declarations.</li>
 <li><strong>Cons:</strong> does not solve the attribute-capture problem; pushes definitions
-  out of <code>ORM::Factory.define { ... }</code> into top-level declarators, which
+  out of <code>define { ... }</code> into top-level declarators, which
   fights the per-suite registry-reset model. <strong>Rejected.</strong></li>
 </ul>
 <h2 id="decision">Decision</h2>
@@ -1355,7 +1316,7 @@ identifiers inside the block resolve to.</p>
 <tbody>
 <tr>
 <td>Entry point</td>
-<td><code>ORM::Factory.define: { ... }</code> runs the block with <code>$_</code> bound to a <code>DefinitionBuilder</code>.</td>
+<td><code>define { ... }</code> runs the block with <code>$_</code> bound to a <code>DefinitionBuilder</code>.</td>
 </tr>
 <tr>
 <td><code>factory</code>, <code>sequence</code>, <code>variant</code>, <code>transient</code>, <code>association</code>, <code>after</code>, <code>before</code>, <code>initialize-with</code>, <code>to-create</code>, <code>modify</code>, <code>skip-create</code></td>
@@ -1379,9 +1340,6 @@ identifiers inside the block resolve to.</p>
 </tr>
 </tbody>
 </table>
-<p>The decision is <strong>frozen</strong> going into the rest of the implementation.
-Revisiting it requires an explicit re-spike entry on the roadmap, not a
-drive-by change.</p>
 <h2 id="trade-off-accepted">Trade-off accepted</h2>
 <p>The user-visible cost is the leading <code>.</code> on every attribute, plus the <code>:</code>
 between method and positional. Both are standard Raku — no slang, no

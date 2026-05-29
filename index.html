@@ -1125,10 +1125,8 @@
 <p>The latest version of this documentation lives at <a href="https://gdonald.github.io/ORM-Factory/">https://gdonald.github.io/ORM-Factory/</a>.</p>
 <p>The homepage for ORM::Factory is <a href="https://github.com/gdonald/ORM-Factory">https://github.com/gdonald/ORM-Factory</a>.</p>
 <h2 id="synopsis">Synopsis</h2>
-<p><code>ORM::Factory</code> is a Raku port of Ruby's
-<a href="https://github.com/thoughtbot/factory_bot"><code>factory_bot</code></a>: a definition DSL
-for building test objects (with or without persistence) so your specs stay
-declarative.</p>
+<p><code>ORM::Factory</code> is a definition DSL for building test objects (with or
+without persistence) so your specs stay declarative.</p>
 <p>It is ORM-agnostic at its core. With
 <a href="https://github.com/gdonald/ORM-ActiveRecord"><code>ORM::ActiveRecord</code></a> installed
 and auto-detected, <code>create</code> persists through the model's <code>save-or-die</code> with
@@ -1150,7 +1148,7 @@ you target any persistence layer.</p>
 <span class="normal">12</span>
 <span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">ORM::Factory</span>;
 
-<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
     .<span class="n">lname:</span> <span class="s">&#39;Donald&#39;</span>;

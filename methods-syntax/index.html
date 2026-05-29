@@ -834,10 +834,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#qualified-vs-mixin-syntax" class="md-nav__link">
+  <a href="#qualified-vs-bare-name-syntax" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Qualified vs. mixin syntax
+        Qualified vs. bare-name syntax
       
     </span>
   </a>
@@ -1063,10 +1063,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#qualified-vs-mixin-syntax" class="md-nav__link">
+  <a href="#qualified-vs-bare-name-syntax" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Qualified vs. mixin syntax
+        Qualified vs. bare-name syntax
       
     </span>
   </a>
@@ -1102,9 +1102,8 @@
 
 
 <h1 id="methods-syntax">Methods syntax</h1>
-<p><code>ORM::Factory::Methods</code> exports plain-sub wrappers around every public
-factory method, matching the shape of <code>factory_bot</code>'s methods syntax. Use it
-to keep specs terse:</p>
+<p><code>use ORM::Factory</code> exports plain-sub wrappers around every public factory
+method, so specs can stay terse:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
 <span class="normal"> 2</span>
 <span class="normal"> 3</span>
@@ -1118,11 +1117,9 @@ to keep specs terse:</p>
 <span class="normal">11</span>
 <span class="normal">12</span>
 <span class="normal">13</span>
-<span class="normal">14</span>
-<span class="normal">15</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">ORM::Factory</span>;
-<span class="k">use</span> <span class="n">ORM::Factory::Methods</span>;
+<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">ORM::Factory</span>;
 
-<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, { .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span> };
   .<span class="n">sequence:</span> <span class="s">&#39;counter&#39;</span>, -&gt; <span class="nv">$n</span> { <span class="nv">$n</span> };
 };
@@ -1195,23 +1192,20 @@ to keep specs terse:</p>
 </tr>
 </tbody>
 </table>
-<h2 id="qualified-vs-mixin-syntax">Qualified vs. mixin syntax</h2>
-<p>The qualified form (<code>ORM::Factory.build('user')</code>) is always available — no
-<code>use</code> is needed beyond <code>use ORM::Factory</code>. The mixin only adds the bare-name
-helpers; prefer one or the other per spec rather than mixing them in one
-file.</p>
+<h2 id="qualified-vs-bare-name-syntax">Qualified vs. bare-name syntax</h2>
+<p>The qualified form (<code>ORM::Factory.build('user')</code>) and the bare-name form
+(<code>build('user')</code>) are both available after <code>use ORM::Factory</code>. Pick one style
+per spec rather than mixing them.</p>
 <h2 id="behave-test-integration">behave / Test integration</h2>
-<p>Both <a href="https://github.com/gdonald/BDD-Behave">behave</a> and the core <code>Test</code> module are plain Raku, so
-<code>ORM::Factory::Methods</code> works in either harness without extra glue:</p>
+<p>Both <a href="https://github.com/gdonald/BDD-Behave">behave</a> and the core <code>Test</code> module are plain Raku, so the
+helpers work in either harness without extra glue:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
 <span class="normal">2</span>
 <span class="normal">3</span>
 <span class="normal">4</span>
 <span class="normal">5</span>
-<span class="normal">6</span>
-<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">BDD::Behave</span>;
+<span class="normal">6</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">BDD::Behave</span>;
 <span class="k">use</span> <span class="n">ORM::Factory</span>;
-<span class="k">use</span> <span class="n">ORM::Factory::Methods</span>;
 
 <span class="n">describe</span> <span class="s">&#39;user factory&#39;</span>, {
   <span class="n">it</span> <span class="s">&#39;creates a user&#39;</span>, { <span class="n">expect</span>(<span class="n">create</span>(<span class="s">&#39;user&#39;</span>).<span class="n">saved</span>).<span class="nb">to</span>.<span class="n">be-truthy</span> };
@@ -1222,10 +1216,8 @@ file.</p>
 <span class="normal">2</span>
 <span class="normal">3</span>
 <span class="normal">4</span>
-<span class="normal">5</span>
-<span class="normal">6</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">Test</span>;
+<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">Test</span>;
 <span class="k">use</span> <span class="n">ORM::Factory</span>;
-<span class="k">use</span> <span class="n">ORM::Factory::Methods</span>;
 
 <span class="k">is</span> <span class="n">build</span>(<span class="s">&#39;user&#39;</span>).<span class="n">fname</span>, <span class="s">&#39;Greg&#39;</span>, <span class="s">&#39;static attribute&#39;</span>;
 <span class="nb">done-testing</span>;

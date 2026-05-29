@@ -1166,7 +1166,7 @@ snake-case names are supported:</p>
 <span class="normal">7</span>
 <span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="n">User</span> { <span class="k">has</span> <span class="nb">Str</span> <span class="nv">$.fname</span>; }
 
-<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, { ; };
 };
 
@@ -1181,7 +1181,7 @@ snake-case names are supported:</p>
 <span class="normal">3</span>
 <span class="normal">4</span>
 <span class="normal">5</span>
-<span class="normal">6</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">6</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;super-admin&#39;</span>, :<span class="n">class</span>(<span class="n">Admin</span>), { ; };
 };
 
@@ -1203,7 +1203,7 @@ before defining:</p>
 <span class="normal">6</span>
 <span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">set-allow-class-lookup</span>(<span class="nb">False</span>);
 
-<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, { ; };
 };
 

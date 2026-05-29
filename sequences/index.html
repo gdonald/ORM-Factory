@@ -1180,7 +1180,7 @@ emails, login names, slugs.</p>
 <span class="normal">4</span>
 <span class="normal">5</span>
 <span class="normal">6</span>
-<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">sequence:</span> <span class="s">&#39;email&#39;</span>, -&gt; <span class="nv">$n</span> { <span class="s">&quot;user{$n}\@example.com&quot;</span> };
 };
 
@@ -1192,7 +1192,7 @@ emails, login names, slugs.</p>
 <p>Without a block, a sequence returns its raw counter:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
 <span class="normal">2</span>
-<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> { .<span class="n">sequence:</span> <span class="s">&#39;count&#39;</span>; };
+<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> { .<span class="n">sequence:</span> <span class="s">&#39;count&#39;</span>; };
 <span class="n">ORM::Factory</span>.<span class="n">generate</span>(<span class="s">&#39;count&#39;</span>);                 <span class="c1"># 1</span>
 <span class="n">ORM::Factory</span>.<span class="n">generate</span>(<span class="s">&#39;count&#39;</span>);                 <span class="c1"># 2</span>
 </code></pre></div></td></tr></table></div>
@@ -1209,7 +1209,7 @@ string starts advance with <code>.succ</code>:</p>
 <span class="normal"> 7</span>
 <span class="normal"> 8</span>
 <span class="normal"> 9</span>
-<span class="normal">10</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">10</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">sequence:</span> <span class="s">&#39;id&#39;</span>,     :<span class="n">start</span>(<span class="mi">1000</span>);
   .<span class="n">sequence:</span> <span class="s">&#39;letter&#39;</span>, :<span class="n">start</span>(<span class="s">&#39;a&#39;</span>);
 };
@@ -1228,7 +1228,7 @@ sequence pulls from it (with an optional block to transform each value):</p>
 <span class="normal">2</span>
 <span class="normal">3</span>
 <span class="normal">4</span>
-<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">sequence:</span> <span class="s">&#39;fib&#39;</span>, :<span class="n">iterator</span>((<span class="mi">1</span>, <span class="mi">1</span>, *+* ... *).<span class="nb">iterator</span>);
 };
 
@@ -1247,7 +1247,7 @@ factory and advances on every build:</p>
 <span class="normal">5</span>
 <span class="normal">6</span>
 <span class="normal">7</span>
-<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
   .<span class="n">factory:</span> <span class="s">&#39;invitation&#39;</span>, :<span class="n">class</span>(<span class="n">Invitation</span>), {
     .<span class="n">sequence:</span> <span class="s">&#39;token&#39;</span>, -&gt; <span class="nv">$n</span> { <span class="s">&quot;tok-$n&quot;</span> };
   };

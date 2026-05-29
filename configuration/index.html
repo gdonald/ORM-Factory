@@ -1230,8 +1230,7 @@ builder:</p>
 <code>create('post')</code> cascades <code>create</code> to the author, <code>build('post')</code> cascades
 <code>build</code>, etc.</p>
 <p>When <code>False</code>, associations always default to <code>create</code> regardless of the
-surrounding strategy — the legacy <code>factory_bot</code> behaviour. A per-association
-<code>:strategy(...)</code> still wins:</p>
+surrounding strategy. A per-association <code>:strategy(...)</code> still wins:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
 <span class="normal">2</span>
 <span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">configure:</span> { .<span class="n">use-parent-strategy</span>(<span class="nb">False</span>) };
