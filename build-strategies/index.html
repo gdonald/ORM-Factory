@@ -1126,7 +1126,7 @@
 <h1 id="build-strategies">Build strategies</h1>
 <p><code>ORM::Factory</code> ships four strategies for turning a factory definition into a
 result. They all share the same surface — <code>(Str:D $name, *@variants, *%overrides)</code>
-— and dispatch through a small <code>Strategy</code> role under the hood.</p>
+— and dispatch through a small <code>Strategy</code> role.</p>
 <table>
 <thead>
 <tr>
@@ -1220,14 +1220,14 @@ fixed-count <code>*-list</code> variants returning two instances.</p>
 <span class="normal">6</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">role</span> <span class="n">ORM::Factory::Strategy</span> {
   <span class="k">has</span> <span class="nv">$.persistence</span>;
   <span class="k">method</span> <span class="n">to-sym</span>(--&gt; <span class="nb">Str</span>) { ... }
-  <span class="k">method</span> <span class="nb">result</span>(<span class="nv">$evaluator</span>) { ... }
-  <span class="k">method</span> <span class="n">association</span>(...)   { ... }   <span class="c1"># filled in when associations land</span>
+  <span class="k">method</span> <span class="nb">result</span>(<span class="n">Evaluator</span> <span class="nv">$eval</span>) { ... }
+  <span class="k">method</span> <span class="n">association</span>(<span class="nb">Str:D</span> <span class="nv">$name</span>, <span class="nv">@variants</span>, <span class="nv">%overrides</span>) { ... }
 }
 </code></pre></div></td></tr></table></div>
 
 <p>The four shipped strategies are <code>BuildStrategy</code>, <code>CreateStrategy</code>,
-<code>AttributesForStrategy</code>, and <code>BuildStubbedStrategy</code>. Registering a custom
-strategy is a later milestone, but the role is already the integration point.</p>
+<code>AttributesForStrategy</code>, and <code>BuildStubbedStrategy</code>. Register your own with
+<code>ORM::Factory.register-strategy</code> — see <a href="../custom-strategies/">Custom strategies</a>.</p>
 
 
 
