@@ -1,28 +1,11 @@
 # DSL design
 
-`ORM::Factory` ports a DSL whose ergonomics rest on Ruby's `instance_eval` +
-`method_missing`. Neither has a drop-in Raku equivalent, so the mechanism must
-be picked deliberately — it shapes every later piece of the library. This page
-surveys the candidate mechanisms and records the chosen design.
-
-## What `factory_bot` does
-
-```ruby
-factory :user do
-  fname 'Greg'                       # static attribute
-  email { "user#{n}@example.com" }   # dynamic attribute (lazy block)
-  admin                              # apply a previously-defined trait
-end
-```
-
-Inside the block, Ruby's `instance_eval` re-binds `self` to a builder, and
-`method_missing` on that builder accepts *any* identifier as an attribute
-name. The block is therefore open-ended: you never declare attributes
-up-front, you just name them.
-
-Raku's identifier resolution is lexical and compile-time; arbitrary
-bare-identifier calls cannot resolve to runtime-discovered names without
-either parser surgery or topic-driven method dispatch.
+`ORM::Factory`'s DSL needs to capture arbitrary attribute names inside a
+block without pre-declaring them. Raku's identifier resolution is lexical
+and compile-time; arbitrary bare-identifier calls cannot resolve to
+runtime-discovered names without either parser surgery or topic-driven
+method dispatch. This page surveys the candidate mechanisms and records
+the chosen design.
 
 ## Candidate mechanisms
 
@@ -46,7 +29,7 @@ factory 'user', {
   attributes on the same object.
 - **Cons:** the leading `.` is mandatory — `fname 'Greg'` would parse as a
   sub call, not a method, and Raku will not synthesize an unknown sub on
-  demand. The Ruby surface gains one character per line.
+  demand.
 - **Disambiguation:** a `Callable` arg means *dynamic*; everything else means
   *static*. `add-attribute` is the escape hatch for a literal `Callable`
   value or a name that collides with a DSL method.
@@ -72,7 +55,7 @@ would need to know each user-defined attribute name at compile time.
 `postcircumfix:<{ }>` and similar are operator overloads on the *container*,
 not a way to capture an identifier call. Attribute access would degenerate
 into `<fname> = 'Greg'` syntax (subscript-on-builder), which loses the
-attribute-as-statement shape `factory_bot` users expect.
+attribute-as-statement shape.
 
 - **Pros:** none meaningful here.
 - **Cons:** does not solve the identifier problem. **Rejected.**
@@ -82,7 +65,7 @@ attribute-as-statement shape `factory_bot` users expect.
 Define a sub-grammar that re-parses the inside of `factory { ... }` to turn
 bare identifiers into builder method calls.
 
-- **Pros:** can mimic Ruby exactly: `fname 'Greg'`.
+- **Pros:** can drop the leading dot: `fname 'Greg'`.
 - **Cons:** slang code is non-trivial, fragile across Rakudo releases, hard
   to debug (mis-tokenisation reports point into the slang), and bleeds into
   editor / static-analysis tooling. Every later piece of the library pays an
@@ -113,10 +96,6 @@ identifiers inside the block resolve to.
 | Static vs dynamic             | A single `Callable` positional ⇒ dynamic block; anything else ⇒ static value. The disambiguation is exhaustive because attribute calls take at most one positional. |
 | Escape hatch                  | `add-attribute` for names that collide with declared DSL methods, or to force a `Callable` literal as a static value. |
 | Variant application inside a factory | `.admin;` resolves through `FALLBACK`. A registered variant of the matching name wins over attribute capture; missing-name errors mention both possibilities. |
-
-The decision is **frozen** going into the rest of the implementation.
-Revisiting it requires an explicit re-spike entry on the roadmap, not a
-drive-by change.
 
 ## Trade-off accepted
 

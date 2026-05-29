@@ -1,9 +1,7 @@
 # Getting started
 
 This page walks you through defining your first factory, reading it back from
-the registry, and resetting state between tests. The build strategies
-(`build`, `create`, `attributes-for`, `build-stubbed`) come in later
-milestones — see the [ROADMAP](https://github.com/gdonald/ORM-Factory/blob/main/ROADMAP.md).
+the registry, and resetting state between tests.
 
 ## Install
 
@@ -102,9 +100,9 @@ Looking up an unregistered name raises `X::ORM::Factory::UnknownFactory`.
 
 ## Variants
 
-A *variant* (the term `factory_bot` calls a "trait") is an alternate set of
-overrides scoped to one factory. Define one with `.variant`, apply it inside
-the same factory body with a bare leading-dot call:
+A *variant* is an alternate set of overrides scoped to one factory. Define
+one with `.variant`, apply it inside the same factory body with a bare
+leading-dot call:
 
 ```perl6
 ORM::Factory.define: {

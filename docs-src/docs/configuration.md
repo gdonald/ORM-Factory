@@ -44,8 +44,7 @@ When `True` (the default), an association inherits the surrounding strategy:
 `build`, etc.
 
 When `False`, associations always default to `create` regardless of the
-surrounding strategy — the legacy `factory_bot` behaviour. A per-association
-`:strategy(...)` still wins:
+surrounding strategy. A per-association `:strategy(...)` still wins:
 
 ```raku
 ORM::Factory.configure: { .use-parent-strategy(False) };

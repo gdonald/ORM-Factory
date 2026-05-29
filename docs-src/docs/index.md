@@ -6,10 +6,8 @@ The homepage for ORM::Factory is [https://github.com/gdonald/ORM-Factory](https:
 
 ## Synopsis
 
-`ORM::Factory` is a Raku port of Ruby's
-[`factory_bot`](https://github.com/thoughtbot/factory_bot): a definition DSL
-for building test objects (with or without persistence) so your specs stay
-declarative.
+`ORM::Factory` is a definition DSL for building test objects (with or
+without persistence) so your specs stay declarative.
 
 It is ORM-agnostic at its core. With
 [`ORM::ActiveRecord`](https://github.com/gdonald/ORM-ActiveRecord) installed

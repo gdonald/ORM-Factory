@@ -1,9 +1,9 @@
 # Callbacks
 
 Callbacks hook into the build lifecycle so a factory can mutate its instance
-or trigger side-effects at well-defined points. They mirror `factory_bot`'s
-`after(:build)`, `before(:create)`, `after(:create)`, and `after(:stub)`, and
-extend to custom names invoked by hand from other callbacks or custom build
+or trigger side-effects at well-defined points. The built-in events are
+`after build`, `before create`, `after create`, and `after stub`; custom
+names can be invoked by hand from other callbacks or custom build
 strategies.
 
 ```perl6
@@ -154,9 +154,8 @@ ORM::Factory.build('user').fname;   # 'GREG'
 
 ## `has_many`-style collections
 
-The combination of a [transient attribute](transient.md) and an `after build`
-callback gives the same shape as `factory_bot`'s `has_many` collection
-factories — a count knob plus a side-effect that builds the children:
+A [transient attribute](transient.md) plus an `after build` callback gives
+a count knob and a side-effect that builds the children:
 
 ```perl6
 ORM::Factory.define: {

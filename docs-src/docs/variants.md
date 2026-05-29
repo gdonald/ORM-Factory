@@ -1,8 +1,7 @@
 # Variants
 
 A **variant** captures a named cluster of attribute, association, or transient
-changes that you can layer onto a factory on demand. `factory_bot` calls these
-*traits*; the term is the same idea.
+changes that you can layer onto a factory on demand.
 
 ```perl6
 ORM::Factory.define: {

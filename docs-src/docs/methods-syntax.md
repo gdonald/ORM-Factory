@@ -1,8 +1,7 @@
 # Methods syntax
 
 `ORM::Factory::Methods` exports plain-sub wrappers around every public
-factory method, matching the shape of `factory_bot`'s methods syntax. Use it
-to keep specs terse:
+factory method. Use it to keep specs terse:
 
 ```raku
 use ORM::Factory;
