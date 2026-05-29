@@ -1,0 +1,1510 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../performance/">
+      
+      
+        <link rel="next" href="../migrating-from-factory-bot/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Cookbook - ORM::Factory</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cookbook" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ORM::Factory" class="md-header__button md-logo" aria-label="ORM::Factory" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ORM::Factory
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Cookbook
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ORM::Factory" class="md-nav__button md-logo" aria-label="ORM::Factory" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ORM::Factory
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dsl-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DSL design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-strategies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overrides/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overrides
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dependent-attrs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependent attributes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aliases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aliases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../class-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Class resolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sequences/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequences
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transient/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transient attributes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../inheritance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inheritance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../variants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Variants
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../associations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Associations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../callbacks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Callbacks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../persistence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Persistence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../active-record/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ORM::ActiveRecord adapter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../construction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Construction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-strategies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../methods-syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methods syntax
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linting & diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concurrency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concurrency
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../performance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cookbook
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cookbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sequences-and-unique-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequences and unique attributes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#variants-and-variant-composition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variants and variant composition
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#associations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Associations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transient-attributes-and-the-evaluator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transient attributes and the evaluator
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-strategies-to-create-and-initialize-with" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom strategies, to-create, and initialize-with
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-ormfactory-with-no-orm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using ORM::Factory with no ORM
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pairing-with-a-data-generation-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pairing with a data-generation library
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concurrency-and-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concurrency and performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migrating-from-factory-bot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating from factory_bot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sequences-and-unique-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequences and unique attributes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#variants-and-variant-composition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variants and variant composition
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#associations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Associations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transient-attributes-and-the-evaluator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transient attributes and the evaluator
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-strategies-to-create-and-initialize-with" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom strategies, to-create, and initialize-with
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-ormfactory-with-no-orm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using ORM::Factory with no ORM
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pairing-with-a-data-generation-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pairing with a data-generation library
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concurrency-and-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concurrency and performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="cookbook">Cookbook</h1>
+<p>Common recipes for <code>ORM::Factory</code>, each self-contained.</p>
+<h2 id="sequences-and-unique-attributes">Sequences and unique attributes</h2>
+<p>Sequences keep unique-violating attributes unique across builds without
+hard-coding values:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+  .<span class="n">sequence:</span> <span class="s">&#39;email&#39;</span>, -&gt; <span class="nv">$n</span> { <span class="s">&quot;user{$n}\@example.com&quot;</span> };
+
+  .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
+    .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
+    .<span class="n">email:</span> { <span class="n">ORM::Factory</span>.<span class="n">generate</span>(<span class="s">&#39;email&#39;</span>) };
+  };
+};
+
+<span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;user&#39;</span>).<span class="n">email</span>;   <span class="c1"># user1@example.com</span>
+<span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;user&#39;</span>).<span class="n">email</span>;   <span class="c1"># user2@example.com</span>
+</code></pre></div></td></tr></table></div>
+
+<p>For per-factory isolation, declare the sequence inline:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code>.<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
+  .<span class="n">sequence:</span> <span class="s">&#39;serial&#39;</span>;
+  .<span class="n">email:</span> { <span class="s">&quot;user{$.serial}\@example.com&quot;</span> };
+};
+</code></pre></div></td></tr></table></div>
+
+<h2 id="variants-and-variant-composition">Variants and variant composition</h2>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+  .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
+    .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
+    .<span class="n">role:</span>  <span class="s">&#39;user&#39;</span>;
+
+    .<span class="n">variant:</span> <span class="s">&#39;admin&#39;</span>,  { .<span class="n">role:</span> <span class="s">&#39;admin&#39;</span> };
+    .<span class="n">variant:</span> <span class="s">&#39;active&#39;</span>, { .<span class="n">active:</span> <span class="nb">True</span> };
+    .<span class="n">variant:</span> <span class="s">&#39;super-admin&#39;</span>, { <span class="n">admin</span>; <span class="n">active</span> };   <span class="c1"># composes other variants</span>
+  };
+};
+
+<span class="n">ORM::Factory</span>.<span class="n">create</span>(<span class="s">&#39;user&#39;</span>, <span class="s">&#39;admin&#39;</span>, <span class="s">&#39;active&#39;</span>);   <span class="c1"># apply at build time</span>
+<span class="n">ORM::Factory</span>.<span class="n">create</span>(<span class="s">&#39;user&#39;</span>, <span class="s">&#39;super-admin&#39;</span>);       <span class="c1"># one variant pulling two more</span>
+</code></pre></div></td></tr></table></div>
+
+<h2 id="associations">Associations</h2>
+<p>Implicit (attribute name matches a factory):</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+  .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, { .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span> };
+  .<span class="n">factory:</span> <span class="s">&#39;post&#39;</span>, { .<span class="n">title:</span> <span class="s">&#39;Hi&#39;</span>; .<span class="n">user</span> };       <span class="c1"># bare reference</span>
+};
+</code></pre></div></td></tr></table></div>
+
+<p>Explicit, with overrides and variants:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code>.<span class="n">factory:</span> <span class="s">&#39;post&#39;</span>, {
+  .<span class="n">title:</span> <span class="s">&#39;Hi&#39;</span>;
+  .<span class="n">association:</span> <span class="s">&#39;author&#39;</span>, :<span class="n">factory</span><span class="s">&lt;user&gt;</span>, <span class="s">&#39;admin&#39;</span>, :<span class="n">fname</span><span class="s">&lt;Pat&gt;</span>;
+};
+</code></pre></div></td></tr></table></div>
+
+<p><code>has_many</code> via callback + transient count:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code>.<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
+  .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
+
+  .<span class="n">transient:</span> {
+    .<span class="n">post-count:</span> <span class="mi">0</span>;
+  };
+
+  .<span class="o">after</span>: <span class="s">&#39;create&#39;</span>, -&gt; <span class="nv">$u</span>, <span class="nv">$e</span> {
+    <span class="n">ORM::Factory</span>.<span class="n">create-list</span>(<span class="s">&#39;post&#39;</span>, <span class="nv">$e</span>.<span class="n">post-count</span>, :<span class="n">author</span>(<span class="nv">$u</span>))
+      <span class="k">if</span> <span class="nv">$e</span>.<span class="n">post-count</span> &gt; <span class="mi">0</span>;
+  };
+};
+
+<span class="n">ORM::Factory</span>.<span class="n">create</span>(<span class="s">&#39;user&#39;</span>, :<span class="n">post-count</span>(<span class="mi">3</span>));
+</code></pre></div></td></tr></table></div>
+
+<h2 id="transient-attributes-and-the-evaluator">Transient attributes and the evaluator</h2>
+<p>Transient attributes are visible to dynamic attributes and callbacks but never
+make it into the persisted attribute hash:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code>.<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
+  .<span class="n">transient:</span> {
+    .<span class="n">password:</span> <span class="s">&#39;plaintext&#39;</span>;
+  };
+
+  .<span class="n">password-digest:</span> { <span class="n">Digest</span>.<span class="n">sha1</span>(<span class="nv">$.password</span>) };
+
+  .<span class="o">after</span>: <span class="s">&#39;build&#39;</span>, -&gt; <span class="nv">$u</span>, <span class="nv">$e</span> {
+    <span class="nv">$u</span>.<span class="n">session-token</span> = <span class="s">&quot;token-{$e.password}&quot;</span>;
+  };
+};
+</code></pre></div></td></tr></table></div>
+
+<h2 id="custom-strategies-to-create-and-initialize-with">Custom strategies, <code>to-create</code>, and <code>initialize-with</code></h2>
+<p>Per-factory persistence override:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code>.<span class="n">factory:</span> <span class="s">&#39;audit-event&#39;</span>, {
+  .<span class="n">name:</span> <span class="s">&#39;view&#39;</span>;
+
+  .<span class="n">to-create:</span> -&gt; <span class="nv">$event</span>, <span class="nv">$eval</span> {
+    <span class="n">AuditLog</span>.<span class="nb">append</span>(<span class="nv">$event</span>);            <span class="c1"># writes to a flat file, not the DB</span>
+  };
+};
+</code></pre></div></td></tr></table></div>
+
+<p>A registered custom strategy:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span>
+<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="n">JsonStrategy</span> <span class="k">does</span> <span class="n">ORM::Factory::Strategy</span> {
+  <span class="k">method</span> <span class="n">to-sym</span> { <span class="s">&#39;json&#39;</span> }
+  <span class="k">method</span> <span class="nb">result</span>(<span class="nv">$eval</span>) { <span class="n">to-json</span>(<span class="nv">$eval</span>.<span class="n">attributes-hash</span>) }
+  <span class="k">method</span> <span class="n">association</span>(<span class="nv">$name</span>, <span class="nv">@v</span>, <span class="nv">%o</span>) { <span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="nv">$name</span>, |<span class="nv">@v</span>, |<span class="nv">%o</span>) }
+}
+
+<span class="n">ORM::Factory</span>.<span class="n">register-strategy</span>(<span class="s">&#39;json&#39;</span>, <span class="n">JsonStrategy</span>);
+<span class="n">ORM::Factory</span>.<span class="n">json</span>(<span class="s">&#39;user&#39;</span>);                                  <span class="c1"># returns a JSON string</span>
+</code></pre></div></td></tr></table></div>
+
+<h2 id="using-ormfactory-with-no-orm">Using ORM::Factory with no ORM</h2>
+<p>Plain Raku classes work out of the box with the generic adapter:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="n">User</span> {
+  <span class="k">has</span> <span class="nb">Str</span>  <span class="nv">$.fname</span> <span class="k">is</span> <span class="k">rw</span>;
+  <span class="k">method</span> <span class="n">save-or-die</span> { <span class="nb">self</span> }                     <span class="c1"># or .save, or omit if you only build</span>
+}
+
+<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+  .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, :<span class="n">class</span>(<span class="n">User</span>), {
+    .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
+  };
+};
+
+<span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;user&#39;</span>);     <span class="c1"># User.new(fname =&gt; &#39;Greg&#39;)</span>
+<span class="n">ORM::Factory</span>.<span class="n">create</span>(<span class="s">&#39;user&#39;</span>);    <span class="c1"># then .save-or-die</span>
+</code></pre></div></td></tr></table></div>
+
+<p>For a non-AR, non-trivial persistence layer, write a custom adapter — see
+<a href="../persistence/#writing-a-custom-adapter">Persistence</a>.</p>
+<h2 id="pairing-with-a-data-generation-library">Pairing with a data-generation library</h2>
+<p><code>ORM::Factory</code> deliberately ships no fake-data generator. Pair it with
+whatever you like:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">Fake::Person</span>;       <span class="c1"># any Faker-equivalent</span>
+
+<span class="n">ORM::Factory</span>.<span class="n">define:</span> {
+  .<span class="n">sequence:</span> <span class="s">&#39;email-id&#39;</span>;
+
+  .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
+    .<span class="n">fname:</span> { <span class="n">Fake::Person</span>.<span class="n">first-name</span> };
+    .<span class="n">lname:</span> { <span class="n">Fake::Person</span>.<span class="n">last-name</span> };
+    .<span class="n">email:</span> { <span class="n">Fake::Person</span>.<span class="n">email</span>(:<span class="n">id</span>(<span class="n">ORM::Factory</span>.<span class="n">generate</span>(<span class="s">&#39;email-id&#39;</span>))) };
+  };
+};
+</code></pre></div></td></tr></table></div>
+
+<p>Sequences (for guaranteed uniqueness) and the data generator (for realism)
+play together cleanly: use the sequence to scope the random value.</p>
+<h2 id="concurrency-and-performance">Concurrency and performance</h2>
+<p>See <a href="../concurrency/">Concurrency</a> and <a href="../performance/">Performance</a> for the
+guarantees and the regression guards.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

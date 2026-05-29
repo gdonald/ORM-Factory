@@ -1,0 +1,1447 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../getting-started/">
+      
+      
+        <link rel="next" href="../build-strategies/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>DSL design - ORM::Factory</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dsl-design" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ORM::Factory" class="md-header__button md-logo" aria-label="ORM::Factory" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ORM::Factory
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              DSL design
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ORM::Factory" class="md-nav__button md-logo" aria-label="ORM::Factory" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ORM::Factory
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DSL design
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DSL design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-factory_bot-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What factory_bot does
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#candidate-mechanisms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Candidate mechanisms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Candidate mechanisms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-topic-_-builder-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Topic-$_ builder + FALLBACK
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-bare-identifiers-via-exported-sub-stubs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Bare identifiers via exported sub stubs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-postcircumfix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. &amp;postcircumfix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-custom-slang-use-slang" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Custom slang (use slang ...)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-exporthow-metamodel-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. EXPORTHOW / metamodel injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trade-off-accepted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trade-off accepted
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-strategies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overrides/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overrides
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dependent-attrs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependent attributes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aliases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aliases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../class-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Class resolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sequences/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequences
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transient/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transient attributes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../inheritance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inheritance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../variants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Variants
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../associations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Associations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../callbacks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Callbacks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../persistence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Persistence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../active-record/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ORM::ActiveRecord adapter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../construction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Construction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-strategies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../methods-syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methods syntax
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linting & diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concurrency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concurrency
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../performance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cookbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migrating-from-factory-bot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating from factory_bot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-factory_bot-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What factory_bot does
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#candidate-mechanisms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Candidate mechanisms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Candidate mechanisms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-topic-_-builder-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Topic-$_ builder + FALLBACK
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-bare-identifiers-via-exported-sub-stubs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Bare identifiers via exported sub stubs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-postcircumfix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. &amp;postcircumfix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-custom-slang-use-slang" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Custom slang (use slang ...)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-exporthow-metamodel-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. EXPORTHOW / metamodel injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trade-off-accepted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trade-off accepted
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="dsl-design">DSL design</h1>
+<p><code>ORM::Factory</code> ports a DSL whose ergonomics rest on Ruby's <code>instance_eval</code> +
+<code>method_missing</code>. Neither has a drop-in Raku equivalent, so the mechanism must
+be picked deliberately — it shapes every later piece of the library. This page
+surveys the candidate mechanisms and records the chosen design.</p>
+<h2 id="what-factory_bot-does">What <code>factory_bot</code> does</h2>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">factory</span><span class="w"> </span><span class="ss">:user</span><span class="w"> </span><span class="k">do</span>
+<span class="w">  </span><span class="n">fname</span><span class="w"> </span><span class="s1">&#39;Greg&#39;</span><span class="w">                       </span><span class="c1"># static attribute</span>
+<span class="w">  </span><span class="n">email</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;user</span><span class="si">#{</span><span class="n">n</span><span class="si">}</span><span class="s2">@example.com&quot;</span><span class="w"> </span><span class="p">}</span><span class="w">   </span><span class="c1"># dynamic attribute (lazy block)</span>
+<span class="w">  </span><span class="n">admin</span><span class="w">                              </span><span class="c1"># apply a previously-defined trait</span>
+<span class="k">end</span>
+</code></pre></div></td></tr></table></div>
+
+<p>Inside the block, Ruby's <code>instance_eval</code> re-binds <code>self</code> to a builder, and
+<code>method_missing</code> on that builder accepts <em>any</em> identifier as an attribute
+name. The block is therefore open-ended: you never declare attributes
+up-front, you just name them.</p>
+<p>Raku's identifier resolution is lexical and compile-time; arbitrary
+bare-identifier calls cannot resolve to runtime-discovered names without
+either parser surgery or topic-driven method dispatch.</p>
+<h2 id="candidate-mechanisms">Candidate mechanisms</h2>
+<h3 id="1-topic-_-builder-fallback">1. Topic-<code>$_</code> builder + <code>FALLBACK</code></h3>
+<p>The block is run with <code>$_</code> bound to a <code>FactoryBuilder</code> instance, so method
+calls on the topic use the leading-dot shorthand. The builder defines
+<code>FALLBACK</code> to capture any unknown method name as an attribute.</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">factory</span> <span class="s">&#39;user&#39;</span>, {
+  .<span class="n">fname:</span>  <span class="s">&#39;Greg&#39;</span>;
+  .<span class="n">email:</span>  { <span class="n">generate</span>(<span class="s">&#39;email&#39;</span>) };
+  .<span class="n">admin</span>;
+};
+</code></pre></div></td></tr></table></div>
+
+<ul>
+<li><strong>Pros:</strong> stays inside the standard language, dispatches at runtime,
+  composes with <code>:</code>-positional sugar, lets us mix declared DSL methods
+  (<code>.variant</code>, <code>.transient</code>, <code>.association</code>) with FALLBACK-captured
+  attributes on the same object.</li>
+<li><strong>Cons:</strong> the leading <code>.</code> is mandatory — <code>fname 'Greg'</code> would parse as a
+  sub call, not a method, and Raku will not synthesize an unknown sub on
+  demand. The Ruby surface gains one character per line.</li>
+<li><strong>Disambiguation:</strong> a <code>Callable</code> arg means <em>dynamic</em>; everything else means
+  <em>static</em>. <code>add-attribute</code> is the escape hatch for a literal <code>Callable</code>
+  value or a name that collides with a DSL method.</li>
+</ul>
+<h3 id="2-bare-identifiers-via-exported-sub-stubs">2. Bare identifiers via exported sub stubs</h3>
+<p>Every attribute would have to be an exported sub. Since attributes are open
+sets, this requires either:</p>
+<ul>
+<li>a build step generating a sub per attribute, or</li>
+<li>a fallback sub that uses <code>&amp;?ROUTINE</code> introspection.</li>
+</ul>
+<p>Neither preserves the <em>defined inside the block</em> property: <code>factory 'user'</code>
+would need to know each user-defined attribute name at compile time.</p>
+<ul>
+<li><strong>Pros:</strong> zero leading-dot noise (<code>fname 'Greg'</code>).</li>
+<li><strong>Cons:</strong> does not work for runtime-defined attribute names; collides
+  with built-in sub names (<code>given</code>, <code>when</code>, …); pollutes the global sub
+  namespace. <strong>Rejected.</strong></li>
+</ul>
+<h3 id="3-postcircumfix">3. <code>&amp;postcircumfix</code></h3>
+<p><code>postcircumfix:&lt;{ }&gt;</code> and similar are operator overloads on the <em>container</em>,
+not a way to capture an identifier call. Attribute access would degenerate
+into <code>&lt;fname&gt; = 'Greg'</code> syntax (subscript-on-builder), which loses the
+attribute-as-statement shape <code>factory_bot</code> users expect.</p>
+<ul>
+<li><strong>Pros:</strong> none meaningful here.</li>
+<li><strong>Cons:</strong> does not solve the identifier problem. <strong>Rejected.</strong></li>
+</ul>
+<h3 id="4-custom-slang-use-slang">4. Custom slang (<code>use slang ...</code>)</h3>
+<p>Define a sub-grammar that re-parses the inside of <code>factory { ... }</code> to turn
+bare identifiers into builder method calls.</p>
+<ul>
+<li><strong>Pros:</strong> can mimic Ruby exactly: <code>fname 'Greg'</code>.</li>
+<li><strong>Cons:</strong> slang code is non-trivial, fragile across Rakudo releases, hard
+  to debug (mis-tokenisation reports point into the slang), and bleeds into
+  editor / static-analysis tooling. Every later piece of the library pays an
+  ongoing tax. <strong>Rejected as default; revisit only if the topic-<code>$_</code> shape
+  proves unworkable in real specs.</strong></li>
+</ul>
+<h3 id="5-exporthow-metamodel-injection">5. <code>EXPORTHOW</code> / metamodel injection</h3>
+<p><code>EXPORTHOW</code> swaps the meta-class for a unit. It can give a class a custom
+declarator (e.g. <code>factory user { ... }</code>), but does not affect what
+identifiers inside the block resolve to.</p>
+<ul>
+<li><strong>Pros:</strong> could produce factory declarations that look like class
+  declarations.</li>
+<li><strong>Cons:</strong> does not solve the attribute-capture problem; pushes definitions
+  out of <code>ORM::Factory.define { ... }</code> into top-level declarators, which
+  fights the per-suite registry-reset model. <strong>Rejected.</strong></li>
+</ul>
+<h2 id="decision">Decision</h2>
+<p><strong>Topic-<code>$_</code> builder + <code>FALLBACK</code> (mechanism #1)</strong> is the chosen DSL.</p>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Entry point</td>
+<td><code>ORM::Factory.define: { ... }</code> runs the block with <code>$_</code> bound to a <code>DefinitionBuilder</code>.</td>
+</tr>
+<tr>
+<td><code>factory</code>, <code>sequence</code>, <code>variant</code>, <code>transient</code>, <code>association</code>, <code>after</code>, <code>before</code>, <code>initialize-with</code>, <code>to-create</code>, <code>modify</code>, <code>skip-create</code></td>
+<td>Explicit methods on the relevant builder — declared, not FALLBACK'd, so typos surface as method-not-found.</td>
+</tr>
+<tr>
+<td>Attribute capture</td>
+<td><code>FALLBACK</code> on <code>FactoryBuilder</code>, dispatching to <code>add-attribute</code> with the captured name and the call's arguments.</td>
+</tr>
+<tr>
+<td>Static vs dynamic</td>
+<td>A single <code>Callable</code> positional ⇒ dynamic block; anything else ⇒ static value. The disambiguation is exhaustive because attribute calls take at most one positional.</td>
+</tr>
+<tr>
+<td>Escape hatch</td>
+<td><code>add-attribute</code> for names that collide with declared DSL methods, or to force a <code>Callable</code> literal as a static value.</td>
+</tr>
+<tr>
+<td>Variant application inside a factory</td>
+<td><code>.admin;</code> resolves through <code>FALLBACK</code>. A registered variant of the matching name wins over attribute capture; missing-name errors mention both possibilities.</td>
+</tr>
+</tbody>
+</table>
+<p>The decision is <strong>frozen</strong> going into the rest of the implementation.
+Revisiting it requires an explicit re-spike entry on the roadmap, not a
+drive-by change.</p>
+<h2 id="trade-off-accepted">Trade-off accepted</h2>
+<p>The user-visible cost is the leading <code>.</code> on every attribute, plus the <code>:</code>
+between method and positional. Both are standard Raku — no slang, no
+metamodel surgery. The win is that the DSL is <em>just methods on an object</em>,
+which means it composes with Raku's existing tooling: introspection, <code>^methods</code>,
+<code>does</code> for behaviour mix-ins, and ordinary stack traces on failure.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
