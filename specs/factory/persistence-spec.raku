@@ -75,6 +75,8 @@ describe 'ORM::Factory::Persistence::Generic', {
   }
 }
 
+my $ar-available = so try { require ::('ORM::ActiveRecord::Model'); True };
+
 describe 'ORM::Factory persistence selection', {
   before-each {
     ORM::Factory.reload;
@@ -87,8 +89,12 @@ describe 'ORM::Factory persistence selection', {
     ORM::Factory.set-allow-class-lookup(True);
   }
 
-  it 'defaults to the Generic adapter when no AR adapter is installed', {
-    expect(ORM::Factory.persistence).to.be-a(ORM::Factory::Persistence::Generic);
+  it 'auto-detects an adapter (AR when installed, Generic otherwise)', {
+    if $ar-available {
+      expect(ORM::Factory.persistence.^name).to.eq('ORM::Factory::Persistence::ActiveRecord');
+    } else {
+      expect(ORM::Factory.persistence).to.be-a(ORM::Factory::Persistence::Generic);
+    }
   }
 
   it 'caches the resolved adapter across calls', {
@@ -114,7 +120,11 @@ describe 'ORM::Factory persistence selection', {
     }
 
     it 'restores auto-detection on next access', {
-      expect(ORM::Factory.persistence).to.be-a(ORM::Factory::Persistence::Generic);
+      if $ar-available {
+        expect(ORM::Factory.persistence.^name).to.eq('ORM::Factory::Persistence::ActiveRecord');
+      } else {
+        expect(ORM::Factory.persistence).to.be-a(ORM::Factory::Persistence::Generic);
+      }
     }
   }
 }

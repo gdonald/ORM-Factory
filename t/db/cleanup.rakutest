@@ -1,0 +1,56 @@
+use v6.d;
+use lib 'lib';
+use lib 'specs/lib';
+use Test;
+use ORM::Factory;
+use ORM::Factory::Cleanup;
+use Factory::Test::AR;
+
+publish-globals();
+
+ORM::Factory.reload;
+ORM::Factory.reset-persistence;
+
+ORM::Factory.define: {
+  .factory: 'factory-user', :class(FactoryUser), {
+    .fname: 'Greg';
+    .lname: 'Donald';
+    .email: 'greg@example.com';
+    .role:  'user';
+  };
+};
+
+FactoryPost.destroy-all;
+FactoryUser.destroy-all;
+
+subtest 'with-transaction-rollback', {
+  with-transaction-rollback {
+    ORM::Factory.create-list('factory-user', 3);
+  };
+  is FactoryUser.count, 0, 'rolls back creates on exit';
+
+  try {
+    with-transaction-rollback {
+      ORM::Factory.create('factory-user');
+      die 'simulated failure';
+    };
+  };
+  is FactoryUser.count, 0, 'rolls back on exception';
+}
+
+subtest 'truncate-tables', {
+  ORM::Factory.create-list('factory-user', 2);
+  is FactoryUser.count, 2, 'created two';
+
+  truncate-tables('factory_users');
+  is FactoryUser.count, 0, 'truncate-tables clears the table';
+}
+
+subtest 'truncate-all-tables', {
+  ORM::Factory.create-list('factory-user', 2);
+
+  truncate-all-tables();
+  is FactoryUser.count, 0, 'truncate-all-tables clears every table';
+}
+
+done-testing;

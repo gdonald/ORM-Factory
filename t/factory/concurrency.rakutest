@@ -1,0 +1,87 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+our class CUser {
+  has Str $.fname is rw;
+  has Int $.counter is rw;
+  has Bool $.saved is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+BEGIN GLOBAL::<CUser> := CUser;
+
+subtest 'sequence atomicity', {
+  ORM::Factory.reload;
+  ORM::Factory.set-allow-class-lookup(True);
+
+  ORM::Factory.define: {
+    .sequence: 'serial';
+  };
+
+  my @results = (^200).hyper(:degree(8), :batch(1)).map({
+    ORM::Factory.generate('serial');
+  }).list;
+
+  is @results.unique.elems, 200, 'all values unique';
+  is @results.min, 1, 'starts at 1';
+  is @results.max, 200, 'ends at 200';
+}
+
+subtest 'concurrent builds produce unique sequence values', {
+  ORM::Factory.reload;
+  ORM::Factory.set-allow-class-lookup(True);
+
+  ORM::Factory.define: {
+    .sequence: 'sn';
+    .factory: 'c-user', :class(CUser), {
+      .fname:   'C';
+      .counter: { ORM::Factory.generate('sn') };
+    };
+  };
+
+  my @users = (^100).hyper(:degree(8), :batch(1)).map({
+    ORM::Factory.build('c-user');
+  }).list;
+
+  is @users.map(*.counter).unique.elems, 100, 'all counters unique';
+}
+
+subtest 'per-build evaluator state is isolated across threads', {
+  ORM::Factory.reload;
+  ORM::Factory.set-allow-class-lookup(True);
+
+  ORM::Factory.define: {
+    .factory: 'c-user', :class(CUser), {
+      .fname: 'C';
+    };
+  };
+
+  my @users = (^50).hyper(:degree(4), :batch(1)).map({
+    ORM::Factory.build('c-user', fname => "name-$_");
+  }).list;
+
+  my @names = @users.map(*.fname).sort.join(',');
+  my $expected = (^50).map({ "name-$_" }).sort.join(',');
+  is @names, $expected, 'override per-call respected per-thread';
+}
+
+subtest 'rewind-sequences is safe under concurrency', {
+  ORM::Factory.reload;
+  ORM::Factory.set-allow-class-lookup(True);
+
+  ORM::Factory.define: {
+    .sequence: 'r';
+  };
+
+  my $count = 50;
+  my @values = (^$count).hyper(:degree(4), :batch(1)).map({
+    ORM::Factory.rewind-sequences if $_ %% 10;
+    ORM::Factory.generate('r');
+  }).list;
+
+  is @values.elems, $count, 'all generations complete';
+}
+
+done-testing;

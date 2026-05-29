@@ -1,0 +1,52 @@
+#!/usr/bin/env raku
+
+use v6.d;
+use lib 'lib';
+use ORM::Factory;
+use ORM::Factory::Persistence;
+use ORM::Factory::Persistence::Generic;
+
+our class BenchUser {
+  has Str  $.fname is rw;
+  has Str  $.lname is rw;
+  has Str  $.email is rw;
+  has Bool $.saved is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+BEGIN GLOBAL::<BenchUser> := BenchUser;
+
+sub MAIN(Int :$count = 1000, Int :$repeat = 3) {
+  ORM::Factory.reload;
+  ORM::Factory.set-persistence(ORM::Factory::Persistence::Generic.new);
+
+  ORM::Factory.define: {
+    .sequence: 'bench-id';
+    .factory: 'bench-user', :class(BenchUser), {
+      .fname: 'Greg';
+      .lname: 'Donald';
+      .email: { "user{ORM::Factory.generate('bench-id')}\@example.com" };
+    };
+  };
+
+  say "ORM::Factory benchmarks (count={$count}, repeat={$repeat})";
+  say '-' x 60;
+
+  for <attributes-for build build-stubbed create> -> $strategy {
+    my @times;
+    for ^$repeat {
+      ORM::Factory.rewind-sequences;
+      my $start = now;
+      my $method = $strategy ~ '-list';
+      ORM::Factory."$method"('bench-user', $count);
+      @times.push: (now - $start).Num;
+    }
+
+    my $avg = @times.sum / @times.elems;
+    my $per = $avg * 1_000_000 / $count;
+    printf "  %-16s  avg %7.3fms  (%6.2f µs / op)\n",
+    $strategy, $avg * 1000, $per;
+  }
+
+  say '';
+}

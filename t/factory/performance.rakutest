@@ -1,0 +1,156 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+use ORM::Factory::Persistence;
+use ORM::Factory::Persistence::Generic;
+
+our class PUser {
+  has Str  $.fname is rw;
+  has Bool $.saved is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+BEGIN GLOBAL::<PUser> := PUser;
+
+class CountingAdapter does ORM::Factory::Persistence {
+  has Int $.instantiate-calls is rw = 0;
+  has Int $.persist-calls     is rw = 0;
+  has Int $.stub-calls        is rw = 0;
+
+  method instantiate(Mu $class, %attrs) {
+    $!instantiate-calls++;
+    $class.new(|%attrs);
+  }
+  method persist(Mu $instance) {
+    $!persist-calls++;
+    $instance.save-or-die if $instance.^can('save-or-die');
+    $instance;
+  }
+  method stub(Mu $instance) {
+    $!stub-calls++;
+    $instance;
+  }
+}
+
+ORM::Factory.set-allow-class-lookup(False);
+
+subtest 'build-stubbed issues zero persist calls', {
+  ORM::Factory.reload;
+  my $c = CountingAdapter.new;
+  ORM::Factory.set-persistence($c);
+
+  ORM::Factory.define: {
+    .factory: 'p-user', :class(PUser), {
+      .fname: 'Greg';
+    };
+  };
+
+  ORM::Factory.build-stubbed('p-user');
+
+  is $c.persist-calls,     0, 'no persist';
+  is $c.instantiate-calls, 1, 'one instantiate';
+  is $c.stub-calls,        1, 'one stub';
+
+  ORM::Factory.reset-persistence;
+}
+
+subtest 'build issues zero persist calls', {
+  ORM::Factory.reload;
+  my $c = CountingAdapter.new;
+  ORM::Factory.set-persistence($c);
+
+  ORM::Factory.define: {
+    .factory: 'p-user', :class(PUser), {
+      .fname: 'Greg';
+    };
+  };
+
+  ORM::Factory.build('p-user');
+
+  is $c.persist-calls, 0, 'no persist';
+
+  ORM::Factory.reset-persistence;
+}
+
+subtest 'create issues exactly one persist call', {
+  ORM::Factory.reload;
+  my $c = CountingAdapter.new;
+  ORM::Factory.set-persistence($c);
+
+  ORM::Factory.define: {
+    .factory: 'p-user', :class(PUser), {
+      .fname: 'Greg';
+    };
+  };
+
+  ORM::Factory.create('p-user');
+  ORM::Factory.create('p-user');
+
+  is $c.persist-calls, 2, 'persist called per record';
+
+  ORM::Factory.reset-persistence;
+}
+
+subtest 'attributes-for issues zero adapter calls', {
+  ORM::Factory.reload;
+  my $c = CountingAdapter.new;
+  ORM::Factory.set-persistence($c);
+
+  ORM::Factory.define: {
+    .factory: 'p-user', :class(PUser), {
+      .fname: 'Greg';
+    };
+  };
+
+  ORM::Factory.attributes-for('p-user');
+
+  is $c.instantiate-calls, 0, 'no instantiate';
+  is $c.persist-calls,     0, 'no persist';
+  is $c.stub-calls,        0, 'no stub';
+
+  ORM::Factory.reset-persistence;
+}
+
+subtest 'evaluator memoises attributes per build', {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+
+  my $hits = 0;
+  ORM::Factory.define: {
+    .factory: 'p-user', :class(PUser), {
+      .fname: { $hits++; 'Greg' };
+    };
+  };
+
+  my $u = ORM::Factory.build('p-user');
+  $u.fname;
+  $u.fname;
+  $u.fname;
+
+  is $hits, 1, 'attribute block runs once';
+}
+
+subtest 'build-stubbed is not slower than create', {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+
+  ORM::Factory.define: {
+    .factory: 'p-user', :class(PUser), {
+      .fname: 'Greg';
+    };
+  };
+
+  my $stub-start = now;
+  ORM::Factory.build-stubbed-list('p-user', 200);
+  my $stub-time = now - $stub-start;
+
+  my $create-start = now;
+  ORM::Factory.create-list('p-user', 200);
+  my $create-time = now - $create-start;
+
+  ok $stub-time.Num <= $create-time.Num * 2,
+    "build-stubbed ($stub-time) not much slower than create ($create-time)";
+}
+
+done-testing;

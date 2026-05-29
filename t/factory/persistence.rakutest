@@ -57,8 +57,15 @@ class PlainNoPersistence {
   ORM::Factory.reset-persistence;
   ORM::Factory.set-allow-class-lookup(False);
 
-  isa-ok ORM::Factory.persistence, ORM::Factory::Persistence::Generic,
-    'defaults to the Generic adapter when no AR adapter is installed';
+  my $ar-available = so try { require ::('ORM::ActiveRecord::Model'); True };
+
+  if $ar-available {
+    is ORM::Factory.persistence.^name, 'ORM::Factory::Persistence::ActiveRecord',
+      'auto-detects the ActiveRecord adapter when AR is installed';
+  } else {
+    isa-ok ORM::Factory.persistence, ORM::Factory::Persistence::Generic,
+      'defaults to the Generic adapter when no AR adapter is installed';
+  }
 
   ok ORM::Factory.persistence === ORM::Factory.persistence,
     'caches the resolved adapter across calls';
@@ -69,8 +76,13 @@ class PlainNoPersistence {
     'explicit set-persistence overrides auto-detection';
 
   ORM::Factory.reset-persistence;
-  isa-ok ORM::Factory.persistence, ORM::Factory::Persistence::Generic,
-    'reset-persistence restores auto-detection on next access';
+  if $ar-available {
+    is ORM::Factory.persistence.^name, 'ORM::Factory::Persistence::ActiveRecord',
+      'reset-persistence restores auto-detection on next access';
+  } else {
+    isa-ok ORM::Factory.persistence, ORM::Factory::Persistence::Generic,
+      'reset-persistence restores auto-detection on next access';
+  }
 
   ORM::Factory.set-allow-class-lookup(True);
 }

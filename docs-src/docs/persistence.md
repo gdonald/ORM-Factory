@@ -97,3 +97,6 @@ sit on top of this seam: they intercept before the adapter is consulted, and
 fall through to the adapter when not present. See
 [Construction](construction.md) for the full hook protocol and resolution
 order.
+
+For the bundled `ORM::ActiveRecord` adapter, see
+[ORM::ActiveRecord adapter](active-record.md).

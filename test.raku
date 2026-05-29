@@ -309,7 +309,9 @@ sub run-pass(:@tests, :@specs --> Int) {
 sub run-db-pass(Str:D :$name, Str:D :$url, :@tests, :@specs --> Int) {
   say '';
   say "==> [{format-ts()}] adapter=$name";
-  %*ENV<DATABASE_URL> = $url;
+  %*ENV<DATABASE_URL>     = $url;
+  %*ENV<DISABLE-SQL-LOG> //= 'True';
+  %*ENV<ORM_LOG_FILE>    //= ('log'.IO.d ?? 'log/error.log' !! '/dev/null');
 
   # Persistence tests/specs need the test schema in place. Migrate only once
   # bin/factory exists.

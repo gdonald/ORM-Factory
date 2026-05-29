@@ -39,24 +39,27 @@ class Sequence {
   has Callable $.block;
   has Iterator $.iterator;
   has          $!current;
+  has Lock     $!lock = Lock.new;
 
   method next {
-    if $!iterator.defined {
-      my $value = $!iterator.pull-one;
-      die X::ORM::Factory::UsageError.new(
-        message => "sequence '$!name' iterator exhausted"
-      ) if $value =:= IterationEnd;
-      return $!block.defined ?? $!block.($value) !! $value;
-    }
+    $!lock.protect: {
+      if $!iterator.defined {
+        my $value = $!iterator.pull-one;
+        die X::ORM::Factory::UsageError.new(
+          message => "sequence '$!name' iterator exhausted"
+        ) if $value =:= IterationEnd;
+        return $!block.defined ?? $!block.($value) !! $value;
+      }
 
-    $!current = $!start unless $!current.defined;
-    my $input = $!current;
-    $!current = $!current ~~ Numeric ?? $!current + 1 !! $!current.succ;
-    $!block.defined ?? $!block.($input) !! $input;
+      $!current = $!start unless $!current.defined;
+      my $input = $!current;
+      $!current = $!current ~~ Numeric ?? $!current + 1 !! $!current.succ;
+      $!block.defined ?? $!block.($input) !! $input;
+    }
   }
 
   method rewind(--> Nil) {
-    $!current = Nil;
+    $!lock.protect: { $!current = Nil }
   }
 }
 
@@ -611,6 +614,7 @@ my Callback @GLOBAL-CALLBACKS;
 my Callable $GLOBAL-INITIALIZE-WITH;
 my Callable $GLOBAL-TO-CREATE;
 my Bool     $GLOBAL-SKIP-CREATE;
+my Lock     $REGISTRY-LOCK = Lock.new;
 
 method allow-class-lookup(--> Bool) { $ALLOW-CLASS-LOOKUP }
 
@@ -638,6 +642,10 @@ method configure(&block --> Nil) {
 }
 
 method define(&block --> Nil) {
+  $REGISTRY-LOCK.protect: { self!define-locked(&block) }
+}
+
+method !define-locked(&block --> Nil) {
   my $db = DefinitionBuilder.new;
   $db.run(&block);
 
@@ -692,6 +700,10 @@ method define(&block --> Nil) {
 }
 
 method modify(&block --> Nil) {
+  $REGISTRY-LOCK.protect: { self!modify-locked(&block) }
+}
+
+method !modify-locked(&block --> Nil) {
   my $mb = ModifyBuilder.new;
   $mb.run(&block);
 
@@ -751,16 +763,18 @@ method factory-exists(Str:D $name --> Bool) {
 }
 
 method reload(--> Nil) {
-  %FACTORIES        = ();
-  %ALIASES          = ();
-  %SEQUENCES        = ();
-  %GLOBAL-VARIANTS  = ();
-  @GLOBAL-CALLBACKS = ();
-  $GLOBAL-INITIALIZE-WITH = Callable;
-  $GLOBAL-TO-CREATE       = Callable;
-  $GLOBAL-SKIP-CREATE     = Bool;
-  $USE-PARENT-STRATEGY    = True;
-  @DEFINITION-FILE-PATHS  = ('factories.raku', 'spec/factories', 'specs/factories', 'test/factories', 't/factories');
+  $REGISTRY-LOCK.protect: {
+    %FACTORIES        = ();
+    %ALIASES          = ();
+    %SEQUENCES        = ();
+    %GLOBAL-VARIANTS  = ();
+    @GLOBAL-CALLBACKS = ();
+    $GLOBAL-INITIALIZE-WITH = Callable;
+    $GLOBAL-TO-CREATE       = Callable;
+    $GLOBAL-SKIP-CREATE     = Bool;
+    $USE-PARENT-STRATEGY    = True;
+    @DEFINITION-FILE-PATHS  = ('factories.raku', 'spec/factories', 'specs/factories', 'test/factories', 't/factories');
+  }
 }
 
 method find-definitions(--> Nil) {
@@ -1169,13 +1183,12 @@ method unregister-strategy(Str:D $name --> Nil) {
   %STRATEGIES{$name}:delete;
 }
 
-my @BUILD-CHAIN;
-
 method !run-strategy(Strategy:D $strategy, Str:D $name, @variants, %overrides) {
   my $factory = self.factory-by-name($name);
 
-  if @BUILD-CHAIN.first({ $_ eq $factory.name }).defined {
-    my @full = (|@BUILD-CHAIN, $factory.name);
+  my @*BUILD-CHAIN = (CALLERS::<@*BUILD-CHAIN> // ()).Array;
+  if @*BUILD-CHAIN.first({ $_ eq $factory.name }).defined {
+    my @full = (|@*BUILD-CHAIN, $factory.name);
     die X::ORM::Factory::CyclicAssociation.new(
       message => "cyclic association detected building '{$factory.name}' (chain: {@full.join(' -> ')})"
     );
@@ -1184,19 +1197,8 @@ method !run-strategy(Strategy:D $strategy, Str:D $name, @variants, %overrides) {
   my $eval    = build-evaluator($factory, @variants, %overrides);
   $eval.strategy = $strategy;
 
-  @BUILD-CHAIN.push: $factory.name;
-  my $result;
-  {
-    $result = $strategy.result($eval);
-    CATCH {
-      default {
-        @BUILD-CHAIN.pop;
-        .rethrow;
-      }
-    }
-  }
-  @BUILD-CHAIN.pop;
-  $result;
+  @*BUILD-CHAIN.push: $factory.name;
+  $strategy.result($eval);
 }
 
 method FALLBACK(Str:D $name, |c) {
@@ -1296,10 +1298,13 @@ method create-pair(Str:D $name, *@rest, *%overrides) {
 my ORM::Factory::Persistence $PERSISTENCE;
 
 sub detect-persistence(--> ORM::Factory::Persistence) {
-  my $ar-loaded = try { require ::('ORM::Factory::Persistence::ActiveRecord'); True };
-  if $ar-loaded {
-    my $ar-class = ::('ORM::Factory::Persistence::ActiveRecord');
-    return $ar-class.new;
+  my $ar-available = try { require ::('ORM::ActiveRecord::Model'); True };
+  if $ar-available {
+    my $loaded = try { require ::('ORM::Factory::Persistence::ActiveRecord'); True };
+    if $loaded {
+      my $ar-class = ::('ORM::Factory::Persistence::ActiveRecord');
+      return $ar-class.new;
+    }
   }
   ORM::Factory::Persistence::Generic.new;
 }

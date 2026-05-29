@@ -20,7 +20,9 @@
     "ORM::Factory": "lib/ORM/Factory.rakumod",
     "ORM::Factory::Methods": "lib/ORM/Factory/Methods.rakumod",
     "ORM::Factory::Persistence": "lib/ORM/Factory/Persistence.rakumod",
-    "ORM::Factory::Persistence::Generic": "lib/ORM/Factory/Persistence/Generic.rakumod"
+    "ORM::Factory::Persistence::Generic": "lib/ORM/Factory/Persistence/Generic.rakumod",
+    "ORM::Factory::Persistence::ActiveRecord": "lib/ORM/Factory/Persistence/ActiveRecord.rakumod",
+    "ORM::Factory::Cleanup": "lib/ORM/Factory/Cleanup.rakumod"
   },
   "resources": [],
   "support": {

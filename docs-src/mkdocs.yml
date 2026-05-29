@@ -17,11 +17,16 @@ nav:
   - Associations: associations.md
   - Callbacks: callbacks.md
   - Persistence: persistence.md
+  - ORM::ActiveRecord adapter: active-record.md
   - Construction: construction.md
   - Custom strategies: custom-strategies.md
   - Configuration: configuration.md
   - Methods syntax: methods-syntax.md
   - Linting & diagnostics: lint.md
+  - Concurrency: concurrency.md
+  - Performance: performance.md
+  - Cookbook: cookbook.md
+  - Migrating from factory_bot: migrating-from-factory-bot.md
   - Tests: tests.md
 theme:
   name: 'material'

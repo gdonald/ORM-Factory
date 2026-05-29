@@ -115,7 +115,7 @@ describe 'custom strategies', {
     }
 
     it 'wires :persistence into the registered strategy instance', {
-      expect(ORM::Factory.strategy-for('json').persistence).to.be-a(ORM::Factory::Persistence::Generic);
+      expect(ORM::Factory.strategy-for('json').persistence).to.be(ORM::Factory.persistence);
     }
   }
 

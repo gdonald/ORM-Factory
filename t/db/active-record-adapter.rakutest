@@ -1,0 +1,111 @@
+use v6.d;
+use lib 'lib';
+use lib 'specs/lib';
+use Test;
+use ORM::Factory;
+use ORM::Factory::Persistence;
+use ORM::Factory::Persistence::ActiveRecord;
+use Factory::Test::AR;
+
+publish-globals();
+
+ORM::Factory.reload;
+ORM::Factory.reset-persistence;
+
+my $adapter = ORM::Factory::Persistence::ActiveRecord.new;
+FactoryPost.destroy-all;
+FactoryUser.destroy-all;
+
+subtest 'role conformance', {
+  ok $adapter ~~ ORM::Factory::Persistence,
+    'AR adapter does the Persistence role';
+}
+
+subtest 'instantiate', {
+  my $u = $adapter.instantiate(FactoryUser, { :fname<Greg>, :lname<Donald> });
+  isa-ok $u, FactoryUser, 'returns an AR model instance';
+  is $u.attrs<fname>, 'Greg', 'attrs<fname> populated';
+  is $u.attrs<lname>, 'Donald', 'attrs<lname> populated';
+  ok $u.is-new-record, 'is-new-record true after instantiate';
+}
+
+subtest 'persist', {
+  my $u = $adapter.instantiate(FactoryUser, { :fname<Greg>, :lname<Donald> });
+  $adapter.persist($u);
+  ok $u.is-persisted, 'is-persisted after save';
+  ok $u.id > 0,       'gets a real id';
+}
+
+subtest 'persist on invalid raises', {
+  my $u = $adapter.instantiate(FactoryUser, { :fname<Greg> });
+  dies-ok { $adapter.persist($u) }, 'raises when validation fails';
+}
+
+subtest 'is-valid + errors', {
+  my $ok = $adapter.instantiate(FactoryUser, { :fname<Greg>, :lname<Donald> });
+  ok $adapter.is-valid($ok), 'valid record reports is-valid';
+
+  my $bad = $adapter.instantiate(FactoryUser, { :fname<Greg> });
+  nok $adapter.is-valid($bad), 'invalid record reports not is-valid';
+
+  $adapter.is-valid($bad);
+  ok $adapter.errors($bad).list.elems > 0, 'errors returned';
+}
+
+subtest 'primary-key', {
+  is $adapter.primary-key(FactoryUser), 'id', 'defaults to id';
+}
+
+subtest 'stub', {
+  $adapter.reset-stub-counter;
+
+  my $u = $adapter.instantiate(FactoryUser, { :fname<Greg>, :lname<Donald> });
+  my $s = $adapter.stub($u);
+
+  ok $s.id > 0,           'stub id positive';
+  ok $s.is-persisted,     'stub reports is-persisted';
+  nok $s.is-new-record,   'stub reports not is-new-record';
+  ok $s.attrs<created_at>.defined, 'created_at set';
+  ok $s.attrs<updated_at>.defined, 'updated_at set';
+
+  my $a = $adapter.stub($adapter.instantiate(FactoryUser, { :fname<A>, :lname<A> }));
+  my $b = $adapter.stub($adapter.instantiate(FactoryUser, { :fname<B>, :lname<B> }));
+  isnt $a.id, $b.id, 'stub ids are unique';
+}
+
+subtest 'auto-detection', {
+  ORM::Factory.reset-persistence;
+  is ORM::Factory.persistence.^name, 'ORM::Factory::Persistence::ActiveRecord',
+    'detect-persistence returns AR when AR is available';
+}
+
+subtest 'integration through factory', {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+
+  ORM::Factory.define: {
+    .factory: 'factory-user', :class(FactoryUser), {
+      .fname: 'Greg';
+      .lname: 'Donald';
+      .email: 'greg@example.com';
+      .role:  'user';
+    };
+  };
+
+  my $built = ORM::Factory.build('factory-user');
+  isa-ok $built, FactoryUser, 'build returns a model instance';
+  ok $built.is-new-record, 'build is not yet persisted';
+
+  my $created = ORM::Factory.create('factory-user');
+  ok $created.is-persisted, 'create is persisted';
+  ok $created.id > 0,       'create gets an id';
+
+  my $stubbed = ORM::Factory.build-stubbed('factory-user');
+  ok $stubbed.is-persisted, 'build-stubbed appears persisted';
+  ok $stubbed.attrs<created_at>.defined, 'build-stubbed has created_at';
+}
+
+FactoryPost.destroy-all;
+FactoryUser.destroy-all;
+
+done-testing;
