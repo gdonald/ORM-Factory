@@ -113,6 +113,36 @@ ORM::Factory.build('post').author.fname;                    # 'Inline'
 ORM::Factory.build('post', :author-name<Alice>).author.fname;   # 'Alice'
 ```
 
+## `has_many`-style collections
+
+`factory_bot` builds `has_many` collections by combining a transient count
+with an `after(:build)` callback that pushes children. The Raku port follows
+the same recipe:
+
+```perl6
+ORM::Factory.define: {
+  .factory: 'user', { .fname: 'Greg' };
+
+  .factory: 'post', {
+    .title: 'Hello';
+
+    .transient: {
+      .comments-count: 0;
+    };
+
+    .after: 'build', -> $post, $eval {
+      for ^$eval.comments-count -> $i {
+        $post.comments.push: ORM::Factory.build('comment', :post($post));
+      }
+    };
+  };
+};
+
+ORM::Factory.build('post', :comments-count(3)).comments.elems;   # 3
+```
+
+See [Callbacks](callbacks.md) for the full list of hook events.
+
 ## Polymorphic-style associations
 
 `factory_bot`'s polymorphic associations are nothing more than an explicit

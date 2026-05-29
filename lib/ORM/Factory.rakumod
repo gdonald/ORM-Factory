@@ -20,6 +20,7 @@ class X::ORM::Factory::DuplicateSequence is X::ORM::Factory {}
 class X::ORM::Factory::UsageError       is X::ORM::Factory {}
 class X::ORM::Factory::MissingAssociation is X::ORM::Factory {}
 class X::ORM::Factory::CyclicAssociation  is X::ORM::Factory {}
+class X::ORM::Factory::UnknownCallback    is X::ORM::Factory {}
 
 class Sequence {
   has Str      $.name;
@@ -57,6 +58,11 @@ sub resolve-class(Str:D $name --> Mu) {
   Mu;
 }
 
+class Callback {
+  has Str      $.event;
+  has Callable $.block;
+}
+
 class Attribute {
   has Str      $.name;
   has Bool     $.dynamic;
@@ -74,10 +80,24 @@ class Attribute {
 class Evaluator {
   has $.factory;
   has Attribute @.effective-attributes;
+  has Callback  @.callbacks;
   has %.overrides;
   has %!cache;
   has Mu        $.instance is rw;
   has           $.strategy is rw;
+
+  method run-callbacks(Str:D $event --> Nil) {
+    for @!callbacks.grep(*.event eq $event) -> $cb {
+      my $b = $cb.block;
+      my $count = $b.signature.count;
+
+      given $count {
+        when 0  { $b.() }
+        when 1  { $b.($!instance) }
+        default { $b.($!instance, self) }
+      }
+    }
+  }
 
   method value-for(Str:D $name) {
     return %!cache{$name} if %!cache{$name}:exists;
@@ -155,6 +175,7 @@ class Evaluator {
 class VariantDefinition {
   has Str       $.name;
   has Attribute @.attributes;
+  has Callback  @.callbacks;
 }
 
 class FactoryDefinition {
@@ -162,6 +183,7 @@ class FactoryDefinition {
   has Str       $.class-name;
   has Mu        $.class;
   has Attribute @.attributes;
+  has Callback  @.callbacks;
   has           %.variants;
   has Str       @.applied-variants;
   has Str       @.aliases;
@@ -189,6 +211,7 @@ class FactoryBuilder {
   has Mu        $.class;
   has Str       @.aliases;
   has Attribute @.attributes;
+  has Callback  @.callbacks;
   has           %.variants;
   has Str       @.applied-variants;
   has Bool      $!in-transient = False;
@@ -270,7 +293,23 @@ class FactoryBuilder {
 
     my $vb = FactoryBuilder.new(:$name);
     $vb.run(&block);
-    %!variants{$name} = VariantDefinition.new(:$name, :attributes($vb.attributes));
+    %!variants{$name} = VariantDefinition.new(
+      :$name,
+      :attributes($vb.attributes),
+      :callbacks($vb.callbacks),
+    );
+  }
+
+  method before(Str:D $event, &block --> Nil) {
+    @!callbacks.push: Callback.new(:event("before-$event"), :&block);
+  }
+
+  method after(Str:D $event, &block --> Nil) {
+    @!callbacks.push: Callback.new(:event("after-$event"), :&block);
+  }
+
+  method callback(Str:D $event, &block --> Nil) {
+    @!callbacks.push: Callback.new(:$event, :&block);
   }
 
   method variants-for-enum(Str:D $attr-name, @values --> Nil) {
@@ -321,6 +360,7 @@ class FactoryBuilder {
       :$!class-name,
       :class($!class),
       :attributes(@!attributes),
+      :callbacks(@!callbacks),
       :variants(%!variants),
       :applied-variants(@!applied-variants),
       :aliases(@!aliases),
@@ -338,6 +378,19 @@ class DefinitionBuilder {
   has @.sequences-order;
   has %.variants;
   has @.variants-order;
+  has Callback @.callbacks;
+
+  method before(Str:D $event, &block --> Nil) {
+    @!callbacks.push: Callback.new(:event("before-$event"), :&block);
+  }
+
+  method after(Str:D $event, &block --> Nil) {
+    @!callbacks.push: Callback.new(:event("after-$event"), :&block);
+  }
+
+  method callback(Str:D $event, &block --> Nil) {
+    @!callbacks.push: Callback.new(:$event, :&block);
+  }
 
   method sequence(Str:D $name, &block?, :$start = 1, Iterator :$iterator --> Nil) {
     die X::ORM::Factory::DuplicateSequence.new(
@@ -466,6 +519,7 @@ my %FACTORIES;
 my %ALIASES;
 my %SEQUENCES;
 my %GLOBAL-VARIANTS;
+my Callback @GLOBAL-CALLBACKS;
 
 method allow-class-lookup(--> Bool) { $ALLOW-CLASS-LOOKUP }
 
@@ -487,6 +541,10 @@ method define(&block --> Nil) {
       message => "global variant '$name' already defined"
     ) if %GLOBAL-VARIANTS{$name}:exists;
     %GLOBAL-VARIANTS{$name} = $db.variants{$name};
+  }
+
+  for $db.callbacks.list -> $cb {
+    @GLOBAL-CALLBACKS.push: $cb;
   }
 
   for $db.factories-order -> $name {
@@ -540,6 +598,8 @@ method modify(&block --> Nil) {
       @new-applied.push: $av;
     }
 
+    my Callback @new-callbacks = (|$existing.callbacks.list, |$fb.callbacks.list);
+
     %FACTORIES{$name} = FactoryDefinition.new(
       :name($existing.name),
       :class-name($existing.class-name),
@@ -547,6 +607,7 @@ method modify(&block --> Nil) {
       :parent-name($existing.parent-name),
       :explicit-class($existing.explicit-class),
       :attributes(@new-attrs),
+      :callbacks(@new-callbacks),
       :variants(%new-variants),
       :applied-variants(@new-applied),
       :aliases($existing.aliases),
@@ -575,7 +636,10 @@ method reload(--> Nil) {
   %ALIASES          = ();
   %SEQUENCES        = ();
   %GLOBAL-VARIANTS  = ();
+  @GLOBAL-CALLBACKS = ();
 }
+
+method global-callbacks(--> Array) { @GLOBAL-CALLBACKS }
 
 method sequences(--> Hash) { %SEQUENCES }
 
@@ -662,15 +726,17 @@ sub split-bare-variant-refs(FactoryDefinition $factory, @input --> List) {
   (@attrs, @bare-applied);
 }
 
-sub merge-variants(FactoryDefinition $factory, @runtime-variants --> Array) {
+sub merge-variants(FactoryDefinition $factory, @runtime-variants --> List) {
   my @chain = resolve-chain($factory);
 
   my @attrs;
+  my Callback @callbacks;
   for @chain -> $f {
     for $f.attributes.list -> $a {
       @attrs = @attrs.grep(*.name ne $a.name).Array;
       @attrs.push: $a;
     }
+    @callbacks.append: $f.callbacks.list;
   }
 
   my ($keep, $bare-applied) = split-bare-variant-refs($factory, @attrs);
@@ -700,19 +766,25 @@ sub merge-variants(FactoryDefinition $factory, @runtime-variants --> Array) {
       @attrs = @attrs.grep(*.name ne $a.name).Array;
       @attrs.push: $a;
     }
+
+    @callbacks.append: $variant.callbacks.list;
   }
 
   for @applied -> $vname {
     apply-variant-rec($vname, []);
   }
 
-  @attrs;
+  (@attrs, @callbacks);
 }
 
 sub build-evaluator(FactoryDefinition $factory, @variants, %overrides --> Evaluator) {
+  my ($attrs, $cbs) = merge-variants($factory, @variants);
+  my Callback @effective-callbacks = (|@GLOBAL-CALLBACKS, |$cbs.list);
+
   Evaluator.new(
     :$factory,
-    :effective-attributes(merge-variants($factory, @variants)),
+    :effective-attributes($attrs.list),
+    :callbacks(@effective-callbacks),
     :%overrides,
   );
 }
@@ -738,6 +810,7 @@ class BuildStrategy does Strategy {
   method result(Evaluator $eval) {
     my $instance = $!persistence.instantiate($eval.factory.lookup-class, $eval.attributes-hash);
     $eval.instance = $instance;
+    $eval.run-callbacks('after-build');
     $instance;
   }
   method association(Str:D $name, @variants, %overrides) {
@@ -750,7 +823,10 @@ class CreateStrategy does Strategy {
   method result(Evaluator $eval) {
     my $instance = $!persistence.instantiate($eval.factory.lookup-class, $eval.attributes-hash);
     $eval.instance = $instance;
+    $eval.run-callbacks('after-build');
+    $eval.run-callbacks('before-create');
     $!persistence.persist($instance);
+    $eval.run-callbacks('after-create');
     $instance;
   }
   method association(Str:D $name, @variants, %overrides) {
@@ -771,7 +847,10 @@ class BuildStubbedStrategy does Strategy {
   method result(Evaluator $eval) {
     my $instance = $!persistence.instantiate($eval.factory.lookup-class, $eval.attributes-hash);
     $eval.instance = $instance;
-    $!persistence.stub($instance);
+    my $stubbed = $!persistence.stub($instance);
+    $eval.instance = $stubbed;
+    $eval.run-callbacks('after-stub');
+    $stubbed;
   }
   method association(Str:D $name, @variants, %overrides) {
     ORM::Factory.build-stubbed($name, |@variants, |%overrides);

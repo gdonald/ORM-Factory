@@ -1,0 +1,253 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+class User {
+  has Str  $.fname    is rw;
+  has Str  $.role     is rw;
+  has Str  $.status   is rw;
+  has Str  $.greeting is rw;
+  has Bool $.saved    is rw = False;
+  has      @.events;
+  method save-or-die { $!saved = True; self }
+}
+
+class Post {
+  has Str  $.title  is rw;
+  has User $.author is rw;
+  has Bool $.saved  is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+sub fresh {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(False);
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .after: 'build', -> $u, $e { $u.fname = $u.fname.uc };
+    };
+  };
+
+  is ORM::Factory.build('user').fname, 'GREG',
+    'after-build fires on build';
+
+  is ORM::Factory.create('user').fname, 'GREG',
+    'after-build fires on create';
+
+  is ORM::Factory.build-stubbed('user').fname, 'Greg',
+    'after-build does not fire on build-stubbed';
+
+  is ORM::Factory.attributes-for('user')<fname>, 'Greg',
+    'after-build does not fire on attributes-for';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .before: 'create', -> $u, $e { $u.events.push: 'before-create' };
+      .after:  'create', -> $u, $e { $u.events.push: 'after-create'  };
+    };
+  };
+
+  is ORM::Factory.create('user').events.head, 'before-create',
+    'before-create fires before persistence';
+
+  is ORM::Factory.create('user').events.tail, 'after-create',
+    'after-create fires after persistence';
+
+  is ORM::Factory.build('user').events.elems, 0,
+    'create callbacks do not fire on build';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .after: 'stub', -> $u, $e { $u.events.push: 'stubbed' };
+    };
+  };
+
+  is-deeply ORM::Factory.build-stubbed('user').events.List, ('stubbed',),
+    'after-stub fires on build-stubbed';
+
+  is ORM::Factory.build('user').events.elems, 0,
+    'after-stub does not fire on build';
+
+  is ORM::Factory.create('user').events.elems, 0,
+    'after-stub does not fire on create';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .after: 'build', -> $u, $e {
+        $u.status = "{$e.fname}:{$e.role}";
+      };
+    };
+  };
+
+  is ORM::Factory.build('user').status, 'Greg:member',
+    'block receives instance + evaluator';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .after: 'build', -> $u, $e { $u.events.push: 'one' };
+      .after: 'build', -> $u, $e { $u.events.push: 'two' };
+      .after: 'build', -> $u, $e { $u.events.push: 'three' };
+    };
+  };
+
+  is-deeply ORM::Factory.build('user').events.List, ('one', 'two', 'three'),
+    'multiple callbacks for one event fire in declaration order';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .after: 'build', -> $u, $e { $u.events.push: 'parent' };
+
+      .factory: 'admin', {
+        .role: 'admin';
+        .after: 'build', -> $u, $e { $u.events.push: 'child' };
+      };
+    };
+  };
+
+  is-deeply ORM::Factory.build('admin').events.List, ('parent', 'child'),
+    'parent callback runs before child callback';
+
+  is-deeply ORM::Factory.build('user').events.List, ('parent',),
+    'parent build only fires the parent callback';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .after: 'build', -> $u, $e { $u.events.push: 'base' };
+      .variant: 'noisy', {
+        .after: 'build', -> $u, $e { $u.events.push: 'noisy' };
+      };
+    };
+  };
+
+  is-deeply ORM::Factory.build('user').events.List, ('base',),
+    'only the base callback fires without the variant';
+
+  is-deeply ORM::Factory.build('user', 'noisy').events.List, ('base', 'noisy'),
+    'variant callback fires after the base callback';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .after: 'build', -> $i, $e { $i.events.push: 'global' };
+
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .after: 'build', -> $u, $e { $u.events.push: 'user' };
+    };
+
+    .factory: 'admin', :class(User), {
+      .fname: 'Boss';
+    };
+  };
+
+  is-deeply ORM::Factory.build('admin').events.List, ('global',),
+    'global callback fires for factories with no own callbacks';
+
+  is-deeply ORM::Factory.build('user').events.List, ('global', 'user'),
+    'global callback fires before the factory-defined callback';
+
+  ORM::Factory.reload;
+  is ORM::Factory.global-callbacks.elems, 0,
+    'reload clears global callbacks';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .callback: 'shouted', -> $u, $e { $u.fname = $u.fname.uc };
+      .after: 'build', -> $u, $e { $e.run-callbacks('shouted') };
+    };
+  };
+
+  is-deeply
+    ORM::Factory.factory-by-name('user').callbacks.map(*.event).List,
+    ('shouted', 'after-build'),
+    'callback DSL registers the custom callback';
+
+  is ORM::Factory.build('user').fname, 'GREG',
+    'evaluator.run-callbacks invokes the custom callback';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .greeting: { "hi, {.fname}" };
+      .after: 'build', -> $u, $e { $u.greeting = $u.greeting.uc };
+    };
+  };
+
+  is ORM::Factory.build('user').greeting, 'HI, GREG',
+    'callback can post-process a dynamic attribute';
+
+  is ORM::Factory.build('user', :fname<Pat>).greeting, 'HI, PAT',
+    'override flows through dynamic attribute into the callback';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), { .fname: 'Greg' };
+
+    .factory: 'post', :class(Post), {
+      .title: 'Hello';
+
+      .transient: {
+        .comments-count: 0;
+      };
+
+      .after: 'build', -> $p, $e {
+        for ^$e.comments-count -> $i {
+          $p.author = ORM::Factory.build('user', :fname("commenter-$i"));
+        }
+      };
+    };
+  };
+
+  nok ORM::Factory.build('post').author.defined,
+    'transient count of 0 leaves the collection alone';
+
+  is ORM::Factory.build('post', :comments-count(3)).author.fname, 'commenter-2',
+    'transient count drives how many times the after-build loop runs';
+
+  is-deeply ORM::Factory.attributes-for('post').keys.sort.List, ('title',),
+    'attributes-for excludes the transient count';
+}
+
+done-testing;

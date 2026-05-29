@@ -67,6 +67,10 @@ A variant block is a mini factory body. It can declare any of:
 - **Associations** via `.association: 'name', :factory<...>`.
 - **Transient attributes** via `.transient: { ... }`, which the rest of the
   variant (or the original factory body) can read.
+- **Callbacks** via `.after: 'build', { ... }` / `.before: 'create', { ... }` /
+  `.after: 'create', { ... }` / `.after: 'stub', { ... }`. Variant callbacks
+  fire after the factory's own callbacks for the same event. See the
+  [Callbacks](callbacks.md) page.
 
 ```perl6
 ORM::Factory.define: {

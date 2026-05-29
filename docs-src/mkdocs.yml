@@ -15,6 +15,7 @@ nav:
   - Inheritance: inheritance.md
   - Variants: variants.md
   - Associations: associations.md
+  - Callbacks: callbacks.md
   - Persistence: persistence.md
   - Tests: tests.md
 theme:
