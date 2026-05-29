@@ -135,7 +135,7 @@ ORM::Factory.json('user');                                  # returns a JSON str
 
 ## Using ORM::Factory with no ORM
 
-Plain Raku classes work out of the box with the generic adapter:
+Plain Raku classes work with the generic adapter:
 
 ```perl6
 class User {

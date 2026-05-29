@@ -2,7 +2,7 @@
 
 `ORM::Factory` ships four strategies for turning a factory definition into a
 result. They all share the same surface — `(Str:D $name, *@variants, *%overrides)`
-— and dispatch through a small `Strategy` role under the hood.
+— and dispatch through a small `Strategy` role.
 
 | Method            | What it returns                                  | Persists? |
 |-------------------|--------------------------------------------------|-----------|
@@ -75,11 +75,11 @@ The public methods dispatch through a small role:
 role ORM::Factory::Strategy {
   has $.persistence;
   method to-sym(--> Str) { ... }
-  method result($evaluator) { ... }
-  method association(...)   { ... }   # filled in when associations land
+  method result(Evaluator $eval) { ... }
+  method association(Str:D $name, @variants, %overrides) { ... }
 }
 ```
 
 The four shipped strategies are `BuildStrategy`, `CreateStrategy`,
-`AttributesForStrategy`, and `BuildStubbedStrategy`. Registering a custom
-strategy is a later milestone, but the role is already the integration point.
+`AttributesForStrategy`, and `BuildStubbedStrategy`. Register your own with
+`ORM::Factory.register-strategy` — see [Custom strategies](custom-strategies.md).
