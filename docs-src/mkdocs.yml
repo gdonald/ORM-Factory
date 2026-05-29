@@ -17,6 +17,7 @@ nav:
   - Associations: associations.md
   - Callbacks: callbacks.md
   - Persistence: persistence.md
+  - Construction: construction.md
   - Tests: tests.md
 theme:
   name: 'material'

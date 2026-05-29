@@ -167,6 +167,8 @@ class Evaluator {
     %out;
   }
 
+  method attributes(--> Hash) { self.attributes-hash }
+
   method FALLBACK($name, |c) {
     self.value-for($name);
   }
@@ -189,6 +191,9 @@ class FactoryDefinition {
   has Str       @.aliases;
   has           $.parent-name;
   has Bool      $.explicit-class = False;
+  has Callable  $.initialize-with;
+  has Callable  $.to-create;
+  has Bool      $.skip-create;
 
   method lookup-class(--> Mu) {
     return $!class if $!class.^name ne 'Mu' && $!class.^name ne 'Any';
@@ -219,6 +224,9 @@ class FactoryBuilder {
   has Bool      $.explicit-class = False;
   has           $.parent-factory;
   has           @.children;
+  has Callable  $.initialize-with-block is rw;
+  has Callable  $.to-create-block       is rw;
+  has Bool      $.skip-create-flag      is rw;
 
   method add-attribute(Str:D $name, |c --> Nil) {
     my @pos = c.list;
@@ -312,6 +320,18 @@ class FactoryBuilder {
     @!callbacks.push: Callback.new(:$event, :&block);
   }
 
+  method initialize-with(&block --> Nil) {
+    $!initialize-with-block = &block;
+  }
+
+  method to-create(&block --> Nil) {
+    $!to-create-block = &block;
+  }
+
+  method skip-create(--> Nil) {
+    $!skip-create-flag = True;
+  }
+
   method variants-for-enum(Str:D $attr-name, @values --> Nil) {
     for @values -> $v {
       my $vname = $v.Str;
@@ -366,6 +386,9 @@ class FactoryBuilder {
       :aliases(@!aliases),
       :$!parent-name,
       :$!explicit-class,
+      :initialize-with($!initialize-with-block),
+      :to-create($!to-create-block),
+      :skip-create($!skip-create-flag),
     );
   }
 }
@@ -379,6 +402,9 @@ class DefinitionBuilder {
   has %.variants;
   has @.variants-order;
   has Callback @.callbacks;
+  has Callable $.global-initialize-with is rw;
+  has Callable $.global-to-create       is rw;
+  has Bool     $.global-skip-create     is rw;
 
   method before(Str:D $event, &block --> Nil) {
     @!callbacks.push: Callback.new(:event("before-$event"), :&block);
@@ -390,6 +416,18 @@ class DefinitionBuilder {
 
   method callback(Str:D $event, &block --> Nil) {
     @!callbacks.push: Callback.new(:$event, :&block);
+  }
+
+  method initialize-with(&block --> Nil) {
+    $!global-initialize-with = &block;
+  }
+
+  method to-create(&block --> Nil) {
+    $!global-to-create = &block;
+  }
+
+  method skip-create(--> Nil) {
+    $!global-skip-create = True;
   }
 
   method sequence(Str:D $name, &block?, :$start = 1, Iterator :$iterator --> Nil) {
@@ -520,6 +558,9 @@ my %ALIASES;
 my %SEQUENCES;
 my %GLOBAL-VARIANTS;
 my Callback @GLOBAL-CALLBACKS;
+my Callable $GLOBAL-INITIALIZE-WITH;
+my Callable $GLOBAL-TO-CREATE;
+my Bool     $GLOBAL-SKIP-CREATE;
 
 method allow-class-lookup(--> Bool) { $ALLOW-CLASS-LOOKUP }
 
@@ -546,6 +587,10 @@ method define(&block --> Nil) {
   for $db.callbacks.list -> $cb {
     @GLOBAL-CALLBACKS.push: $cb;
   }
+
+  $GLOBAL-INITIALIZE-WITH = $db.global-initialize-with with $db.global-initialize-with;
+  $GLOBAL-TO-CREATE       = $db.global-to-create       with $db.global-to-create;
+  $GLOBAL-SKIP-CREATE     = $db.global-skip-create     with $db.global-skip-create;
 
   for $db.factories-order -> $name {
     my $def = $db.factories{$name};
@@ -611,6 +656,9 @@ method modify(&block --> Nil) {
       :variants(%new-variants),
       :applied-variants(@new-applied),
       :aliases($existing.aliases),
+      :initialize-with($fb.initialize-with-block // $existing.initialize-with),
+      :to-create($fb.to-create-block            // $existing.to-create),
+      :skip-create($fb.skip-create-flag         // $existing.skip-create),
     );
   }
 }
@@ -637,7 +685,16 @@ method reload(--> Nil) {
   %SEQUENCES        = ();
   %GLOBAL-VARIANTS  = ();
   @GLOBAL-CALLBACKS = ();
+  $GLOBAL-INITIALIZE-WITH = Callable;
+  $GLOBAL-TO-CREATE       = Callable;
+  $GLOBAL-SKIP-CREATE     = Bool;
 }
+
+method global-initialize-with { $GLOBAL-INITIALIZE-WITH }
+
+method global-to-create       { $GLOBAL-TO-CREATE       }
+
+method global-skip-create     { $GLOBAL-SKIP-CREATE     }
 
 method global-callbacks(--> Array) { @GLOBAL-CALLBACKS }
 
@@ -797,6 +854,38 @@ sub build-association($strategy, Str:D $name, @variants, %overrides) {
   $strategy.association($name, @variants, %overrides);
 }
 
+sub resolve-initialize-with(FactoryDefinition $factory) {
+  for resolve-chain($factory).reverse -> $f {
+    return $f.initialize-with if $f.initialize-with.defined;
+  }
+  $GLOBAL-INITIALIZE-WITH;
+}
+
+sub resolve-create-hook(FactoryDefinition $factory --> List) {
+  for resolve-chain($factory).reverse -> $f {
+    return ('custom', $f.to-create) if $f.to-create.defined;
+    return ('skip', Callable)       if $f.skip-create;
+  }
+  return ('custom', $GLOBAL-TO-CREATE)   if $GLOBAL-TO-CREATE.defined;
+  return ('skip',   Callable)            if $GLOBAL-SKIP-CREATE;
+  ('default', Callable);
+}
+
+sub instantiate-with-hook(ORM::Factory::Persistence $persistence, Evaluator $eval) {
+  my $hook = resolve-initialize-with($eval.factory);
+  return $hook.($eval) if $hook.defined;
+  $persistence.instantiate($eval.factory.lookup-class, $eval.attributes-hash);
+}
+
+sub persist-with-hook(ORM::Factory::Persistence $persistence, Evaluator $eval, $instance --> Nil) {
+  my ($kind, $hook) = resolve-create-hook($eval.factory);
+  given $kind {
+    when 'custom'  { $hook.($instance, $eval) }
+    when 'skip'    { }
+    default        { $persistence.persist($instance) }
+  }
+}
+
 role Strategy {
   has ORM::Factory::Persistence $.persistence;
 
@@ -808,7 +897,7 @@ role Strategy {
 class BuildStrategy does Strategy {
   method to-sym(--> Str) { 'build' }
   method result(Evaluator $eval) {
-    my $instance = $!persistence.instantiate($eval.factory.lookup-class, $eval.attributes-hash);
+    my $instance = instantiate-with-hook($!persistence, $eval);
     $eval.instance = $instance;
     $eval.run-callbacks('after-build');
     $instance;
@@ -821,11 +910,11 @@ class BuildStrategy does Strategy {
 class CreateStrategy does Strategy {
   method to-sym(--> Str) { 'create' }
   method result(Evaluator $eval) {
-    my $instance = $!persistence.instantiate($eval.factory.lookup-class, $eval.attributes-hash);
+    my $instance = instantiate-with-hook($!persistence, $eval);
     $eval.instance = $instance;
     $eval.run-callbacks('after-build');
     $eval.run-callbacks('before-create');
-    $!persistence.persist($instance);
+    persist-with-hook($!persistence, $eval, $instance);
     $eval.run-callbacks('after-create');
     $instance;
   }
@@ -845,7 +934,7 @@ class AttributesForStrategy does Strategy {
 class BuildStubbedStrategy does Strategy {
   method to-sym(--> Str) { 'build-stubbed' }
   method result(Evaluator $eval) {
-    my $instance = $!persistence.instantiate($eval.factory.lookup-class, $eval.attributes-hash);
+    my $instance = instantiate-with-hook($!persistence, $eval);
     $eval.instance = $instance;
     my $stubbed = $!persistence.stub($instance);
     $eval.instance = $stubbed;

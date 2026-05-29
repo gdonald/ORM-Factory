@@ -1,0 +1,298 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+
+class User {
+  has      $.fname is rw;
+  has      $.role  is rw;
+  has      $.email is rw;
+  has Bool $.saved is rw = False;
+  has      $.via   is rw;
+  has      @.events;
+  method save-or-die { $!saved = True; self }
+}
+
+sub fresh {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(False);
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .initialize-with: -> $e { User.new(|$e.attributes, :via('hook')) };
+    };
+  };
+
+  is ORM::Factory.build('user').via, 'hook',
+    'per-factory initialize-with replaces the default constructor';
+
+  is ORM::Factory.build('user').fname, 'Greg',
+    'initialize-with sees factory attributes';
+
+  is ORM::Factory.create('user').via, 'hook',
+    'create uses initialize-with';
+
+  is ORM::Factory.build-stubbed('user').via, 'hook',
+    'build-stubbed uses initialize-with';
+
+  is ORM::Factory.attributes-for('user')<fname>, 'Greg',
+    'attributes-for bypasses initialize-with';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .initialize-with: -> $e { User.new(|$e.attributes, :via('hook')) };
+      .after: 'build', -> $u, $e { $u.events.push: 'after-build' };
+    };
+  };
+
+  is-deeply ORM::Factory.build('user').events.List, ('after-build',),
+    'after-build fires on the hook-built instance';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .initialize-with: -> $e { User.new(|$e.attributes, :via('global')) };
+
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+    };
+  };
+
+  is ORM::Factory.build('user').via, 'global',
+    'global initialize-with applies when factory has no hook';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .initialize-with: -> $e { User.new(|$e.attributes, :via('global')) };
+
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .initialize-with: -> $e { User.new(|$e.attributes, :via('factory')) };
+    };
+  };
+
+  is ORM::Factory.build('user').via, 'factory',
+    'per-factory initialize-with wins over global';
+
+  ORM::Factory.reload;
+  nok ORM::Factory.global-initialize-with.defined,
+    'reload clears global initialize-with';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .initialize-with: -> $e { User.new(|$e.attributes, :via('parent')) };
+
+      .factory: 'admin', {
+        .role: 'admin';
+      };
+
+      .factory: 'shouty', {
+        .role: 'shout';
+        .initialize-with: -> $e { User.new(|$e.attributes, :via('child')) };
+      };
+    };
+  };
+
+  is ORM::Factory.build('admin').via, 'parent',
+    'child inherits parent initialize-with';
+
+  is ORM::Factory.build('shouty').via, 'child',
+    'child can override parent initialize-with';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .to-create: -> $u, $e { $u.via = 'custom'; $u.saved = True };
+    };
+  };
+
+  my $u = ORM::Factory.create('user');
+  is $u.via, 'custom',
+    'per-factory to-create replaces persistence';
+  ok $u.saved,
+    'custom to-create body ran';
+
+  nok ORM::Factory.build('user').saved,
+    'to-create is not consulted by build';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .before: 'create', -> $u, $e { $u.events.push: 'before' };
+      .to-create: -> $u, $e { $u.events.push: 'persist' };
+      .after:  'create', -> $u, $e { $u.events.push: 'after' };
+    };
+  };
+
+  is-deeply ORM::Factory.create('user').events.List, ('before', 'persist', 'after'),
+    'create callbacks fire around to-create';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .to-create: -> $u, $e { $u.via = 'global'; $u.saved = True };
+
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+    };
+  };
+
+  is ORM::Factory.create('user').via, 'global',
+    'global to-create applies when factory has no hook';
+
+  ORM::Factory.reload;
+  nok ORM::Factory.global-to-create.defined,
+    'reload clears global to-create';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .to-create: -> $u, $e { $u.via = 'parent'; $u.saved = True };
+
+      .factory: 'admin', {
+        .role: 'admin';
+      };
+
+      .factory: 'mongo', {
+        .role: 'mongo';
+        .to-create: -> $u, $e { $u.via = 'child'; $u.saved = True };
+      };
+    };
+  };
+
+  is ORM::Factory.create('admin').via, 'parent',
+    'child inherits parent to-create';
+
+  is ORM::Factory.create('mongo').via, 'child',
+    'child can override parent to-create';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .skip-create;
+    };
+  };
+
+  nok ORM::Factory.create('user').saved,
+    'per-factory skip-create suppresses persistence';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .skip-create;
+      .after:  'build',  -> $u, $e { $u.events.push: 'after-build'   };
+      .before: 'create', -> $u, $e { $u.events.push: 'before-create' };
+      .after:  'create', -> $u, $e { $u.events.push: 'after-create'  };
+    };
+  };
+
+  is-deeply ORM::Factory.create('user').events.List,
+    ('after-build', 'before-create', 'after-create'),
+    'skip-create still runs build / create callbacks';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .skip-create;
+
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+    };
+  };
+
+  nok ORM::Factory.create('user').saved,
+    'global skip-create applies when factory has no hook';
+
+  ORM::Factory.reload;
+  nok ORM::Factory.global-skip-create.defined,
+    'reload clears global skip-create';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .skip-create;
+
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .to-create: -> $u, $e { $u.saved = True };
+    };
+  };
+
+  ok ORM::Factory.create('user').saved,
+    'per-factory to-create overrides global skip-create';
+}
+
+{
+  fresh;
+  ORM::Factory.define: {
+    .factory: 'user', :class(User), {
+      .fname: 'Greg';
+      .role:  'member';
+      .skip-create;
+
+      .factory: 'admin', {
+        .role: 'admin';
+      };
+
+      .factory: 'saver', {
+        .role: 'saver';
+        .to-create: -> $u, $e { $u.saved = True };
+      };
+    };
+  };
+
+  nok ORM::Factory.create('admin').saved,
+    'child inherits parent skip-create';
+
+  ok ORM::Factory.create('saver').saved,
+    'child to-create overrides parent skip-create';
+}
+
+done-testing;
