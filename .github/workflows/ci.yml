@@ -10,6 +10,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  unit:
+    name: unit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Raku
+        uses: Raku/setup-raku@v1
+        with:
+          raku-version: 'latest'
+
+      - name: Raku version
+        run: raku --version
+
+      - name: Install ORM::ActiveRecord (sibling; not yet in the zef ecosystem)
+        run: zef install --/test https://github.com/gdonald/ORM-ActiveRecord.git
+
+      - name: Install Dependencies
+        run: zef install --/test --test-depends --deps-only .
+
+      - name: Install App::Prove6
+        run: zef install --/test App::Prove6
+
+      - name: Run unit tests
+        run: ./test.raku --unit-only
+
   test:
     name: ${{ matrix.db }}
     runs-on: ubuntu-latest
@@ -79,4 +106,4 @@ jobs:
         run: zef install --/test App::Prove6
 
       - name: Run tests (${{ matrix.db }})
-        run: ./test.raku
+        run: ./test.raku --no-unit

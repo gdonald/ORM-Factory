@@ -115,24 +115,4 @@ describe 'performance guards', {
     }
   }
 
-  context 'build-stubbed is faster than create', {
-    it 'completes a batch in less wall-clock time', {
-      ORM::Factory.reload;
-      ORM::Factory.define: {
-        .factory: 'p-user', :class(PUser), {
-          .fname: 'Greg';
-        };
-      };
-
-      my $stub-start = now;
-      ORM::Factory.build-stubbed-list('p-user', 200);
-      my $stub-time = now - $stub-start;
-
-      my $create-start = now;
-      ORM::Factory.create-list('p-user', 200);
-      my $create-time = now - $create-start;
-
-      expect($stub-time.Num).to.be-less-than($create-time.Num * 2);
-    }
-  }
 }

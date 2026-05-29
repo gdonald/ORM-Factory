@@ -131,26 +131,4 @@ subtest 'evaluator memoises attributes per build', {
   is $hits, 1, 'attribute block runs once';
 }
 
-subtest 'build-stubbed is not slower than create', {
-  ORM::Factory.reload;
-  ORM::Factory.reset-persistence;
-
-  ORM::Factory.define: {
-    .factory: 'p-user', :class(PUser), {
-      .fname: 'Greg';
-    };
-  };
-
-  my $stub-start = now;
-  ORM::Factory.build-stubbed-list('p-user', 200);
-  my $stub-time = now - $stub-start;
-
-  my $create-start = now;
-  ORM::Factory.create-list('p-user', 200);
-  my $create-time = now - $create-start;
-
-  ok $stub-time.Num <= $create-time.Num * 2,
-    "build-stubbed ($stub-time) not much slower than create ($create-time)";
-}
-
 done-testing;

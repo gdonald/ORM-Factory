@@ -360,19 +360,23 @@ sub find-test-files(IO::Path $dir) {
   @out;
 }
 
-sub parse-adapter-args(--> List) {
+sub parse-args(--> Hash) {
   my %alias = pg => 'postgres', postgres => 'postgres', postgresql => 'postgres',
   mysql => 'mysql',
   sqlite => 'sqlite', sqlite3 => 'sqlite';
   my @args = @*ARGS;
   if @args.grep({ $_ eq '-h' || $_ eq '--help' }) {
     say q:to/USAGE/;
-    Usage: ./test.raku [--adapter=NAME[,NAME...]]
+    Usage: ./test.raku [--adapter=NAME[,NAME...]] [--unit-only|--no-unit]
       NAME: pg|postgres|mysql|sqlite (default: all configured)
+      --unit-only  run only the DB-agnostic unit pass
+      --no-unit    skip the unit pass; run only DB-backed passes
     USAGE
     exit 0;
   }
   my @picked;
+  my $unit-only = False;
+  my $no-unit   = False;
   my $i = 0;
   while $i < @args.elems {
     my $a = @args[$i];
@@ -381,17 +385,26 @@ sub parse-adapter-args(--> List) {
     } elsif $a eq '--adapter' {
       die "--adapter requires a value" unless $i + 1 < @args.elems;
       @picked.append: @args[++$i];
+    } elsif $a eq '--unit-only' {
+      $unit-only = True;
+    } elsif $a eq '--no-unit' {
+      $no-unit = True;
     } else {
-      die "unknown arg: $a (use --adapter=pg|mysql|sqlite)";
+      die "unknown arg: $a (use --adapter=pg|mysql|sqlite, --unit-only, or --no-unit)";
     }
     $i++;
   }
-  @picked.map(*.split(',', :skip-empty)).flat.map({
+  die "--unit-only and --no-unit are mutually exclusive" if $unit-only && $no-unit;
+  my @wanted = @picked.map(*.split(',', :skip-empty)).flat.map({
       %alias{.lc} // die "unknown adapter: $_ (use pg|mysql|sqlite)"
   }).list;
+  { :@wanted, :$unit-only, :$no-unit };
 }
 
-my @wanted = parse-adapter-args();
+my %opts     = parse-args();
+my @wanted   = %opts<wanted>.list;
+my $unit-only = %opts<unit-only>;
+my $no-unit   = %opts<no-unit>;
 
 # t/ tests (prove6) and specs/ specs (behave) mirror each other. In both trees,
 # files under a top-level db/ are DB-backed (run once per reachable adapter,
@@ -411,7 +424,7 @@ my Bool $skip-probe = False;
 
 # Adapters are needed only for DB-backed tests/specs; skip all probing when
 # there are none, so the unit pass never depends on a database being present.
-if @db-specs || @db-tests {
+if (@db-specs || @db-tests) && !$unit-only {
   if my $external = %*ENV<DATABASE_URL> {
     my $kind = parse-database-url($external)<adapter>;
     my $name = $kind eq 'pg' ?? 'postgres' !! $kind;
@@ -459,7 +472,7 @@ END {
 }
 
 # Unit pass: DB-agnostic t/ tests + specs/ specs, run once.
-if @unit-tests || @unit-specs {
+if (@unit-tests || @unit-specs) && !$no-unit {
   say '';
   say "==> [{format-ts()}] unit";
   my $start = now;

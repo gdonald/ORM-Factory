@@ -60,7 +60,7 @@ plan and current progress.
 
 ## Build Status
 
-[![.github/workflows/raku.yml](https://github.com/gdonald/ORM-Factory/workflows/.github/workflows/raku.yml/badge.svg)](https://github.com/gdonald/ORM-Factory/actions)
+[![CI](https://github.com/gdonald/ORM-Factory/actions/workflows/ci.yml/badge.svg)](https://github.com/gdonald/ORM-Factory/actions/workflows/ci.yml)
 
 ### License
 
