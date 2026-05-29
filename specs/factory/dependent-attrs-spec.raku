@@ -18,7 +18,7 @@ describe 'dependent attribute capture', {
 
   context 'a block referencing another attribute via the evaluator topic', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .email: { .fname ~ '@example.com' };
@@ -45,7 +45,7 @@ describe 'dependent attribute capture', {
 
   context 'declaration order is preserved through capture', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname:    'Greg';
           .lname:    'Donald';

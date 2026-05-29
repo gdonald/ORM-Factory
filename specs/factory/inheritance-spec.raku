@@ -25,7 +25,7 @@ describe 'factory inheritance', {
 
   context 'nested factory definition', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'person', {
           .fname: 'Greg';
           .email: 'greg@example.com';
@@ -64,7 +64,7 @@ describe 'factory inheritance', {
 
   context 'child overrides parent attribute', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'person', {
           .fname: 'Greg';
         };
@@ -82,7 +82,7 @@ describe 'factory inheritance', {
 
   context 'transient inheritance', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'person', {
           .transient: {
             .upcase: False;
@@ -111,7 +111,7 @@ describe 'factory inheritance', {
 
   context 'explicit :parent option', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'person', {
           .fname: 'Greg';
         };
@@ -137,7 +137,7 @@ describe 'factory inheritance', {
     it 'raises on unknown parent', {
       expect({
         ORM::Factory.reload;
-        ORM::Factory.define: {
+        define {
           .factory: 'manager', :parent('ghost'), { ; };
         };
       }).to.raise-error(X::ORM::Factory::UnknownFactory);
@@ -146,7 +146,7 @@ describe 'factory inheritance', {
 
   context 'multi-level inheritance', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'person', {
           .fname: 'Greg';
         };
@@ -176,7 +176,7 @@ describe 'factory inheritance', {
 
   context 'class inheritance', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'person', {
           .fname: 'Greg';
         };
@@ -202,7 +202,7 @@ describe 'factory inheritance', {
 
   context 'variant inheritance', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'person', {
           .fname: 'Greg';
           .variant: 'admin', {
@@ -227,7 +227,7 @@ describe 'factory inheritance', {
 
   context 'modify updates an existing factory', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'person', {
           .fname: 'Greg';
           .email: 'greg@example.com';
@@ -260,7 +260,7 @@ describe 'factory inheritance', {
 
   context 'modify propagates through inheritance', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'person', {
           .fname: 'Greg';
         };

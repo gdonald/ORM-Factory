@@ -21,7 +21,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .role:  'member';
@@ -47,7 +47,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .role:  'member';
@@ -62,7 +62,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .initialize-with: -> $e { User.new(|$e.attributes, :via('global')) };
 
     .factory: 'user', :class(User), {
@@ -77,7 +77,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .initialize-with: -> $e { User.new(|$e.attributes, :via('global')) };
 
     .factory: 'user', :class(User), {
@@ -97,7 +97,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .role:  'member';
@@ -123,7 +123,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .role:  'member';
@@ -143,7 +143,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .role:  'member';
@@ -159,7 +159,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .to-create: -> $u, $e { $u.via = 'global'; $u.saved = True };
 
     .factory: 'user', :class(User), {
@@ -178,7 +178,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .role:  'member';
@@ -204,7 +204,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .role:  'member';
@@ -218,7 +218,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .role:  'member';
@@ -236,7 +236,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .skip-create;
 
     .factory: 'user', :class(User), {
@@ -255,7 +255,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .skip-create;
 
     .factory: 'user', :class(User), {
@@ -271,7 +271,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .role:  'member';

@@ -121,7 +121,7 @@ describe 'ORM::Factory::Persistence::ActiveRecord', {
 
   context 'integration through factory build/create/build-stubbed', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'factory-user', :class(FactoryUser), {
           .fname: 'Greg';
           .lname: 'Donald';

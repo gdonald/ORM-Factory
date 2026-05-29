@@ -12,7 +12,7 @@ Pass an `:aliases` named argument when defining a factory. It accepts either
 a single string or a list:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', :aliases<author commenter>, {
     .fname: 'Greg';
   };
@@ -34,22 +34,22 @@ Aliases share a namespace with factory names. Any collision raises
 
 ```perl6
 # alias would shadow an existing factory
-ORM::Factory.define: {
+define {
   .factory: 'user',  { ; };
   .factory: 'other', :aliases<user>, { ; };   # raises
 };
 
 # two factories cannot claim the same alias
-ORM::Factory.define: {
+define {
   .factory: 'user',  :aliases<author>, { ; };
   .factory: 'other', :aliases<author>, { ; }; # raises
 };
 
 # a new factory cannot reuse an existing alias
-ORM::Factory.define: {
+define {
   .factory: 'user', :aliases<author>, { ; };
 };
-ORM::Factory.define: {
+define {
   .factory: 'author', { ; };   # raises
 };
 ```

@@ -9,7 +9,7 @@ Three hooks override that adapter when the default behaviour does not fit:
 - `skip-create` — turns `create` into `build` (no persistence at all).
 
 Each hook can be set per-factory (inside the `factory` block), globally
-(at the top level of `ORM::Factory.define`), or both. Per-factory wins over
+(at the top level of `define`), or both. Per-factory wins over
 global; child factories inherit the parent hook but can override it.
 
 ## `initialize-with`
@@ -19,7 +19,7 @@ adapter's `instantiate`, which calls `$class.new(|%attrs)`. Override that with
 a per-factory hook:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
     .role:  'member';
@@ -55,7 +55,7 @@ A top-level `initialize-with` applies to every factory that has no
 per-factory hook:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .initialize-with: -> $eval {
     $eval.factory.lookup-class.new(|$eval.attributes, :via('global'));
   };
@@ -77,7 +77,7 @@ and the evaluator and is responsible for persisting it however the target
 store wants:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'document', {
     .title: 'Hello';
 
@@ -95,7 +95,7 @@ and `build-stubbed` never consult `to-create`.
 ### Global `to-create`
 
 ```perl6
-ORM::Factory.define: {
+define {
   .to-create: -> $instance, $eval {
     $persistence-bus.send($instance);
   };
@@ -113,7 +113,7 @@ ORM::Factory.define: {
 every callback still fires:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'ephemeral', {
     .title: 'in-memory only';
 
@@ -128,7 +128,7 @@ A common shape is a global `skip-create` plus the few factories that *do*
 persist via an explicit `to-create`:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .skip-create;
 
   .factory: 'log-event', { .text: 'noop' };
@@ -150,7 +150,7 @@ first match wins:
 
 1. The factory's own hook;
 2. each parent factory's hook, child-first;
-3. the global hook from `ORM::Factory.define`;
+3. the global hook from `define`;
 4. the adapter default (`instantiate` / `persist`).
 
 For `create`, `to-create` and `skip-create` share the same chain — whichever

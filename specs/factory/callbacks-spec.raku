@@ -31,7 +31,7 @@ describe 'factory callbacks', {
 
   context 'after build', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .after: 'build', -> $u, $e { $u.fname = $u.fname.uc };
@@ -58,7 +58,7 @@ describe 'factory callbacks', {
 
   context 'before create and after create', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .before: 'create', -> $u, $e { $u.events.push: 'before-create' };
@@ -84,7 +84,7 @@ describe 'factory callbacks', {
 
   context 'after stub', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .after: 'stub', -> $u, $e { $u.events.push: 'stubbed' };
@@ -107,7 +107,7 @@ describe 'factory callbacks', {
 
   context 'block receives the instance and the evaluator', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname:   'Greg';
           .role:    'member';
@@ -125,7 +125,7 @@ describe 'factory callbacks', {
 
   context 'multiple callbacks for one event run in declaration order', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .after: 'build', -> $u, $e { $u.events.push: 'one' };
@@ -142,7 +142,7 @@ describe 'factory callbacks', {
 
   context 'parent callbacks run before child callbacks', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .after: 'build', -> $u, $e { $u.events.push: 'parent' };
@@ -166,7 +166,7 @@ describe 'factory callbacks', {
 
   context 'variant callbacks merge with factory callbacks', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .after: 'build', -> $u, $e { $u.events.push: 'base' };
@@ -188,7 +188,7 @@ describe 'factory callbacks', {
 
   context 'global callbacks apply to every factory', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .after: 'build', -> $i, $e { $i.events.push: 'global' };
 
         .factory: 'user', {
@@ -218,7 +218,7 @@ describe 'factory callbacks', {
 
   context 'custom callbacks via callback and run-callbacks', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .callback: 'shouted', -> $u, $e { $u.fname = $u.fname.uc };
@@ -244,7 +244,7 @@ describe 'factory callbacks', {
 
   context 'callbacks see overrides and dependent attributes', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .greeting: { "hi, {.fname}" };
@@ -264,7 +264,7 @@ describe 'factory callbacks', {
 
   context 'has_many-style collections via callback + transient count', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
         };

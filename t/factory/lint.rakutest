@@ -28,20 +28,20 @@ sub reset-all {
 }
 
 reset-all();
-ORM::Factory.define: {
+define {
   .factory: 'user', { .fname: 'Greg' };
   .factory: 'post', { .title: 'Hi'; .association: 'author', :factory<user> };
 };
 lives-ok { ORM::Factory.lint }, 'lint passes when every factory is healthy';
 
 reset-all();
-ORM::Factory.define: {
+define {
   .factory: 'bad', { .association: 'author', :factory<ghost> };
 };
 dies-ok { ORM::Factory.lint }, 'lint raises when a factory is broken';
 
 reset-all();
-ORM::Factory.define: {
+define {
   .factory: 'bad', { .association: 'author', :factory<ghost> };
 };
 my $err;
@@ -51,7 +51,7 @@ is $err.failures.elems, 1,                'failures captured';
 is $err.failures[0]<factory>, 'bad',      'failure carries factory name';
 
 reset-all();
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
     .variant: 'admin', { .fname: 'Admin' };
@@ -61,7 +61,7 @@ ORM::Factory.define: {
 lives-ok { ORM::Factory.lint(:variants) }, 'lint(:variants) passes when healthy';
 
 reset-all();
-ORM::Factory.define: {
+define {
   .factory: 'user', { .fname: 'Greg' };
   .factory: 'bad',  { .association: 'author', :factory<ghost> };
 };
@@ -69,11 +69,11 @@ lives-ok { ORM::Factory.lint('user') }, 'lint subset skips other factories';
 dies-ok  { ORM::Factory.lint('bad')  }, 'lint subset still fails the named one';
 
 reset-all();
-ORM::Factory.define: { .factory: 'user', { .fname: 'Greg' } };
+define { .factory: 'user', { .fname: 'Greg' } };
 lives-ok { ORM::Factory.lint(:strategy<build>) }, 'lint accepts :strategy<build>';
 
 reset-all();
-ORM::Factory.define: {
+define {
   .factory: 'user', :aliases<author>, {
     .fname: 'Greg';
     .variant: 'admin', { .fname: 'Admin' };

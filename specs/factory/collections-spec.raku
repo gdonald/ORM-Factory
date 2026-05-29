@@ -18,7 +18,7 @@ describe 'collection build strategies', {
     ORM::Factory.reset-persistence;
     ORM::Factory.set-allow-class-lookup(True);
 
-    ORM::Factory.define: {
+    define {
       .factory: 'item', {
         .label: 'default';
 

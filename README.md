@@ -1,16 +1,12 @@
 # ORM::Factory
 
-`ORM::Factory` is a Raku port of Ruby's
-[`factory_bot`](https://github.com/thoughtbot/factory_bot) — a definition DSL
-for building test objects (with or without persistence) so your specs stay
-declarative.
+`ORM::Factory` is a definition DSL for building test objects in Raku, with
+or without persistence, so your specs stay declarative.
 
-It is ORM-agnostic at its core. With
-[`ORM::ActiveRecord`](https://github.com/gdonald/ORM-ActiveRecord) installed
-and auto-detected, `create` persists through the model's `save-or-die` with
-validations, callbacks, and timestamps intact. With no ORM loaded, factories
-still build plain objects, and the `to-create` / `initialize-with` hooks let
-you target any persistence layer.
+With [`ORM::ActiveRecord`](https://github.com/gdonald/ORM-ActiveRecord)
+installed, `create` calls the model's `save-or-die`. Without an ORM,
+factories build plain objects; use `to-create` or `initialize-with` to hook
+a different persistence layer.
 
 ## Documentation
 
@@ -32,19 +28,17 @@ runtime when installed.
 ```perl6
 use ORM::Factory;
 
-ORM::Factory.define: {
-  sequence 'email', -> $n { "user{$n}\@example.com" }
+define {
+  .factory: 'user', {
+    .sequence: 'email', -> $n { "user$n\@example.com" };
+    .fname: 'Greg';
+    .lname: 'Donald';
 
-  factory 'user', {
-    fname     'Greg'
-    lname     'Donald'
-    email     { generate('email') }
-
-    variant 'admin', {
-      role 'admin'
-    }
-  }
-}
+    .variant: 'admin', {
+      .role: 'admin';
+    };
+  };
+};
 
 my $user  = build('user');                      # unsaved instance
 my $saved = create('user');                     # build + persist
@@ -52,11 +46,6 @@ my $admin = create('user', 'admin');            # apply the admin variant
 my %attrs = attributes-for('user');             # plain attribute hash
 my $stub  = build-stubbed('user');              # faked id, no DB access
 ```
-
-## Status
-
-`ORM::Factory` is greenfield. See [ROADMAP.md](ROADMAP.md) for the porting
-plan and current progress.
 
 ## Build Status
 

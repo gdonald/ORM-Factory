@@ -98,7 +98,7 @@ describe 'custom strategies', {
     before-each {
       ORM::Factory.register-strategy('json', JsonStrategy);
 
-      ORM::Factory.define: {
+      define {
         .factory: 'note', {
           .title: 'hi';
           .body:  'there';
@@ -123,7 +123,7 @@ describe 'custom strategies', {
     before-each {
       ORM::Factory.register-strategy('json', JsonStrategy);
 
-      ORM::Factory.define: {
+      define {
         .factory: 'note', {
           .title: 'hi';
           .body:  'there';
@@ -137,7 +137,7 @@ describe 'custom strategies', {
 
     it 'forwards positional variants and named overrides', {
       ORM::Factory.reload;
-      ORM::Factory.define: {
+      define {
         .factory: 'note', {
           .title: 'hi';
           .body:  'there';
@@ -160,7 +160,7 @@ describe 'custom strategies', {
   context 're-registering a built-in name', {
     before-each {
       ORM::Factory.register-strategy('build', ShoutBuildStrategy);
-      ORM::Factory.define: {
+      define {
         .factory: 'note', {
           .title: 'hi';
           .body:  'there';
@@ -182,7 +182,7 @@ describe 'custom strategies', {
     before-each {
       ORM::Factory.register-strategy('cascade-stub', StubAssocStrategy);
 
-      ORM::Factory.define: {
+      define {
         .factory: 'note', :aliases<author>, {
           .title: 'a';
           .body:  'b';
@@ -212,7 +212,7 @@ describe 'custom strategies', {
     }
 
     it 'a custom strategy must implement result', {
-      ORM::Factory.define: {
+      define {
         .factory: 'note', {
           .title: 'a';
           .body:  'b';
@@ -223,7 +223,7 @@ describe 'custom strategies', {
     }
 
     it 'a custom strategy must implement association', {
-      ORM::Factory.define: {
+      define {
         .factory: 'note', {
           .title: 'x';
           .body:  'y';

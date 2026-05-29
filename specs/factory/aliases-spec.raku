@@ -14,7 +14,7 @@ describe 'factory aliases', {
 
   context 'a factory with aliases', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', :aliases<author commenter>, {
           .fname: 'Greg';
         };
@@ -42,7 +42,7 @@ describe 'factory aliases', {
   context 'collision detection', {
     it 'rejects an alias that already names another factory', {
       expect({
-        ORM::Factory.define: {
+        define {
           .factory: 'user',  { ; };
           .factory: 'other', :aliases<user>, { ; };
         };
@@ -51,7 +51,7 @@ describe 'factory aliases', {
 
     it 'rejects two factories claiming the same alias', {
       expect({
-        ORM::Factory.define: {
+        define {
           .factory: 'user',  :aliases<author>, { ; };
           .factory: 'other', :aliases<author>, { ; };
         };
@@ -59,11 +59,11 @@ describe 'factory aliases', {
     }
 
     it 'rejects a factory name that collides with an existing alias', {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', :aliases<author>, { ; };
       };
       expect({
-        ORM::Factory.define: {
+        define {
           .factory: 'author', { ; };
         };
       }).to.raise-error(X::ORM::Factory::DuplicateAlias);
@@ -72,7 +72,7 @@ describe 'factory aliases', {
 
   context 'reload', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', :aliases<author>, { ; };
       };
       ORM::Factory.reload;

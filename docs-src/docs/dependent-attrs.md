@@ -7,7 +7,7 @@ to `$_` inside the block, so the dot-syntax stays terse.
 ## Referencing another attribute
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
     .email: { .fname.lc ~ '@example.com' };
@@ -28,7 +28,7 @@ it is requested, so a downstream attribute that pulls an upstream value
 sees the cached result regardless of textual order:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname:    'Greg';
     .lname:    'Donald';

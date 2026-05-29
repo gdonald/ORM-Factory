@@ -7,7 +7,7 @@ names can be invoked by hand from other callbacks or custom build
 strategies.
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
     .after: 'build', -> $u, $eval { $u.fname = $u.fname.uc };
@@ -30,7 +30,7 @@ ORM::Factory.build('user').fname;   # 'GREG'
 ever instantiating the model.
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
 
@@ -76,7 +76,7 @@ Parent callbacks run **before** child callbacks. Each factory contributes its
 own callbacks at its position in the chain:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .after: 'build', -> $u, $e { $u.events.push: 'parent' };
 
@@ -96,7 +96,7 @@ A [variant](variants.md) can register its own callbacks. When the variant is
 applied, its callbacks are appended after the factory's own:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .after: 'build', -> $u, $e { $u.events.push: 'base' };
 
@@ -112,12 +112,12 @@ ORM::Factory.build('user', 'noisy').events; # ['base', 'noisy']
 
 ## Global callbacks
 
-A `before` / `after` at the top of an `ORM::Factory.define` block — without a
+A `before` / `after` at the top of a `define` block — without a
 surrounding `factory` — applies to **every** factory. Global callbacks fire
 **before** any factory-specific callbacks for the same event:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .after: 'build', -> $i, $e { $i.events.push: 'global' };
 
   .factory: 'user', {
@@ -141,7 +141,7 @@ caller is a custom [build strategy](strategy.md), but built-in callbacks can
 also chain to a custom name:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
     .callback: 'shouted', -> $u, $e { $u.fname = $u.fname.uc };
@@ -158,7 +158,7 @@ A [transient attribute](transient.md) plus an `after build` callback gives
 a count knob and a side-effect that builds the children:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', { .fname: 'Greg' };
 
   .factory: 'post', {

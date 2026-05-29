@@ -11,7 +11,7 @@ Declaring a `factory` inside another factory's block makes the inner factory
 a child of the outer one. The child's `parent-name` is set implicitly:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'person', {
     .fname: 'Greg';
     .email: 'greg@example.com';
@@ -36,7 +36,7 @@ When the parent already exists at the top level, use `:parent('name')`
 instead of nesting:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'person', {
     .fname: 'Greg';
   };
@@ -56,7 +56,7 @@ block or in a previous one. Unknown parents raise
 The child wins on any attribute it re-declares:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'person', {
     .fname: 'Greg';
   };
@@ -75,7 +75,7 @@ Inheritance chains are resolved root → leaf, with each level overriding the
 last:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'person',  { .fname: 'Greg' };
   .factory: 'manager', :parent('person'),  { .role: 'manager' };
   .factory: 'cto',     :parent('manager'), { .flag: True };
@@ -92,7 +92,7 @@ A child factory's class defaults to the parent's class, not to the
 camelized child name. Pass `:class(...)` explicitly to override:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'person', { .fname: 'Greg' };
 
   # 'admin-person'.lookup-class is Person (inherited from parent),
@@ -112,7 +112,7 @@ A transient declared on the parent is available to the child's dynamic
 attributes and overrides, exactly as if it had been declared on the child:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'person', {
     .transient: {
       .upcase: False;
@@ -136,7 +136,7 @@ Variants defined on a parent are visible to its descendants. A child can
 apply them by bare name:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'person', {
     .fname: 'Greg';
     .variant: 'admin', {
@@ -158,7 +158,7 @@ ORM::Factory.build('admin-person').role;   # 'admin'
 attributes (or add new ones). Anything you don't touch is left alone:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'person', {
     .fname: 'Greg';
     .email: 'greg@example.com';
@@ -184,7 +184,7 @@ the parent is automatically visible to descendants — unless the child has
 overridden the attribute itself:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'person', { .fname: 'Greg' };
 
   .factory: 'admin-person', :parent('person'), {

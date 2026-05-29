@@ -11,13 +11,13 @@ zef install --/test ORM::Factory
 
 ## Defining a factory
 
-`ORM::Factory.define` opens a definition block. Inside, the topic (`$_`) is
+`define` opens a definition block. Inside, the topic (`$_`) is
 bound to a `DefinitionBuilder`, so DSL calls use the leading-dot shorthand:
 
 ```perl6
 use ORM::Factory;
 
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
     .lname: 'Donald';
@@ -40,7 +40,7 @@ When the camelized name doesn't match your class — or the class lives in a
 namespace — pass it explicitly:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'super-admin', :class(MyApp::Admin), {
     .role: 'admin';
   };
@@ -68,7 +68,7 @@ override was supplied.
 A factory can be registered under additional names:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', :aliases<author commenter>, {
     .fname: 'Greg';
   };
@@ -105,7 +105,7 @@ one with `.variant`, apply it inside the same factory body with a bare
 leading-dot call:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
 

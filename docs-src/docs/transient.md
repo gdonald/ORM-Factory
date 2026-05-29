@@ -11,7 +11,7 @@ the model itself.
 Wrap the declarations in a `.transient` block:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'greeting', {
     .transient: {
       .upcase: False;

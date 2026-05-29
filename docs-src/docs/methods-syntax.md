@@ -1,13 +1,12 @@
 # Methods syntax
 
-`ORM::Factory::Methods` exports plain-sub wrappers around every public
-factory method. Use it to keep specs terse:
+`use ORM::Factory` exports plain-sub wrappers around every public factory
+method, so specs can stay terse:
 
 ```raku
 use ORM::Factory;
-use ORM::Factory::Methods;
 
-ORM::Factory.define: {
+define {
   .factory: 'user', { .fname: 'Greg' };
   .sequence: 'counter', -> $n { $n };
 };
@@ -38,22 +37,20 @@ generate('counter');
 | `generate`              | `ORM::Factory.generate`                   |
 | `generate-list`         | `ORM::Factory.generate-list`              |
 
-## Qualified vs. mixin syntax
+## Qualified vs. bare-name syntax
 
-The qualified form (`ORM::Factory.build('user')`) is always available — no
-`use` is needed beyond `use ORM::Factory`. The mixin only adds the bare-name
-helpers; prefer one or the other per spec rather than mixing them in one
-file.
+The qualified form (`ORM::Factory.build('user')`) and the bare-name form
+(`build('user')`) are both available after `use ORM::Factory`. Pick one style
+per spec rather than mixing them.
 
 ## behave / Test integration
 
-Both [behave][behave] and the core `Test` module are plain Raku, so
-`ORM::Factory::Methods` works in either harness without extra glue:
+Both [behave][behave] and the core `Test` module are plain Raku, so the
+helpers work in either harness without extra glue:
 
 ```raku
 use BDD::Behave;
 use ORM::Factory;
-use ORM::Factory::Methods;
 
 describe 'user factory', {
   it 'creates a user', { expect(create('user').saved).to.be-truthy };
@@ -63,7 +60,6 @@ describe 'user factory', {
 ```raku
 use Test;
 use ORM::Factory;
-use ORM::Factory::Methods;
 
 is build('user').fname, 'Greg', 'static attribute';
 done-testing;

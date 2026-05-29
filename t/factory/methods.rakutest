@@ -2,7 +2,6 @@ use v6.d;
 use lib 'lib';
 use Test;
 use ORM::Factory;
-use ORM::Factory::Methods;
 
 our class User {
   has Str  $.fname is rw;
@@ -16,11 +15,17 @@ sub reset-all {
   ORM::Factory.reload;
   ORM::Factory.reset-persistence;
   ORM::Factory.set-allow-class-lookup(True);
-  ORM::Factory.define: {
+  define {
     .factory: 'user', { .fname: 'Greg' };
     .sequence: 'counter', -> $n { $n };
   };
 }
+
+ORM::Factory.reload;
+define {
+  .factory: 'user', { .fname: 'Greg' };
+};
+ok ORM::Factory.factory-by-name('user').name eq 'user', 'define sub registers factories';
 
 reset-all();
 ok build('user') ~~ User,            'build sub delegates';

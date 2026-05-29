@@ -10,7 +10,7 @@ Declare with `.sequence` inside a `define` block; consume with
 `ORM::Factory.generate`:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .sequence: 'email', -> $n { "user{$n}\@example.com" };
 };
 
@@ -22,7 +22,7 @@ ORM::Factory.generate-list('email', 3);         # the next three values
 Without a block, a sequence returns its raw counter:
 
 ```perl6
-ORM::Factory.define: { .sequence: 'count'; };
+define { .sequence: 'count'; };
 ORM::Factory.generate('count');                 # 1
 ORM::Factory.generate('count');                 # 2
 ```
@@ -33,7 +33,7 @@ ORM::Factory.generate('count');                 # 2
 string starts advance with `.succ`:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .sequence: 'id',     :start(1000);
   .sequence: 'letter', :start('a');
 };
@@ -51,7 +51,7 @@ If a `+ 1` / `.succ` progression isn't enough, pass any `Iterator` and the
 sequence pulls from it (with an optional block to transform each value):
 
 ```perl6
-ORM::Factory.define: {
+define {
   .sequence: 'fib', :iterator((1, 1, *+* ... *).iterator);
 };
 
@@ -67,7 +67,7 @@ Declared inside a factory body, a sequence is bound as an attribute on that
 factory and advances on every build:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'invitation', :class(Invitation), {
     .sequence: 'token', -> $n { "tok-$n" };
   };

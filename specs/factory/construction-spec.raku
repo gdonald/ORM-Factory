@@ -32,7 +32,7 @@ describe 'initialize-with', {
 
   context 'per-factory initialize-with', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .role:  'member';
@@ -51,7 +51,7 @@ describe 'initialize-with', {
 
     it 'fires after-build callbacks on the hook-built instance', {
       ORM::Factory.reload;
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .role:  'member';
@@ -77,7 +77,7 @@ describe 'initialize-with', {
 
   context 'attributes helper inside initialize-with', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .role:  'member';
@@ -102,7 +102,7 @@ describe 'initialize-with', {
 
   context 'global initialize-with', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .initialize-with: -> $e { User.new(|$e.attributes, :via('global')) };
 
         .factory: 'user', {
@@ -118,7 +118,7 @@ describe 'initialize-with', {
 
     it 'is overridden by a per-factory initialize-with', {
       ORM::Factory.reload;
-      ORM::Factory.define: {
+      define {
         .initialize-with: -> $e { User.new(|$e.attributes, :via('global')) };
 
         .factory: 'user', {
@@ -138,7 +138,7 @@ describe 'initialize-with', {
 
   context 'inheritance', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .role:  'member';
@@ -175,7 +175,7 @@ describe 'to-create', {
 
   context 'per-factory to-create', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .role:  'member';
@@ -194,7 +194,7 @@ describe 'to-create', {
 
     it 'fires before-create / after-create around the custom persistence', {
       ORM::Factory.reload;
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .role:  'member';
@@ -214,7 +214,7 @@ describe 'to-create', {
 
   context 'global to-create', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .to-create: -> $u, $e { $u.via = 'global'; $u.saved = True };
 
         .factory: 'user', {
@@ -230,7 +230,7 @@ describe 'to-create', {
 
     it 'is overridden by a per-factory to-create', {
       ORM::Factory.reload;
-      ORM::Factory.define: {
+      define {
         .to-create: -> $u, $e { $u.via = 'global' };
 
         .factory: 'user', {
@@ -250,7 +250,7 @@ describe 'to-create', {
 
   context 'inheritance', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .role:  'member';
@@ -287,7 +287,7 @@ describe 'skip-create', {
 
   context 'per-factory skip-create', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .role:  'member';
@@ -302,7 +302,7 @@ describe 'skip-create', {
 
     it 'still runs after-build / before-create / after-create callbacks', {
       ORM::Factory.reload;
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .role:  'member';
@@ -318,7 +318,7 @@ describe 'skip-create', {
 
   context 'global skip-create', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .skip-create;
 
         .factory: 'user', {
@@ -334,7 +334,7 @@ describe 'skip-create', {
 
     it 'is overridden by a per-factory to-create', {
       ORM::Factory.reload;
-      ORM::Factory.define: {
+      define {
         .skip-create;
 
         .factory: 'user', {
@@ -354,7 +354,7 @@ describe 'skip-create', {
 
   context 'inheritance', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .role:  'member';

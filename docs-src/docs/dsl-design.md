@@ -81,7 +81,7 @@ identifiers inside the block resolve to.
 - **Pros:** could produce factory declarations that look like class
   declarations.
 - **Cons:** does not solve the attribute-capture problem; pushes definitions
-  out of `ORM::Factory.define { ... }` into top-level declarators, which
+  out of `define { ... }` into top-level declarators, which
   fights the per-suite registry-reset model. **Rejected.**
 
 ## Decision
@@ -90,7 +90,7 @@ identifiers inside the block resolve to.
 
 | Concern                       | Resolution                                                                    |
 |-------------------------------|-------------------------------------------------------------------------------|
-| Entry point                   | `ORM::Factory.define: { ... }` runs the block with `$_` bound to a `DefinitionBuilder`. |
+| Entry point                   | `define { ... }` runs the block with `$_` bound to a `DefinitionBuilder`. |
 | `factory`, `sequence`, `variant`, `transient`, `association`, `after`, `before`, `initialize-with`, `to-create`, `modify`, `skip-create` | Explicit methods on the relevant builder — declared, not FALLBACK'd, so typos surface as method-not-found. |
 | Attribute capture             | `FALLBACK` on `FactoryBuilder`, dispatching to `add-attribute` with the captured name and the call's arguments. |
 | Static vs dynamic             | A single `Callable` positional ⇒ dynamic block; anything else ⇒ static value. The disambiguation is exhaustive because attribute calls take at most one positional. |

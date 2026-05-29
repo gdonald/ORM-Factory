@@ -22,7 +22,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'person', {
       .fname: 'Greg';
       .email: 'greg@example.com';
@@ -54,7 +54,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'person', { .fname: 'Greg' };
     .factory: 'admin-person', :parent('person'), { .fname: 'Admin Greg' };
   };
@@ -65,7 +65,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'person', {
       .transient: {
         .upcase: False;
@@ -88,7 +88,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'person', { .fname: 'Greg' };
     .factory: 'manager', :parent('person'), { .role: 'manager' };
   };
@@ -104,7 +104,7 @@ sub fresh {
 
   fresh;
   dies-ok {
-    ORM::Factory.define: {
+    define {
       .factory: 'manager', :parent('ghost'), { ; };
     };
   }, 'unknown parent raises';
@@ -112,7 +112,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'person', { .fname: 'Greg' };
     .factory: 'manager', :parent('person'), { .role: 'manager' };
     .factory: 'cto', :parent('manager'), { .flag: True };
@@ -130,7 +130,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'person', { .fname: 'Greg' };
     .factory: 'admin-person', :parent('person'), { .role: 'admin' };
     .factory: 'worker-person', :parent('person'), :class(Worker), { .title: 'Eng' };
@@ -145,7 +145,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'person', {
       .fname: 'Greg';
       .variant: 'admin', { .role: 'admin' };
@@ -164,7 +164,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'person', {
       .fname: 'Greg';
       .email: 'greg@example.com';
@@ -190,7 +190,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'person', { .fname: 'Greg' };
     .factory: 'admin-person', :parent('person'), { .role: 'admin' };
   };

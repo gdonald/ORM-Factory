@@ -21,7 +21,7 @@ ok GLOBAL::{'User'}:exists,
   ORM::Factory.reload;
   ORM::Factory.set-allow-class-lookup(True);
 
-  ORM::Factory.define: {
+  define {
     .factory: 'user', { ; };
   };
 
@@ -36,7 +36,7 @@ ok GLOBAL::{'User'}:exists,
   ORM::Factory.reload;
   ORM::Factory.set-allow-class-lookup(False);
 
-  ORM::Factory.define: {
+  define {
     .factory: 'super-admin',   { ; };
     .factory: 'team_lead',     { ; };
     .factory: 'top-level_mix', { ; };
@@ -57,7 +57,7 @@ ok GLOBAL::{'User'}:exists,
 {
   ORM::Factory.reload;
 
-  ORM::Factory.define: {
+  define {
     .factory: 'super-admin', :class(Admin), { ; };
   };
 
@@ -72,7 +72,7 @@ ok GLOBAL::{'User'}:exists,
   ORM::Factory.reload;
   ORM::Factory.set-allow-class-lookup(False);
 
-  ORM::Factory.define: {
+  define {
     .factory: 'user', { ; };
   };
 
@@ -85,7 +85,7 @@ ok GLOBAL::{'User'}:exists,
 {
   ORM::Factory.reload;
 
-  ORM::Factory.define: {
+  define {
     .factory: 'phantom-thing', { ; };
   };
 

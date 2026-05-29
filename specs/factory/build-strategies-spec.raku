@@ -19,7 +19,7 @@ describe 'core build strategies', {
     ORM::Factory.reset-persistence;
     ORM::Factory.set-allow-class-lookup(True);
 
-    ORM::Factory.define: {
+    define {
       .factory: 'person', {
         .fname: 'Greg';
         .lname: 'Donald';

@@ -1,7 +1,6 @@
 use lib 'lib';
 use BDD::Behave;
 use ORM::Factory;
-use ORM::Factory::Methods;
 
 our class User {
   has Str  $.fname is rw;
@@ -11,15 +10,25 @@ our class User {
 
 BEGIN GLOBAL::<User> := User;
 
-describe 'ORM::Factory::Methods (mixin)', {
+describe 'ORM::Factory bare-name helpers', {
   before-each {
     ORM::Factory.reload;
     ORM::Factory.reset-persistence;
     ORM::Factory.set-allow-class-lookup(True);
-    ORM::Factory.define: {
+    define {
       .factory: 'user', { .fname: 'Greg' };
       .sequence: 'counter', -> $n { $n };
     };
+  }
+
+  context 'definition entry point', {
+    it 'define sub registers factories', {
+      ORM::Factory.reload;
+      define {
+        .factory: 'user', { .fname: 'Greg' };
+      };
+      expect(ORM::Factory.factory-by-name('user').name).to.eq('user');
+    }
   }
 
   context 'core build helpers', {

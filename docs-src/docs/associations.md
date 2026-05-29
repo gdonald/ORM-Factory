@@ -12,7 +12,7 @@ declaration is enough — the attribute resolves to a fresh build of that
 factory:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', :aliases<author>, {
     .fname: 'Greg';
   };
@@ -35,7 +35,7 @@ When the attribute name differs from the target factory, declare the
 association explicitly with the `:factory` adverb:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
   };
@@ -53,7 +53,7 @@ overrides to the target factory; positional strings after the name are
 applied as variants:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
     .role:  'member';
@@ -76,7 +76,7 @@ builds the author, `create('post')` creates it, and `build-stubbed('post')`
 stubs it. Override per association with `:strategy`:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', { .fname: 'Greg' };
 
   .factory: 'post', {
@@ -98,7 +98,7 @@ transients — use a dynamic block. The block runs against the evaluator and
 returns the built object:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', { .fname: 'Greg' };
 
   .factory: 'post', {
@@ -119,7 +119,7 @@ A `has_many` collection is a transient count plus an `after build` callback
 that pushes children:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', { .fname: 'Greg' };
 
   .factory: 'post', {
@@ -149,7 +149,7 @@ A polymorphic association is just an explicit target factory, so the
 whichever instance the chosen factory produces:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'post', {
     .title: 'Hello';
   };

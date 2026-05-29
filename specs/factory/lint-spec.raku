@@ -28,7 +28,7 @@ describe 'ORM::Factory.lint', {
 
   context 'no-arg variant lints every factory', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { .fname: 'Greg' };
         .factory: 'post', { .title: 'Hello'; .association: 'author', :factory<user> };
       };
@@ -41,7 +41,7 @@ describe 'ORM::Factory.lint', {
 
   context 'broken factory', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'bad', { .association: 'author', :factory<ghost> };
       };
     }
@@ -65,7 +65,7 @@ describe 'ORM::Factory.lint', {
 
   context 'lint with :strategy<build>', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { .fname: 'Greg' };
       };
     }
@@ -78,7 +78,7 @@ describe 'ORM::Factory.lint', {
 
   context 'lint with :variants', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .variant: 'admin', { .fname: 'Admin' };
@@ -105,7 +105,7 @@ describe 'ORM::Factory.lint', {
 
   context 'lint with a specific factory list', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { .fname: 'Greg' };
         .factory: 'bad',  { .association: 'author', :factory<ghost> };
       };
@@ -133,7 +133,7 @@ describe 'ORM::Factory.lint', {
 
       ORM::Factory.set-persistence(FailingPersistence.new);
 
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { .fname: 'Greg' };
       };
     }
@@ -150,7 +150,7 @@ describe 'ORM::Factory introspection', {
     ORM::Factory.reset-persistence;
     ORM::Factory.set-allow-class-lookup(True);
 
-    ORM::Factory.define: {
+    define {
       .factory: 'user', :aliases<author>, {
         .fname: 'Greg';
         .variant: 'admin', { .fname: 'Admin' };
@@ -224,7 +224,7 @@ describe 'X::ORM::Factory error taxonomy', {
   }
 
   it 'X::ORM::Factory::CyclicAssociation has a message', {
-    ORM::Factory.define: {
+    define {
       .factory: 'user', :aliases<author>, {
         .fname: 'Greg';
         .association: 'best-post', :factory<post>;

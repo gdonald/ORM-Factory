@@ -91,7 +91,7 @@ ok ORM::Factory.strategies<json> === JsonStrategy,
 
 fresh-registry();
 ORM::Factory.register-strategy('json', JsonStrategy);
-ORM::Factory.define: {
+define {
   .factory: 'note', { .title: 'hi'; .body: 'there' };
 };
 is ORM::Factory.json('note'), 'JSON:body=there,title=hi',
@@ -99,7 +99,7 @@ is ORM::Factory.json('note'), 'JSON:body=there,title=hi',
 
 fresh-registry();
 ORM::Factory.register-strategy('json', JsonStrategy);
-ORM::Factory.define: {
+define {
   .factory: 'note', {
     .title: 'hi';
     .body:  'there';
@@ -116,7 +116,7 @@ dies-ok { ORM::Factory.bogus('note') },
 
 fresh-registry();
 ORM::Factory.register-strategy('build', ShoutBuildStrategy);
-ORM::Factory.define: {
+define {
   .factory: 'note', { .title: 'hi'; .body: 'there' };
 };
 is ORM::Factory.build('note').title, 'HI',
@@ -124,7 +124,7 @@ is ORM::Factory.build('note').title, 'HI',
 
 fresh-registry();
 ORM::Factory.register-strategy('cascade-stub', StubAssocStrategy);
-ORM::Factory.define: {
+define {
   .factory: 'note', :aliases<author>, { .title: 'a'; .body: 'b' };
   .factory: 'article', { .title: 'p'; .author };
 };

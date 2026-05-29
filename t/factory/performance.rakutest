@@ -40,7 +40,7 @@ subtest 'build-stubbed issues zero persist calls', {
   my $c = CountingAdapter.new;
   ORM::Factory.set-persistence($c);
 
-  ORM::Factory.define: {
+  define {
     .factory: 'p-user', :class(PUser), {
       .fname: 'Greg';
     };
@@ -60,7 +60,7 @@ subtest 'build issues zero persist calls', {
   my $c = CountingAdapter.new;
   ORM::Factory.set-persistence($c);
 
-  ORM::Factory.define: {
+  define {
     .factory: 'p-user', :class(PUser), {
       .fname: 'Greg';
     };
@@ -78,7 +78,7 @@ subtest 'create issues exactly one persist call', {
   my $c = CountingAdapter.new;
   ORM::Factory.set-persistence($c);
 
-  ORM::Factory.define: {
+  define {
     .factory: 'p-user', :class(PUser), {
       .fname: 'Greg';
     };
@@ -97,7 +97,7 @@ subtest 'attributes-for issues zero adapter calls', {
   my $c = CountingAdapter.new;
   ORM::Factory.set-persistence($c);
 
-  ORM::Factory.define: {
+  define {
     .factory: 'p-user', :class(PUser), {
       .fname: 'Greg';
     };
@@ -117,7 +117,7 @@ subtest 'evaluator memoises attributes per build', {
   ORM::Factory.reset-persistence;
 
   my $hits = 0;
-  ORM::Factory.define: {
+  define {
     .factory: 'p-user', :class(PUser), {
       .fname: { $hits++; 'Greg' };
     };

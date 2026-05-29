@@ -11,7 +11,7 @@ publish-globals();
 ORM::Factory.reload;
 ORM::Factory.reset-persistence;
 
-ORM::Factory.define: {
+define {
   .factory: 'factory-user', :class(FactoryUser), {
     .fname: 'Greg';
     .lname: 'Donald';

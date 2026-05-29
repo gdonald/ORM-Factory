@@ -12,7 +12,7 @@ describe 'sequences', {
 
   context 'global sequence with a block', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .sequence: 'email', -> $n { "user{$n}\@example.com" };
       };
     }
@@ -34,7 +34,7 @@ describe 'sequences', {
 
   context 'sequence without a block returns the raw counter', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .sequence: 'counter';
       };
     }
@@ -51,7 +51,7 @@ describe 'sequences', {
 
   context 'custom numeric start', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .sequence: 'id', :start(1000);
       };
     }
@@ -68,7 +68,7 @@ describe 'sequences', {
 
   context 'custom string start uses .succ', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .sequence: 'letter', :start('a');
       };
     }
@@ -85,7 +85,7 @@ describe 'sequences', {
 
   context 'rewind-sequences resets every counter', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .sequence: 'a';
         .sequence: 'b';
       };
@@ -113,10 +113,10 @@ describe 'sequences', {
   context 'duplicate global sequence', {
     it 'raises X::ORM::Factory::DuplicateSequence', {
       expect({
-        ORM::Factory.define: {
+        define {
           .sequence: 'email', -> $n { "a$n" };
         };
-        ORM::Factory.define: {
+        define {
           .sequence: 'email', -> $n { "b$n" };
         };
       }).to.raise-error(X::ORM::Factory::DuplicateSequence);
@@ -125,7 +125,7 @@ describe 'sequences', {
 
   context 'sequence from a custom iterator', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .sequence: 'fib', :iterator((1, 1, *+* ... *).iterator);
       };
     }
@@ -137,7 +137,7 @@ describe 'sequences', {
 
   context 'reload clears sequences', {
     before-each {
-      ORM::Factory.define: { .sequence: 'email'; };
+      define { .sequence: 'email'; };
       ORM::Factory.reload;
     }
 
@@ -152,7 +152,7 @@ describe 'inline sequences in a factory', {
     ORM::Factory.reload;
     ORM::Factory.set-allow-class-lookup(False);
 
-    ORM::Factory.define: {
+    define {
       .factory: 'thing', :class(Hash), {
         .sequence: 'token', -> $n { "tok-$n" };
       };

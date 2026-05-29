@@ -88,7 +88,7 @@ is $adapter.primary-key(FactoryUser), 'id', 'primary-key defaults to id';
   ORM::Factory.reload;
   ORM::Factory.reset-persistence;
 
-  ORM::Factory.define: {
+  define {
     .factory: 'factory-user', :class(FactoryUser), {
       .fname: 'Greg';
       .lname: 'Donald';

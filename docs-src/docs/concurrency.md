@@ -41,7 +41,7 @@ The intended model is **definition at startup, builds concurrently**:
 
 ```perl6
 # Main thread, before any workers spin up
-ORM::Factory.define: {
+define {
   .sequence: 'serial';
   .factory: 'user', {
     .fname:  'Greg';

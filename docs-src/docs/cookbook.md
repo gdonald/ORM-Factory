@@ -8,7 +8,7 @@ Sequences keep unique-violating attributes unique across builds without
 hard-coding values:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .sequence: 'email', -> $n { "user{$n}\@example.com" };
 
   .factory: 'user', {
@@ -33,7 +33,7 @@ For per-factory isolation, declare the sequence inline:
 ## Variants and variant composition
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
     .role:  'user';
@@ -53,7 +53,7 @@ ORM::Factory.create('user', 'super-admin');       # one variant pulling two more
 Implicit (attribute name matches a factory):
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', { .fname: 'Greg' };
   .factory: 'post', { .title: 'Hi'; .user };       # bare reference
 };
@@ -143,7 +143,7 @@ class User {
   method save-or-die { self }                     # or .save, or omit if you only build
 }
 
-ORM::Factory.define: {
+define {
   .factory: 'user', :class(User), {
     .fname: 'Greg';
   };
@@ -164,7 +164,7 @@ whatever you like:
 ```perl6
 use Fake::Person;       # any Faker-equivalent
 
-ORM::Factory.define: {
+define {
   .sequence: 'email-id';
 
   .factory: 'user', {

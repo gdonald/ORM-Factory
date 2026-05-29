@@ -7,7 +7,7 @@ ORM::Factory.set-allow-class-lookup(False);
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :aliases<author commenter>, {
       .fname: 'Greg';
     };
@@ -32,7 +32,7 @@ ORM::Factory.set-allow-class-lookup(False);
   ORM::Factory.reload;
 
   dies-ok {
-    ORM::Factory.define: {
+    define {
       .factory: 'user',  { ; };
       .factory: 'other', :aliases<user>, { ; };
     };
@@ -43,7 +43,7 @@ ORM::Factory.set-allow-class-lookup(False);
   ORM::Factory.reload;
 
   dies-ok {
-    ORM::Factory.define: {
+    define {
       .factory: 'user',  :aliases<author>, { ; };
       .factory: 'other', :aliases<author>, { ; };
     };
@@ -52,12 +52,12 @@ ORM::Factory.set-allow-class-lookup(False);
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :aliases<author>, { ; };
   };
 
   dies-ok {
-    ORM::Factory.define: {
+    define {
       .factory: 'author', { ; };
     };
   }, 'rejects a factory name that collides with an existing alias';
@@ -65,7 +65,7 @@ ORM::Factory.set-allow-class-lookup(False);
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :aliases<author>, { ; };
   };
   ORM::Factory.reload;

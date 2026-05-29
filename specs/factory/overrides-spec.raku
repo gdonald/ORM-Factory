@@ -18,7 +18,7 @@ describe 'per-call attribute overrides', {
     ORM::Factory.reset-persistence;
     ORM::Factory.set-allow-class-lookup(True);
 
-    ORM::Factory.define: {
+    define {
       .factory: 'profile', {
         .fname: 'Greg';
         .email: { .fname.lc ~ '@example.com' };

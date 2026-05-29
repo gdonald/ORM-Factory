@@ -114,13 +114,13 @@ use ORM::Factory;
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: { … };
+  define { … };
   # assertions
 }
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: { … };
+  define { … };
   # assertions
 }
 ```

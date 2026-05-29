@@ -2,14 +2,14 @@ use lib 'lib';
 use BDD::Behave;
 use ORM::Factory;
 
-describe 'ORM::Factory.define', {
+describe 'define', {
   before-each {
     ORM::Factory.reload;
   }
 
   context 'factory registration', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
         };
@@ -30,7 +30,7 @@ describe 'ORM::Factory.define', {
 
     it 'raises on duplicate factory registration', {
       expect({
-        ORM::Factory.define: {
+        define {
           .factory: 'user', { ; };
         };
       }).to.raise-error;
@@ -39,7 +39,7 @@ describe 'ORM::Factory.define', {
 
   context 'static attribute capture', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .lname: 'Donald';
@@ -69,7 +69,7 @@ describe 'ORM::Factory.define', {
 
   context 'dynamic block attribute', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .email: { 'literal@example.com' };
         };
@@ -94,7 +94,7 @@ describe 'ORM::Factory.define', {
 
   context 'variant definition and application', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .variant: 'admin', {
@@ -122,7 +122,7 @@ describe 'ORM::Factory.define', {
     it 'raises on duplicate variant in the same factory', {
       expect({
         ORM::Factory.reload;
-        ORM::Factory.define: {
+        define {
           .factory: 'user', {
             .variant: 'admin', { ; };
             .variant: 'admin', { ; };
@@ -134,7 +134,7 @@ describe 'ORM::Factory.define', {
 
   context 'add-attribute escape hatch', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .add-attribute: 'factory', 'acme';
         };
@@ -154,7 +154,7 @@ describe 'ORM::Factory.define', {
 
   context 'reload', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { ; };
       };
       ORM::Factory.reload;
@@ -165,7 +165,7 @@ describe 'ORM::Factory.define', {
     }
 
     it 'allows redefining a previously-registered factory', {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { ; };
       };
 

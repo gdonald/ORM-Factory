@@ -4,7 +4,7 @@ A **variant** captures a named cluster of attribute, association, or transient
 changes that you can layer onto a factory on demand.
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
 
@@ -45,7 +45,7 @@ ORM::Factory.create-pair('user', 'admin');
 When several variants set the same attribute, the **last one wins**:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .variant: 'admin', { .role: 'admin' };
     .variant: 'guest', { .role: 'guest' };
@@ -72,7 +72,7 @@ A variant block is a mini factory body. It can declare any of:
   [Callbacks](callbacks.md) page.
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', { .fname: 'Greg' };
 
   .factory: 'post', {
@@ -96,7 +96,7 @@ A variant can apply another variant by bare name. Cycles are detected and
 short-circuited, so two variants can safely reference each other:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .variant: 'active', { .status: 'active' };
     .variant: 'admin',  { .active; .role: 'admin' };   # applies :active first
@@ -113,7 +113,7 @@ Reference variants by bare name in a factory body to layer them in at
 definition time:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
     .variant: 'admin',  { .role: 'admin' };
@@ -139,7 +139,7 @@ A child factory inherits its parent's variants. Either pre-apply them in the
 child body, or pass them at build time:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'person', {
     .fname: 'Greg';
     .variant: 'admin', { .role: 'admin' };
@@ -160,7 +160,7 @@ See the [Inheritance](inheritance.md) page for the full chain rules.
 Combine a variant with a transient default to give callers a knob:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .variant: 'greeted', {
       .transient: { .salute: 'World' };
@@ -178,12 +178,12 @@ constructor.
 
 ## Global variants
 
-A variant declared at the top of an `ORM::Factory.define` block — without a
+A variant declared at the top of a `define` block — without a
 surrounding `factory` — is **global**. Any factory can apply it, by name at
 build time or as a bare reference in its body:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .variant: 'flagged', { .flag: True };
 
   .factory: 'user', { .fname: 'Greg' };
@@ -208,7 +208,7 @@ clears them along with everything else.
 attribute to its value:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .variants-for-enum: 'role', <admin guest member>;
   };

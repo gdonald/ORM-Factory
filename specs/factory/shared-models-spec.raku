@@ -12,7 +12,7 @@ describe 'shared test models from specs/lib', {
     ORM::Factory.reset-persistence;
     ORM::Factory.set-allow-class-lookup(True);
 
-    ORM::Factory.define: {
+    define {
       .factory: 'user', :aliases<author>, {
         .fname: 'Greg';
         .lname: 'Donald';

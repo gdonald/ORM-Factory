@@ -41,7 +41,7 @@ describe 'factory class resolution', {
 
   context 'inference from factory name', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { ; };
       };
     }
@@ -58,7 +58,7 @@ describe 'factory class resolution', {
   context 'kebab and snake names camelize', {
     before-each {
       ORM::Factory.set-allow-class-lookup(False);
-      ORM::Factory.define: {
+      define {
         .factory: 'super-admin',   { ; };
         .factory: 'team_lead',     { ; };
         .factory: 'top-level_mix', { ; };
@@ -80,7 +80,7 @@ describe 'factory class resolution', {
 
   context 'explicit :class override', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'super-admin', :class(Admin), { ; };
       };
     }
@@ -97,7 +97,7 @@ describe 'factory class resolution', {
   context 'allow-class-lookup toggle off', {
     before-each {
       ORM::Factory.set-allow-class-lookup(False);
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { ; };
       };
     }
@@ -109,7 +109,7 @@ describe 'factory class resolution', {
 
   context 'unknown class', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'phantom-thing', { ; };
       };
     }

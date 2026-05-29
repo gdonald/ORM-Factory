@@ -62,7 +62,7 @@ ORM::Factory.set-definition-file-paths(
 
 reset-all();
 ORM::Factory.configure: { .use-parent-strategy(False) };
-ORM::Factory.define: {
+define {
   .factory: 'user', :aliases<author>, { .fname: 'Greg' };
   .factory: 'post', { .title: 'Hi'; .author };
 };
@@ -71,7 +71,7 @@ ok $built.author.saved, 'use-parent-strategy=False forces create-cascade on buil
 
 reset-all();
 ORM::Factory.configure: { .skip-create(True) };
-ORM::Factory.define: {
+define {
   .factory: 'user', { .fname: 'Greg' };
 };
 nok ORM::Factory.create('user').saved, 'configure skip-create disables persistence';
@@ -88,7 +88,7 @@ LEAVE {
 my $file = $tmp.add('factories.raku');
 $file.spurt: q:to/END/;
 use ORM::Factory;
-ORM::Factory.define: {
+define {
   .factory: 'user', :class(User), { .fname: 'Greg' };
 };
 END

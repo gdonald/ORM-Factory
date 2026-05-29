@@ -7,7 +7,7 @@ sub reset-registry { ORM::Factory.reload }
 
 {
   reset-registry;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', { .fname: 'Greg'; };
   };
 
@@ -21,7 +21,7 @@ sub reset-registry { ORM::Factory.reload }
     'factory registration raises on unknown factory lookup';
 
   dies-ok {
-    ORM::Factory.define: {
+    define {
       .factory: 'user', { ; };
     };
   }, 'factory registration raises on duplicate factory registration';
@@ -29,7 +29,7 @@ sub reset-registry { ORM::Factory.reload }
 
 {
   reset-registry;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', {
       .fname: 'Greg';
       .lname: 'Donald';
@@ -54,7 +54,7 @@ sub reset-registry { ORM::Factory.reload }
 
 {
   reset-registry;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', {
       .email: { 'literal@example.com' };
     };
@@ -74,7 +74,7 @@ sub reset-registry { ORM::Factory.reload }
 
 {
   reset-registry;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', {
       .fname: 'Greg';
       .variant: 'admin', {
@@ -98,7 +98,7 @@ sub reset-registry { ORM::Factory.reload }
 
   dies-ok {
     ORM::Factory.reload;
-    ORM::Factory.define: {
+    define {
       .factory: 'user', {
         .variant: 'admin', { ; };
         .variant: 'admin', { ; };
@@ -109,7 +109,7 @@ sub reset-registry { ORM::Factory.reload }
 
 {
   reset-registry;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', {
       .add-attribute: 'factory', 'acme';
     };
@@ -126,14 +126,14 @@ sub reset-registry { ORM::Factory.reload }
 
 {
   reset-registry;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', { ; };
   };
   ORM::Factory.reload;
 
   is ORM::Factory.factories.elems, 0, 'reload clears the registry';
 
-  ORM::Factory.define: {
+  define {
     .factory: 'user', { ; };
   };
 

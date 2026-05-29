@@ -14,7 +14,7 @@ describe 'transient attributes', {
     ORM::Factory.reset-persistence;
     ORM::Factory.set-allow-class-lookup(True);
 
-    ORM::Factory.define: {
+    define {
       .factory: 'greeting', {
         .transient: {
           .upcase: False;

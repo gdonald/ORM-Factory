@@ -14,7 +14,7 @@ describe 'ORM::Factory::Cleanup', {
     FactoryPost.destroy-all;
     FactoryUser.destroy-all;
 
-    ORM::Factory.define: {
+    define {
       .factory: 'factory-user', :class(FactoryUser), {
         .fname: 'Greg';
         .lname: 'Donald';

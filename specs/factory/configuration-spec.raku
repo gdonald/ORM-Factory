@@ -74,7 +74,7 @@ describe 'ORM::Factory.configure', {
 
     context 'effect on associations during create', {
       before-each {
-        ORM::Factory.define: {
+        define {
           .factory: 'user', :aliases<author>, { .fname: 'Greg' };
           .factory: 'post', { .title: 'Hi'; .author };
         };
@@ -110,7 +110,7 @@ describe 'ORM::Factory.configure', {
     it 'sets the global to-create', {
       my @captured;
       ORM::Factory.configure: { .to-create: -> $i, $e { @captured.push: $i } };
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { .fname: 'Greg' };
       };
       my $u = ORM::Factory.create('user');
@@ -119,7 +119,7 @@ describe 'ORM::Factory.configure', {
 
     it 'sets the global initialize-with', {
       ORM::Factory.configure: { .initialize-with: -> $e { User.new(:fname<via-config>) } };
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { .fname: 'ignored' };
       };
       expect(ORM::Factory.build('user').fname).to.eq('via-config');
@@ -127,7 +127,7 @@ describe 'ORM::Factory.configure', {
 
     it 'sets global skip-create', {
       ORM::Factory.configure: { .skip-create(True) };
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { .fname: 'Greg' };
       };
       expect(ORM::Factory.create('user').saved).to.be-falsy;
@@ -172,7 +172,7 @@ describe 'ORM::Factory.find-definitions', {
       my $f = $tmpdir.add('factories.raku');
       $f.spurt: q:to/END/;
       use ORM::Factory;
-      ORM::Factory.define: {
+      define {
         .factory: 'user', :class(User), { .fname: 'Greg' };
       };
       END
@@ -189,13 +189,13 @@ describe 'ORM::Factory.find-definitions', {
     before-each {
       $tmpdir.add('a.raku').spurt: q:to/END/;
       use ORM::Factory;
-      ORM::Factory.define: {
+      define {
         .factory: 'user', :class(User), { .fname: 'Greg' };
       };
       END
       $tmpdir.add('b.raku').spurt: q:to/END/;
       use ORM::Factory;
-      ORM::Factory.define: {
+      define {
         .factory: 'post', :class(Post), { .title: 'Hi' };
       };
       END

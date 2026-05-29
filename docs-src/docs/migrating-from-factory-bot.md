@@ -9,7 +9,7 @@ changed.
 
 | factory_bot                | ORM::Factory                       |
 |----------------------------|------------------------------------|
-| `FactoryBot.define { ... }`| `ORM::Factory.define: { ... }`     |
+| `FactoryBot.define { ... }`| `define { ... }`     |
 | `FactoryBot.modify { ... }`| `ORM::Factory.modify: { ... }`     |
 | `FactoryBot.lint`          | `ORM::Factory.lint`                |
 | `factory :user do ... end` | `.factory: 'user', { ... }`        |
@@ -123,7 +123,7 @@ FactoryBot.build_stubbed(:post)
 
 ```perl6
 # ORM::Factory
-ORM::Factory.define: {
+define {
   .sequence: 'email', -> $n { "user{$n}\@example.com" };
 
   .factory: 'user', {

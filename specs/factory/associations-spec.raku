@@ -44,7 +44,7 @@ describe 'factory associations', {
 
   context 'implicit association (attribute name matches a factory alias)', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', :aliases<author>, {
           .fname: 'Greg';
         };
@@ -71,7 +71,7 @@ describe 'factory associations', {
 
   context 'explicit association by attribute name', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
         };
@@ -99,7 +99,7 @@ describe 'factory associations', {
 
   context 'association passing attribute overrides', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .role:  'member';
@@ -123,7 +123,7 @@ describe 'factory associations', {
 
   context 'association applying variants', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .variant: 'admin', { .role: 'admin' };
@@ -142,7 +142,7 @@ describe 'factory associations', {
 
   context 'association strategy override', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { .fname: 'Greg' };
 
         .factory: 'post', {
@@ -163,7 +163,7 @@ describe 'factory associations', {
 
   context 'use-parent-strategy default behaviour', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', :aliases<author>, { .fname: 'Greg' };
 
         .factory: 'post', {
@@ -188,7 +188,7 @@ describe 'factory associations', {
 
   context 'inline association block referencing a transient', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { .fname: 'Greg' };
 
         .factory: 'post', {
@@ -211,7 +211,7 @@ describe 'factory associations', {
 
   context 'polymorphic-style association via :factory', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'post', {
           .title: 'Hello';
         };
@@ -230,7 +230,7 @@ describe 'factory associations', {
 
   context 'missing-association error', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'post', {
           .association: 'author', :factory<ghost>;
         };
@@ -244,7 +244,7 @@ describe 'factory associations', {
 
   context 'cycle detection', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', :aliases<author>, {
           .fname: 'Greg';
           .association: 'best-post', :factory<post>;

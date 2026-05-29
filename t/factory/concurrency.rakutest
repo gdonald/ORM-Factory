@@ -16,7 +16,7 @@ subtest 'sequence atomicity', {
   ORM::Factory.reload;
   ORM::Factory.set-allow-class-lookup(True);
 
-  ORM::Factory.define: {
+  define {
     .sequence: 'serial';
   };
 
@@ -33,7 +33,7 @@ subtest 'concurrent builds produce unique sequence values', {
   ORM::Factory.reload;
   ORM::Factory.set-allow-class-lookup(True);
 
-  ORM::Factory.define: {
+  define {
     .sequence: 'sn';
     .factory: 'c-user', :class(CUser), {
       .fname:   'C';
@@ -52,7 +52,7 @@ subtest 'per-build evaluator state is isolated across threads', {
   ORM::Factory.reload;
   ORM::Factory.set-allow-class-lookup(True);
 
-  ORM::Factory.define: {
+  define {
     .factory: 'c-user', :class(CUser), {
       .fname: 'C';
     };
@@ -71,7 +71,7 @@ subtest 'rewind-sequences is safe under concurrency', {
   ORM::Factory.reload;
   ORM::Factory.set-allow-class-lookup(True);
 
-  ORM::Factory.define: {
+  define {
     .sequence: 'r';
   };
 

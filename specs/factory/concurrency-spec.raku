@@ -20,7 +20,7 @@ describe 'concurrency', {
 
   context 'sequence atomicity', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .sequence: 'serial';
       };
     }
@@ -38,7 +38,7 @@ describe 'concurrency', {
 
   context 'concurrent builds', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .sequence: 'sn';
         .factory: 'c-user', :class(CUser), {
           .fname:  'C';
@@ -68,7 +68,7 @@ describe 'concurrency', {
 
   context 'rewind-sequences is safe under concurrency', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .sequence: 'r';
       };
     }

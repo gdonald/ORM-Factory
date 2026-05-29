@@ -7,7 +7,7 @@ ORM::Factory.set-allow-class-lookup(False);
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: {
+  define {
     .sequence: 'email', -> $n { "user{$n}\@example.com" };
   };
 
@@ -24,7 +24,7 @@ ORM::Factory.set-allow-class-lookup(False);
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: { .sequence: 'counter'; };
+  define { .sequence: 'counter'; };
 
   is ORM::Factory.generate('counter'), 1, 'sequence without a block returns the raw counter';
   is ORM::Factory.generate('counter'), 2, 'counter increments';
@@ -32,7 +32,7 @@ ORM::Factory.set-allow-class-lookup(False);
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: { .sequence: 'id', :start(1000); };
+  define { .sequence: 'id', :start(1000); };
 
   is ORM::Factory.generate('id'), 1000, 'custom numeric start';
   is ORM::Factory.generate('id'), 1001, 'increments from start';
@@ -40,7 +40,7 @@ ORM::Factory.set-allow-class-lookup(False);
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: { .sequence: 'letter', :start('a'); };
+  define { .sequence: 'letter', :start('a'); };
 
   is ORM::Factory.generate('letter'), 'a', 'custom string start';
   is ORM::Factory.generate('letter'), 'b', 'advances via .succ';
@@ -48,7 +48,7 @@ ORM::Factory.set-allow-class-lookup(False);
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: {
+  define {
     .sequence: 'a';
     .sequence: 'b';
   };
@@ -70,14 +70,14 @@ ORM::Factory.set-allow-class-lookup(False);
 {
   ORM::Factory.reload;
   dies-ok {
-    ORM::Factory.define: { .sequence: 'email', -> $n { "a$n" }; };
-    ORM::Factory.define: { .sequence: 'email', -> $n { "b$n" }; };
+    define { .sequence: 'email', -> $n { "a$n" }; };
+    define { .sequence: 'email', -> $n { "b$n" }; };
   }, 'duplicate global sequence raises X::ORM::Factory::DuplicateSequence';
 }
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: {
+  define {
     .sequence: 'fib', :iterator((1, 1, *+* ... *).iterator);
   };
 
@@ -87,7 +87,7 @@ ORM::Factory.set-allow-class-lookup(False);
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: { .sequence: 'email'; };
+  define { .sequence: 'email'; };
   ORM::Factory.reload;
 
   is ORM::Factory.sequences.elems, 0, 'reload clears sequences';
@@ -95,7 +95,7 @@ ORM::Factory.set-allow-class-lookup(False);
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: {
+  define {
     .factory: 'thing', :class(Hash), {
       .sequence: 'token', -> $n { "tok-$n" };
     };

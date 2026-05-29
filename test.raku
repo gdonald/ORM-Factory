@@ -285,7 +285,10 @@ sub probe(Str:D $name, Str:D $url --> Capture) {
 # invocation), giving each spec a clean per-file isolation model.
 sub run-behave(@specs --> Int) {
   my $fail = 0;
+  my $cwd  = $*CWD.absolute;
   for @specs.map(*.absolute).sort -> $f {
+    my $rel = $f.starts-with($cwd ~ '/') ?? $f.substr($cwd.chars + 1) !! $f;
+    say $rel;
     my $proc = run 'behave', $f;
     $fail = $proc.exitcode if $proc.exitcode != 0;
   }

@@ -21,7 +21,7 @@ you target any persistence layer.
 ```perl6
 use ORM::Factory;
 
-ORM::Factory.define: {
+define {
   .factory: 'user', {
     .fname: 'Greg';
     .lname: 'Donald';

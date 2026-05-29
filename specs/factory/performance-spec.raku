@@ -41,7 +41,7 @@ describe 'performance guards', {
     $counting = CountingAdapter.new;
     ORM::Factory.set-persistence($counting);
 
-    ORM::Factory.define: {
+    define {
       .factory: 'p-user', :class(PUser), {
         .fname: 'Greg';
       };
@@ -99,7 +99,7 @@ describe 'performance guards', {
       my $hits = 0;
 
       ORM::Factory.reload;
-      ORM::Factory.define: {
+      define {
         .factory: 'p-user', :class(PUser), {
           .fname: { $hits++; 'Greg' };
         };

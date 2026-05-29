@@ -4,6 +4,20 @@ use ORM::Factory::Persistence::Generic;
 
 unit class ORM::Factory;
 
+our sub define(&block) is export { ORM::Factory.define(&block) }
+our sub build(Str:D $name, |c) is export { ORM::Factory.build($name, |c) }
+our sub create(Str:D $name, |c) is export { ORM::Factory.create($name, |c) }
+our sub build-stubbed(Str:D $name, |c) is export { ORM::Factory.build-stubbed($name, |c) }
+our sub attributes-for(Str:D $name, |c) is export { ORM::Factory.attributes-for($name, |c) }
+our sub build-list(Str:D $name, Int:D $count, |c) is export { ORM::Factory.build-list($name, $count, |c) }
+our sub create-list(Str:D $name, Int:D $count, |c) is export { ORM::Factory.create-list($name, $count, |c) }
+our sub build-stubbed-list(Str:D $name, Int:D $count, |c) is export { ORM::Factory.build-stubbed-list($name, $count, |c) }
+our sub attributes-for-list(Str:D $name, Int:D $count, |c) is export { ORM::Factory.attributes-for-list($name, $count, |c) }
+our sub build-pair(Str:D $name, |c) is export { ORM::Factory.build-pair($name, |c) }
+our sub create-pair(Str:D $name, |c) is export { ORM::Factory.create-pair($name, |c) }
+our sub generate(Str:D $name) is export { ORM::Factory.generate($name) }
+our sub generate-list(Str:D $name, Int:D $count) is export { ORM::Factory.generate-list($name, $count) }
+
 class X::ORM::Factory is Exception {
   has Str $.message;
 }

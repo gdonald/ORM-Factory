@@ -28,7 +28,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .variant: 'admin', { .role: 'admin' };
@@ -53,7 +53,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .variant: 'admin',  { .role: 'admin' };
@@ -77,7 +77,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .role:  'member';
@@ -94,7 +94,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), { .fname: 'Greg' };
 
     .factory: 'post', :class(Post), {
@@ -114,7 +114,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .greeting: { "Hello, {.salute}" };
@@ -134,7 +134,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .variant: 'active', { .status: 'active' };
@@ -151,7 +151,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .variant: 'a', { .b; .role: 'a' };
@@ -168,7 +168,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .variant: 'admin',  { .role: 'admin' };
@@ -193,7 +193,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .variant: 'admin', { .role: 'admin' };
@@ -223,7 +223,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .variant: 'greeted', {
@@ -243,7 +243,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .variant: 'flagged', { .flag: True };
 
     .factory: 'user', :class(User), {
@@ -258,7 +258,7 @@ sub fresh {
     'applies the global variant at build time';
 
   dies-ok {
-    ORM::Factory.define: {
+    define {
       .variant: 'flagged', { .flag: False };
     };
   }, 'duplicate global variant raises';
@@ -269,7 +269,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .variant: 'flagged', { .flag: True };
 
     .factory: 'flagged-user', :class(User), {
@@ -287,7 +287,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), { .fname: 'Greg' };
   };
 
@@ -297,7 +297,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .variants-for-enum: 'role', <admin guest member>;

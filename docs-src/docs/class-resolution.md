@@ -21,7 +21,7 @@ If the corresponding class is present in `GLOBAL`, the factory binds to it:
 ```perl6
 class User { has Str $.fname; }
 
-ORM::Factory.define: {
+define {
   .factory: 'user', { ; };
 };
 
@@ -34,7 +34,7 @@ ORM::Factory.factory-by-name('user').class-name;   # 'User'
 Pass `:class(...)` to bind a factory to a specific class regardless of name:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'super-admin', :class(Admin), { ; };
 };
 
@@ -54,7 +54,7 @@ before defining:
 ```perl6
 ORM::Factory.set-allow-class-lookup(False);
 
-ORM::Factory.define: {
+define {
   .factory: 'user', { ; };
 };
 

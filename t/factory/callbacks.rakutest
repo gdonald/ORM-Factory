@@ -28,7 +28,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .after: 'build', -> $u, $e { $u.fname = $u.fname.uc };
@@ -50,7 +50,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .before: 'create', -> $u, $e { $u.events.push: 'before-create' };
@@ -70,7 +70,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .after: 'stub', -> $u, $e { $u.events.push: 'stubbed' };
@@ -89,7 +89,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .role:  'member';
@@ -105,7 +105,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .after: 'build', -> $u, $e { $u.events.push: 'one' };
@@ -120,7 +120,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .after: 'build', -> $u, $e { $u.events.push: 'parent' };
@@ -141,7 +141,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .after: 'build', -> $u, $e { $u.events.push: 'base' };
@@ -160,7 +160,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .after: 'build', -> $i, $e { $i.events.push: 'global' };
 
     .factory: 'user', :class(User), {
@@ -186,7 +186,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .callback: 'shouted', -> $u, $e { $u.fname = $u.fname.uc };
@@ -205,7 +205,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), {
       .fname: 'Greg';
       .greeting: { "hi, {.fname}" };
@@ -222,7 +222,7 @@ sub fresh {
 
 {
   fresh;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', :class(User), { .fname: 'Greg' };
 
     .factory: 'post', :class(Post), {

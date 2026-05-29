@@ -31,7 +31,7 @@ describe 'factory variants', {
 
   context 'apply a variant at build time', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .variant: 'admin', { .role: 'admin' };
@@ -62,7 +62,7 @@ describe 'factory variants', {
 
   context 'multiple runtime variants apply left-to-right', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .variant: 'admin',  { .role: 'admin' };
@@ -93,7 +93,7 @@ describe 'factory variants', {
 
   context 'variant overrides an existing attribute', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .role:  'member';
@@ -113,7 +113,7 @@ describe 'factory variants', {
 
   context 'variant adds an association', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { .fname: 'Greg' };
 
         .factory: 'post', {
@@ -136,7 +136,7 @@ describe 'factory variants', {
 
   context 'variant adds a transient attribute', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .greeting: { "Hello, {.salute}" };
@@ -159,7 +159,7 @@ describe 'factory variants', {
 
   context 'variant references another variant', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .variant: 'active', { .status: 'active' };
@@ -179,7 +179,7 @@ describe 'factory variants', {
 
   context 'cyclic variant references terminate cleanly', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .variant: 'a', { .b; .role: 'a' };
@@ -199,7 +199,7 @@ describe 'factory variants', {
 
   context 'factory composed of variant references', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .variant: 'admin',  { .role: 'admin' };
@@ -228,7 +228,7 @@ describe 'factory variants', {
 
   context 'variant names usable as positional arguments in *-list', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .variant: 'admin', { .role: 'admin' };
@@ -259,7 +259,7 @@ describe 'factory variants', {
 
   context 'parameterised variant via a transient default + override', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .variant: 'greeted', {
@@ -282,7 +282,7 @@ describe 'factory variants', {
 
   context 'global variant defined at the top level', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .variant: 'flagged', { .flag: True };
 
         .factory: 'user', {
@@ -306,7 +306,7 @@ describe 'factory variants', {
 
     it 'raises on duplicate global variant', {
       expect({
-        ORM::Factory.define: {
+        define {
           .variant: 'flagged', { .flag: False };
         };
       }).to.raise-error(X::ORM::Factory::DuplicateVariant);
@@ -315,7 +315,7 @@ describe 'factory variants', {
 
   context 'global variant composed into a factory body', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .variant: 'flagged', { .flag: True };
 
         .factory: 'flagged-user', :class(User), {
@@ -336,7 +336,7 @@ describe 'factory variants', {
 
   context 'unknown variant at build time', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', { .fname: 'Greg' };
       };
     }
@@ -349,7 +349,7 @@ describe 'factory variants', {
 
   context 'variants-for-enum generates one variant per value', {
     before-each {
-      ORM::Factory.define: {
+      define {
         .factory: 'user', {
           .fname: 'Greg';
           .variants-for-enum: 'role', <admin guest member>;

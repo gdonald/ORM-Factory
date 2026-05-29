@@ -7,7 +7,7 @@ ORM::Factory.set-allow-class-lookup(False);
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', {
       .fname: 'Greg';
       .email: { .fname ~ '@example.com' };
@@ -29,7 +29,7 @@ ORM::Factory.set-allow-class-lookup(False);
 
 {
   ORM::Factory.reload;
-  ORM::Factory.define: {
+  define {
     .factory: 'user', {
       .fname:    'Greg';
       .lname:    'Donald';

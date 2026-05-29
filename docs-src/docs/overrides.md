@@ -7,7 +7,7 @@ attributes for that call only. The original definition is untouched.
 ## Static override of a static attribute
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'profile', {
     .fname: 'Greg';
     .nick:  'gd';
@@ -24,7 +24,7 @@ A static override replaces a block defined on the factory with the literal
 value:
 
 ```perl6
-ORM::Factory.define: {
+define {
   .factory: 'profile', {
     .fname: 'Greg';
     .email: { .fname.lc ~ '@example.com' };
