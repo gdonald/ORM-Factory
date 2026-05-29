@@ -46,3 +46,18 @@ implementations forward to the matching public method:
 
 This is why `build('post')` builds the author, `create('post')` creates it,
 and `attributes-for('post')` simply omits the column.
+
+The cascade is also controlled by the `use-parent-strategy`
+[configuration](configuration.md) flag — when `False`, associations default
+to `create` no matter what the surrounding call was.
+
+## Registering custom strategies
+
+The four built-ins are pre-populated in the strategy registry. You can add
+your own (or replace a built-in) with
+[`register-strategy`](custom-strategies.md):
+
+```raku
+ORM::Factory.register-strategy('json', JsonStrategy);
+ORM::Factory.json('user');  # dispatched via FALLBACK
+```

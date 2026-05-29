@@ -21,6 +21,17 @@ class X::ORM::Factory::UsageError       is X::ORM::Factory {}
 class X::ORM::Factory::MissingAssociation is X::ORM::Factory {}
 class X::ORM::Factory::CyclicAssociation  is X::ORM::Factory {}
 class X::ORM::Factory::UnknownCallback    is X::ORM::Factory {}
+class X::ORM::Factory::UnknownStrategy    is X::ORM::Factory {}
+class X::ORM::Factory::DuplicateStrategy  is X::ORM::Factory {}
+class X::ORM::Factory::InvalidRecord      is X::ORM::Factory {
+  has Mu $.record;
+  has    @.errors;
+  has Str $.factory-name;
+}
+
+class X::ORM::Factory::LintFailures is X::ORM::Factory {
+  has @.failures;
+}
 
 class Sequence {
   has Str      $.name;
@@ -141,8 +152,9 @@ class Evaluator {
   }
 
   method !pick-strategy($override-name) {
-    return $!strategy unless $override-name.defined;
-    return ORM::Factory.strategy-for($override-name);
+    return ORM::Factory.strategy-for($override-name) if $override-name.defined;
+    return $!strategy if ORM::Factory.use-parent-strategy;
+    ORM::Factory.strategy-for('create');
   }
 
   method has-value(Str:D $name --> Bool) {
@@ -552,7 +564,45 @@ class ModifyBuilder {
   }
 }
 
-my Bool $ALLOW-CLASS-LOOKUP = True;
+class ConfigBuilder {
+  method allow-class-lookup(Bool:D $b = True --> Nil) {
+    ORM::Factory.set-allow-class-lookup($b);
+  }
+
+  method use-parent-strategy(Bool:D $b = True --> Nil) {
+    ORM::Factory.set-use-parent-strategy($b);
+  }
+
+  method initialize-with(&block --> Nil) {
+    ORM::Factory.set-global-initialize-with(&block);
+  }
+
+  method to-create(&block --> Nil) {
+    ORM::Factory.set-global-to-create(&block);
+  }
+
+  method skip-create(Bool:D $b = True --> Nil) {
+    ORM::Factory.set-global-skip-create($b);
+  }
+
+  method persistence(ORM::Factory::Persistence:D $p --> Nil) {
+    ORM::Factory.set-persistence($p);
+  }
+
+  method definition-file-paths(*@paths --> Nil) {
+    ORM::Factory.set-definition-file-paths(|@paths);
+  }
+
+  method register-strategy(Str:D $name, Mu $class --> Nil) {
+    ORM::Factory.register-strategy($name, $class);
+  }
+
+  method run(&block --> Nil) { block(self) }
+}
+
+my Bool $ALLOW-CLASS-LOOKUP    = True;
+my Bool $USE-PARENT-STRATEGY   = True;
+my Str  @DEFINITION-FILE-PATHS = ('factories.raku', 'spec/factories', 'specs/factories', 'test/factories', 't/factories');
 my %FACTORIES;
 my %ALIASES;
 my %SEQUENCES;
@@ -565,6 +615,27 @@ my Bool     $GLOBAL-SKIP-CREATE;
 method allow-class-lookup(--> Bool) { $ALLOW-CLASS-LOOKUP }
 
 method set-allow-class-lookup(Bool:D $b --> Nil) { $ALLOW-CLASS-LOOKUP = $b }
+
+method use-parent-strategy(--> Bool) { $USE-PARENT-STRATEGY }
+
+method set-use-parent-strategy(Bool:D $b --> Nil) { $USE-PARENT-STRATEGY = $b }
+
+method definition-file-paths { @DEFINITION-FILE-PATHS.list }
+
+method set-definition-file-paths(*@paths --> Nil) {
+  @DEFINITION-FILE-PATHS = @paths.map(*.Str);
+}
+
+method set-global-initialize-with(&block --> Nil) { $GLOBAL-INITIALIZE-WITH = &block }
+
+method set-global-to-create(&block --> Nil) { $GLOBAL-TO-CREATE = &block }
+
+method set-global-skip-create(Bool:D $b --> Nil) { $GLOBAL-SKIP-CREATE = $b }
+
+method configure(&block --> Nil) {
+  my $cb = ConfigBuilder.new;
+  $cb.run(&block);
+}
 
 method define(&block --> Nil) {
   my $db = DefinitionBuilder.new;
@@ -688,6 +759,22 @@ method reload(--> Nil) {
   $GLOBAL-INITIALIZE-WITH = Callable;
   $GLOBAL-TO-CREATE       = Callable;
   $GLOBAL-SKIP-CREATE     = Bool;
+  $USE-PARENT-STRATEGY    = True;
+  @DEFINITION-FILE-PATHS  = ('factories.raku', 'spec/factories', 'specs/factories', 'test/factories', 't/factories');
+}
+
+method find-definitions(--> Nil) {
+  for @DEFINITION-FILE-PATHS -> $p {
+    my $io = $p.IO;
+    next unless $io.e;
+    if $io.f {
+      EVALFILE $io.absolute;
+    } elsif $io.d {
+      for $io.dir.grep({ .f && (.extension eq 'raku' || .extension eq 'rakumod') }).sort -> $f {
+        EVALFILE $f.absolute;
+      }
+    }
+  }
 }
 
 method global-initialize-with { $GLOBAL-INITIALIZE-WITH }
@@ -701,6 +788,105 @@ method global-callbacks(--> Array) { @GLOBAL-CALLBACKS }
 method sequences(--> Hash) { %SEQUENCES }
 
 method variants(--> Hash) { %GLOBAL-VARIANTS }
+
+method factory-names(--> List) { %FACTORIES.keys.sort.List }
+
+method sequence-names(--> List) { %SEQUENCES.keys.sort.List }
+
+method global-variant-names(--> List) { %GLOBAL-VARIANTS.keys.sort.List }
+
+method variant-names-for(Str:D $name --> List) {
+  my $factory = self.factory-by-name($name);
+  my @names;
+  for resolve-chain($factory) -> $f {
+    @names.append: $f.variants.keys.list;
+  }
+  @names.unique.sort.List;
+}
+
+method dump-attributes(Str:D $name, *@variants, *%overrides --> Hash) {
+  my $factory = self.factory-by-name($name);
+  my $eval    = build-evaluator($factory, @variants, %overrides);
+  my %dump;
+  for $eval.effective-attributes -> $attr {
+    my %entry =
+      :transient($attr.transient),
+      :association($attr.association),
+      :dynamic($attr.dynamic),
+      :has-value($attr.has-value);
+    %entry<factory-name> = $attr.factory-name if $attr.association;
+    %dump{$attr.name} = %entry;
+  }
+  %dump;
+}
+
+method describe-factory(Str:D $name --> Hash) {
+  my $factory = self.factory-by-name($name);
+  my @chain   = resolve-chain($factory).map(*.name);
+  {
+    :name($factory.name),
+    :class-name($factory.class-name),
+    :parent($factory.parent-name),
+    :ancestors(@chain.List),
+    :aliases($factory.aliases.List),
+    :variants($factory.variants.keys.sort.List),
+    :attributes(self.dump-attributes($name)),
+  };
+}
+
+method lint(*@factory-names, Str :$strategy = 'create', Bool :$variants = False, Bool :$verbose = False --> Nil) {
+  my @to-lint = @factory-names ?? @factory-names.map(*.Str) !! %FACTORIES.keys.sort;
+  my @failures;
+
+  for @to-lint -> $name {
+    self.factory-by-name($name);
+    my @combos = ('',);
+    if $variants {
+      @combos = ('', |self.variant-names-for($name));
+    }
+
+    for @combos -> $vname {
+      my $label = $vname ?? "$name+$vname" !! $name;
+      say "lint: $label ..." if $verbose;
+      try {
+        my @args = $vname ?? ($vname,) !! ();
+        my $instance = self."$strategy"($name, |@args);
+
+        if $instance.defined && self.persistence.^can('is-valid') {
+          unless self.persistence.is-valid($instance) {
+            die X::ORM::Factory::InvalidRecord.new(
+              message => "validation failed for '$label'",
+              :record($instance),
+              :factory-name($name),
+              :errors(self.persistence.errors($instance).list),
+            );
+          }
+        }
+
+        say "lint: $label OK" if $verbose;
+        CATCH {
+          default {
+            say "lint: $label FAIL ({.message})" if $verbose;
+            @failures.push: %( :factory($name), :variant($vname), :error(.message) );
+          }
+        }
+      }
+    }
+  }
+
+  if @failures {
+    my @lines = "lint failed for {@failures.elems} factor{ @failures.elems == 1 ?? 'y' !! 'ies' }:";
+    for @failures -> $f {
+      my $label = $f<factory>;
+      $label ~= " (variant: {$f<variant>})" if $f<variant>;
+      @lines.push: "  - $label: {$f<error>}";
+    }
+    die X::ORM::Factory::LintFailures.new(
+      :message(@lines.join("\n")),
+      :failures(@failures),
+    );
+  }
+}
 
 method generate(Str:D $name) {
   die X::ORM::Factory::UnknownSequence.new(
@@ -946,18 +1132,41 @@ class BuildStubbedStrategy does Strategy {
   }
 }
 
+my %STRATEGIES;
+
+sub init-builtin-strategies(--> Nil) {
+  return if %STRATEGIES;
+  %STRATEGIES<build>          = BuildStrategy;
+  %STRATEGIES<create>         = CreateStrategy;
+  %STRATEGIES<build-stubbed>  = BuildStubbedStrategy;
+  %STRATEGIES<attributes-for> = AttributesForStrategy;
+}
+
+method strategies(--> Hash) {
+  init-builtin-strategies();
+  %STRATEGIES;
+}
+
+method strategy-class-for(Str:D $name) {
+  init-builtin-strategies();
+  die X::ORM::Factory::UnknownStrategy.new(
+    message => "no strategy named '$name' (registered: {%STRATEGIES.keys.sort.join(', ')})"
+  ) unless %STRATEGIES{$name}:exists;
+  %STRATEGIES{$name};
+}
+
 method strategy-for(Str:D $name) {
-  given $name {
-    when 'build'          { BuildStrategy.new(:persistence(self.persistence))         }
-    when 'create'         { CreateStrategy.new(:persistence(self.persistence))        }
-    when 'build-stubbed'  { BuildStubbedStrategy.new(:persistence(self.persistence))  }
-    when 'attributes-for' { AttributesForStrategy.new(:persistence(self.persistence)) }
-    default {
-      die X::ORM::Factory::UsageError.new(
-        message => "unknown strategy '$name' (use build/create/build-stubbed/attributes-for)"
-      );
-    }
-  }
+  self.strategy-class-for($name).new(:persistence(self.persistence));
+}
+
+method register-strategy(Str:D $name, Mu $strategy-class --> Nil) {
+  init-builtin-strategies();
+  %STRATEGIES{$name} = $strategy-class;
+}
+
+method unregister-strategy(Str:D $name --> Nil) {
+  init-builtin-strategies();
+  %STRATEGIES{$name}:delete;
 }
 
 my @BUILD-CHAIN;
@@ -990,20 +1199,40 @@ method !run-strategy(Strategy:D $strategy, Str:D $name, @variants, %overrides) {
   $result;
 }
 
+method FALLBACK(Str:D $name, |c) {
+  init-builtin-strategies();
+
+  die X::ORM::Factory::UsageError.new(
+    message => "no method '$name' on ORM::Factory (registered strategies: {%STRATEGIES.keys.sort.join(', ')})"
+  ) unless %STRATEGIES{$name}:exists;
+
+  my @positional = c.list;
+  my %named      = c.hash;
+
+  die X::ORM::Factory::UsageError.new(
+    message => "strategy '$name' requires a factory name as the first argument"
+  ) unless @positional.elems >= 1;
+
+  my $factory-name = @positional.shift.Str;
+  my @variants     = @positional.map(*.Str);
+
+  self!run-strategy(self.strategy-for($name), $factory-name, @variants, %named);
+}
+
 method build(Str:D $name, *@variants, *%overrides) {
-  self!run-strategy(BuildStrategy.new(:persistence(self.persistence)), $name, @variants, %overrides);
+  self!run-strategy(self.strategy-for('build'), $name, @variants, %overrides);
 }
 
 method create(Str:D $name, *@variants, *%overrides) {
-  self!run-strategy(CreateStrategy.new(:persistence(self.persistence)), $name, @variants, %overrides);
+  self!run-strategy(self.strategy-for('create'), $name, @variants, %overrides);
 }
 
-method attributes-for(Str:D $name, *@variants, *%overrides --> Hash) {
-  self!run-strategy(AttributesForStrategy.new(:persistence(self.persistence)), $name, @variants, %overrides);
+method attributes-for(Str:D $name, *@variants, *%overrides) {
+  self!run-strategy(self.strategy-for('attributes-for'), $name, @variants, %overrides);
 }
 
 method build-stubbed(Str:D $name, *@variants, *%overrides) {
-  self!run-strategy(BuildStubbedStrategy.new(:persistence(self.persistence)), $name, @variants, %overrides);
+  self!run-strategy(self.strategy-for('build-stubbed'), $name, @variants, %overrides);
 }
 
 method build-list(Str:D $name, Int:D $count, *@rest, *%overrides) {

@@ -1,0 +1,60 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+use ORM::Factory::Methods;
+
+our class User {
+  has Str  $.fname is rw;
+  has Bool $.saved is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+BEGIN GLOBAL::<User> := User;
+
+sub reset-all {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(True);
+  ORM::Factory.define: {
+    .factory: 'user', { .fname: 'Greg' };
+    .sequence: 'counter', -> $n { $n };
+  };
+}
+
+reset-all();
+ok build('user') ~~ User,            'build sub delegates';
+
+reset-all();
+ok create('user').saved,             'create sub persists';
+
+reset-all();
+ok build-stubbed('user') ~~ User,    'build-stubbed sub delegates';
+
+reset-all();
+is attributes-for('user')<fname>, 'Greg', 'attributes-for sub delegates';
+
+reset-all();
+is build-list('user', 3).elems, 3,         'build-list count';
+reset-all();
+is create-list('user', 2).elems, 2,        'create-list count';
+reset-all();
+is build-stubbed-list('user', 4).elems, 4, 'build-stubbed-list count';
+reset-all();
+is attributes-for-list('user', 2).elems, 2, 'attributes-for-list count';
+
+reset-all();
+is build-pair('user').elems, 2, 'build-pair returns 2';
+reset-all();
+is create-pair('user').elems, 2, 'create-pair returns 2';
+
+reset-all();
+is generate('counter'), 1, 'generate sub delegates';
+
+reset-all();
+is generate-list('counter', 3).List, (1, 2, 3), 'generate-list sub delegates';
+
+reset-all();
+is build('user', :fname<Pat>).fname, 'Pat', 'overrides flow through helpers';
+
+done-testing;

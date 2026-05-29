@@ -1,0 +1,106 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+use ORM::Factory::Persistence;
+use ORM::Factory::Persistence::Generic;
+
+our class User {
+  has Str  $.fname is rw;
+  has Bool $.saved is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+our class Post {
+  has Str  $.title  is rw;
+  has User $.author is rw;
+  has Bool $.saved  is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+BEGIN GLOBAL::<User> := User;
+BEGIN GLOBAL::<Post> := Post;
+
+sub reset-all {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(True);
+}
+
+reset-all();
+ORM::Factory.define: {
+  .factory: 'user', { .fname: 'Greg' };
+  .factory: 'post', { .title: 'Hi'; .association: 'author', :factory<user> };
+};
+lives-ok { ORM::Factory.lint }, 'lint passes when every factory is healthy';
+
+reset-all();
+ORM::Factory.define: {
+  .factory: 'bad', { .association: 'author', :factory<ghost> };
+};
+dies-ok { ORM::Factory.lint }, 'lint raises when a factory is broken';
+
+reset-all();
+ORM::Factory.define: {
+  .factory: 'bad', { .association: 'author', :factory<ghost> };
+};
+my $err;
+try { ORM::Factory.lint; CATCH { default { $err = $_ } } }
+ok $err ~~ X::ORM::Factory::LintFailures, 'lint raises LintFailures';
+is $err.failures.elems, 1,                'failures captured';
+is $err.failures[0]<factory>, 'bad',      'failure carries factory name';
+
+reset-all();
+ORM::Factory.define: {
+  .factory: 'user', {
+    .fname: 'Greg';
+    .variant: 'admin', { .fname: 'Admin' };
+    .variant: 'guest', { .fname: 'Guest' };
+  };
+};
+lives-ok { ORM::Factory.lint(:variants) }, 'lint(:variants) passes when healthy';
+
+reset-all();
+ORM::Factory.define: {
+  .factory: 'user', { .fname: 'Greg' };
+  .factory: 'bad',  { .association: 'author', :factory<ghost> };
+};
+lives-ok { ORM::Factory.lint('user') }, 'lint subset skips other factories';
+dies-ok  { ORM::Factory.lint('bad')  }, 'lint subset still fails the named one';
+
+reset-all();
+ORM::Factory.define: { .factory: 'user', { .fname: 'Greg' } };
+lives-ok { ORM::Factory.lint(:strategy<build>) }, 'lint accepts :strategy<build>';
+
+reset-all();
+ORM::Factory.define: {
+  .factory: 'user', :aliases<author>, {
+    .fname: 'Greg';
+    .variant: 'admin', { .fname: 'Admin' };
+  };
+  .factory: 'post', { .title: 'Hi'; .association: 'author', :factory<user> };
+  .sequence: 'counter', -> $n { $n };
+};
+is ORM::Factory.factory-names.List,   ('post', 'user'), 'factory-names lists all';
+is ORM::Factory.sequence-names.List,  ('counter',),     'sequence-names lists all';
+is ORM::Factory.variant-names-for('user').List, ('admin',),
+   'variant-names-for returns variants';
+
+ok ORM::Factory.dump-attributes('post')<author><association>,
+   'dump-attributes marks associations';
+
+my %desc = ORM::Factory.describe-factory('user');
+is %desc<name>, 'user',                'describe-factory returns name';
+is %desc<aliases>.List, ('author',),   'describe-factory returns aliases';
+is %desc<variants>.List, ('admin',),   'describe-factory returns variants';
+
+my $e = X::ORM::Factory::InvalidRecord.new(
+  :message<boom>,
+  :record(42),
+  :factory-name<user>,
+  :errors(<one two>),
+);
+is $e.errors.List, ('one', 'two'),     'InvalidRecord carries errors';
+is $e.factory-name, 'user',            'InvalidRecord carries factory-name';
+
+done-testing;

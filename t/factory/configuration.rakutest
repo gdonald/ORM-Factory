@@ -1,0 +1,103 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+use ORM::Factory::Persistence;
+use ORM::Factory::Persistence::Generic;
+
+our class User {
+  has Str  $.fname is rw;
+  has Bool $.saved is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+our class Post {
+  has Str  $.title  is rw;
+  has User $.author is rw;
+  has Bool $.saved  is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+BEGIN GLOBAL::<User> := User;
+BEGIN GLOBAL::<Post> := Post;
+
+sub reset-all {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(True);
+  ORM::Factory.set-use-parent-strategy(True);
+}
+
+reset-all();
+my Bool $ran;
+ORM::Factory.configure: { $ran = True };
+ok $ran, 'configure block fires';
+
+reset-all();
+ORM::Factory.configure: { .allow-class-lookup(False) };
+nok ORM::Factory.allow-class-lookup, 'configure toggles allow-class-lookup off';
+
+reset-all();
+ORM::Factory.set-allow-class-lookup(False);
+ORM::Factory.configure: { .allow-class-lookup(True) };
+ok ORM::Factory.allow-class-lookup, 'configure toggles allow-class-lookup on';
+
+reset-all();
+ok ORM::Factory.use-parent-strategy, 'use-parent-strategy defaults to True';
+ORM::Factory.configure: { .use-parent-strategy(False) };
+nok ORM::Factory.use-parent-strategy, 'configure toggles use-parent-strategy off';
+
+reset-all();
+my $custom = ORM::Factory::Persistence::Generic.new;
+ORM::Factory.configure: { .persistence($custom) };
+ok ORM::Factory.persistence === $custom, 'configure installs persistence';
+
+reset-all();
+ORM::Factory.configure: { .definition-file-paths('only.raku') };
+is ORM::Factory.definition-file-paths.List, ('only.raku',),
+   'configure replaces definition-file-paths';
+ORM::Factory.set-definition-file-paths(
+  'factories.raku', 'spec/factories', 'specs/factories', 'test/factories', 't/factories'
+);
+
+reset-all();
+ORM::Factory.configure: { .use-parent-strategy(False) };
+ORM::Factory.define: {
+  .factory: 'user', :aliases<author>, { .fname: 'Greg' };
+  .factory: 'post', { .title: 'Hi'; .author };
+};
+my $built = ORM::Factory.build('post');
+ok $built.author.saved, 'use-parent-strategy=False forces create-cascade on build';
+
+reset-all();
+ORM::Factory.configure: { .skip-create(True) };
+ORM::Factory.define: {
+  .factory: 'user', { .fname: 'Greg' };
+};
+nok ORM::Factory.create('user').saved, 'configure skip-create disables persistence';
+
+reset-all();
+my $tmp = ('specs/.tmp-config-' ~ (^1000000).pick).IO;
+$tmp.mkdir;
+LEAVE {
+  if $tmp.d {
+    for $tmp.dir -> $f { $f.unlink if $f.f }
+    $tmp.rmdir;
+  }
+}
+my $file = $tmp.add('factories.raku');
+$file.spurt: q:to/END/;
+use ORM::Factory;
+ORM::Factory.define: {
+  .factory: 'user', :class(User), { .fname: 'Greg' };
+};
+END
+ORM::Factory.set-definition-file-paths($file.absolute);
+ORM::Factory.find-definitions;
+ok ORM::Factory.factory-exists('user'), 'find-definitions loads a single file';
+
+reset-all();
+ORM::Factory.set-definition-file-paths('not/a/real/path.raku');
+lives-ok { ORM::Factory.find-definitions }, 'find-definitions skips missing paths';
+
+done-testing;

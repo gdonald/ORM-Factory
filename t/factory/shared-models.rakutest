@@ -1,0 +1,34 @@
+use v6.d;
+use lib 'lib';
+use lib 'specs/lib';
+use Test;
+use ORM::Factory;
+use Factory::Test::Models;
+
+publish-globals();
+
+ORM::Factory.reload;
+ORM::Factory.reset-persistence;
+ORM::Factory.set-allow-class-lookup(True);
+
+ORM::Factory.define: {
+  .factory: 'user', :aliases<author>, {
+    .fname: 'Greg';
+    .lname: 'Donald';
+    .email: { .fname.lc ~ '@example.com' };
+  };
+
+  .factory: 'post', {
+    .title: 'Hi';
+    .body:  'world';
+    .author;
+  };
+};
+
+ok ORM::Factory.build('user') ~~ User,            'shared User class resolves via GLOBAL';
+ok ORM::Factory.build('post') ~~ Post,            'shared Post class resolves via GLOBAL';
+is ORM::Factory.build('user').email, 'greg@example.com',
+   'shared model evaluates dynamic attributes';
+ok ORM::Factory.build('post').author ~~ User,    'implicit association uses shared User';
+
+done-testing;

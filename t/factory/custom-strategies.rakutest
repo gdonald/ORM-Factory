@@ -1,0 +1,135 @@
+use v6.d;
+use lib 'lib';
+use Test;
+use ORM::Factory;
+use ORM::Factory::Persistence::Generic;
+
+our class Note {
+  has Str  $.title is rw;
+  has Str  $.body  is rw;
+  has Bool $.saved is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+our class Article {
+  has Str  $.title  is rw;
+  has Note $.author is rw;
+  has Bool $.saved  is rw = False;
+  method save-or-die { $!saved = True; self }
+}
+
+BEGIN GLOBAL::<Note>    := Note;
+BEGIN GLOBAL::<Article> := Article;
+
+our class JsonStrategy does ORM::Factory::Strategy {
+  method to-sym(--> Str) { 'json' }
+  method result(ORM::Factory::Evaluator $eval) {
+    my %h = $eval.attributes-hash(:skip-associations);
+    'JSON:' ~ %h.kv.map(-> $k, $v { "$k=$v" }).sort.join(',');
+  }
+  method association(Str:D $name, @variants, %overrides) {
+    ORM::Factory.build($name, |@variants, |%overrides);
+  }
+}
+
+our class ShoutBuildStrategy does ORM::Factory::Strategy {
+  method to-sym(--> Str) { 'build' }
+  method result(ORM::Factory::Evaluator $eval) {
+    my $instance = $!persistence.instantiate($eval.factory.lookup-class, $eval.attributes-hash);
+    $eval.instance = $instance;
+    $instance.title = $instance.title.uc if $instance.^can('title');
+    $instance;
+  }
+  method association(Str:D $name, @variants, %overrides) {
+    ORM::Factory.build($name, |@variants, |%overrides);
+  }
+}
+
+our class StubAssocStrategy does ORM::Factory::Strategy {
+  method to-sym(--> Str) { 'cascade-stub' }
+  method result(ORM::Factory::Evaluator $eval) {
+    $!persistence.instantiate($eval.factory.lookup-class, $eval.attributes-hash);
+  }
+  method association(Str:D $name, @variants, %overrides) {
+    ORM::Factory.build-stubbed($name, |@variants, |%overrides);
+  }
+}
+
+BEGIN GLOBAL::<JsonStrategy>       := JsonStrategy;
+BEGIN GLOBAL::<ShoutBuildStrategy> := ShoutBuildStrategy;
+BEGIN GLOBAL::<StubAssocStrategy>  := StubAssocStrategy;
+
+sub fresh-registry {
+  ORM::Factory.reload;
+  ORM::Factory.reset-persistence;
+  ORM::Factory.set-allow-class-lookup(True);
+  ORM::Factory.unregister-strategy('json');
+  ORM::Factory.unregister-strategy('cascade-stub');
+  ORM::Factory.register-strategy('build',          ORM::Factory::BuildStrategy);
+  ORM::Factory.register-strategy('create',         ORM::Factory::CreateStrategy);
+  ORM::Factory.register-strategy('attributes-for', ORM::Factory::AttributesForStrategy);
+  ORM::Factory.register-strategy('build-stubbed',  ORM::Factory::BuildStubbedStrategy);
+}
+
+fresh-registry();
+is ORM::Factory.strategies.keys.sort.List,
+   ('attributes-for', 'build', 'build-stubbed', 'create'),
+   'built-in strategies pre-registered';
+
+fresh-registry();
+ok ORM::Factory.strategy-class-for('build') === ORM::Factory::BuildStrategy,
+   'strategy-class-for returns the registered class';
+
+fresh-registry();
+dies-ok { ORM::Factory.strategy-class-for('ghost') },
+   'unknown strategy raises';
+
+fresh-registry();
+ORM::Factory.register-strategy('json', JsonStrategy);
+ok ORM::Factory.strategies<json> === JsonStrategy,
+   'register-strategy adds to the registry';
+
+fresh-registry();
+ORM::Factory.register-strategy('json', JsonStrategy);
+ORM::Factory.define: {
+  .factory: 'note', { .title: 'hi'; .body: 'there' };
+};
+is ORM::Factory.json('note'), 'JSON:body=there,title=hi',
+   'FALLBACK dispatches the named strategy';
+
+fresh-registry();
+ORM::Factory.register-strategy('json', JsonStrategy);
+ORM::Factory.define: {
+  .factory: 'note', {
+    .title: 'hi';
+    .body:  'there';
+    .variant: 'shout', { .title: 'HEY' };
+  };
+};
+is ORM::Factory.json('note', 'shout', :body<wow>),
+   'JSON:body=wow,title=HEY',
+   'FALLBACK forwards variants and overrides';
+
+fresh-registry();
+dies-ok { ORM::Factory.bogus('note') },
+   'unregistered method name raises';
+
+fresh-registry();
+ORM::Factory.register-strategy('build', ShoutBuildStrategy);
+ORM::Factory.define: {
+  .factory: 'note', { .title: 'hi'; .body: 'there' };
+};
+is ORM::Factory.build('note').title, 'HI',
+   're-registering build overrides the built-in';
+
+fresh-registry();
+ORM::Factory.register-strategy('cascade-stub', StubAssocStrategy);
+ORM::Factory.define: {
+  .factory: 'note', :aliases<author>, { .title: 'a'; .body: 'b' };
+  .factory: 'article', { .title: 'p'; .author };
+};
+my $art = ORM::Factory.cascade-stub('article');
+ok $art.author ~~ Note,        'per-strategy association cascade builds Note';
+nok $art.author.saved,         'cascade-stub-built association is unsaved';
+
+done-testing;

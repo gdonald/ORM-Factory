@@ -18,6 +18,10 @@ nav:
   - Callbacks: callbacks.md
   - Persistence: persistence.md
   - Construction: construction.md
+  - Custom strategies: custom-strategies.md
+  - Configuration: configuration.md
+  - Methods syntax: methods-syntax.md
+  - Linting & diagnostics: lint.md
   - Tests: tests.md
 theme:
   name: 'material'
