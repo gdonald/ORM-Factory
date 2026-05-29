@@ -1146,27 +1146,25 @@ class BuildStubbedStrategy does Strategy {
   }
 }
 
-my %STRATEGIES;
-
-sub init-builtin-strategies(--> Nil) {
-  return if %STRATEGIES;
-  %STRATEGIES<build>          = BuildStrategy;
-  %STRATEGIES<create>         = CreateStrategy;
-  %STRATEGIES<build-stubbed>  = BuildStubbedStrategy;
-  %STRATEGIES<attributes-for> = AttributesForStrategy;
-}
+my %STRATEGIES =
+  build          => BuildStrategy,
+  create         => CreateStrategy,
+  build-stubbed  => BuildStubbedStrategy,
+  attributes-for => AttributesForStrategy,
+;
+my Lock $STRATEGIES-LOCK = Lock.new;
 
 method strategies(--> Hash) {
-  init-builtin-strategies();
-  %STRATEGIES;
+  $STRATEGIES-LOCK.protect: { %STRATEGIES.clone }
 }
 
 method strategy-class-for(Str:D $name) {
-  init-builtin-strategies();
-  die X::ORM::Factory::UnknownStrategy.new(
-    message => "no strategy named '$name' (registered: {%STRATEGIES.keys.sort.join(', ')})"
-  ) unless %STRATEGIES{$name}:exists;
-  %STRATEGIES{$name};
+  $STRATEGIES-LOCK.protect: {
+    die X::ORM::Factory::UnknownStrategy.new(
+      message => "no strategy named '$name' (registered: {%STRATEGIES.keys.sort.join(', ')})"
+    ) unless %STRATEGIES{$name}:exists;
+    %STRATEGIES{$name};
+  }
 }
 
 method strategy-for(Str:D $name) {
@@ -1174,13 +1172,11 @@ method strategy-for(Str:D $name) {
 }
 
 method register-strategy(Str:D $name, Mu $strategy-class --> Nil) {
-  init-builtin-strategies();
-  %STRATEGIES{$name} = $strategy-class;
+  $STRATEGIES-LOCK.protect: { %STRATEGIES{$name} = $strategy-class; }
 }
 
 method unregister-strategy(Str:D $name --> Nil) {
-  init-builtin-strategies();
-  %STRATEGIES{$name}:delete;
+  $STRATEGIES-LOCK.protect: { %STRATEGIES{$name}:delete; }
 }
 
 method !run-strategy(Strategy:D $strategy, Str:D $name, @variants, %overrides) {
@@ -1202,11 +1198,13 @@ method !run-strategy(Strategy:D $strategy, Str:D $name, @variants, %overrides) {
 }
 
 method FALLBACK(Str:D $name, |c) {
-  init-builtin-strategies();
-
-  die X::ORM::Factory::UsageError.new(
-    message => "no method '$name' on ORM::Factory (registered strategies: {%STRATEGIES.keys.sort.join(', ')})"
-  ) unless %STRATEGIES{$name}:exists;
+  my $exists = $STRATEGIES-LOCK.protect: { so %STRATEGIES{$name}:exists };
+  unless $exists {
+    my $keys = $STRATEGIES-LOCK.protect: { %STRATEGIES.keys.sort.join(', ') };
+    die X::ORM::Factory::UsageError.new(
+      message => "no method '$name' on ORM::Factory (registered strategies: $keys)"
+    );
+  }
 
   my @positional = c.list;
   my %named      = c.hash;
@@ -1296,6 +1294,7 @@ method create-pair(Str:D $name, *@rest, *%overrides) {
 }
 
 my ORM::Factory::Persistence $PERSISTENCE;
+my Lock $PERSISTENCE-LOCK = Lock.new;
 
 sub detect-persistence(--> ORM::Factory::Persistence) {
   my $ar-available = try { require ::('ORM::ActiveRecord::Model'); True };
@@ -1310,14 +1309,13 @@ sub detect-persistence(--> ORM::Factory::Persistence) {
 }
 
 method persistence(--> ORM::Factory::Persistence) {
-  $PERSISTENCE //= detect-persistence();
-  $PERSISTENCE;
+  $PERSISTENCE-LOCK.protect: { $PERSISTENCE //= detect-persistence(); }
 }
 
 method set-persistence(ORM::Factory::Persistence $p --> Nil) {
-  $PERSISTENCE = $p;
+  $PERSISTENCE-LOCK.protect: { $PERSISTENCE = $p; }
 }
 
 method reset-persistence(--> Nil) {
-  $PERSISTENCE = ORM::Factory::Persistence;
+  $PERSISTENCE-LOCK.protect: { $PERSISTENCE = ORM::Factory::Persistence; }
 }

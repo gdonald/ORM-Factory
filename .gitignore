@@ -7,3 +7,5 @@ lib/.precomp
 .behave-failures
 log/error.log
 db/test.sqlite3
+docs-src/site
+.fezignore

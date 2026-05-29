@@ -23,34 +23,31 @@ ORM::Factory.define: {
 FactoryPost.destroy-all;
 FactoryUser.destroy-all;
 
-subtest 'with-transaction-rollback', {
+# with-transaction-rollback rolls back creates on exit
+with-transaction-rollback {
+  ORM::Factory.create-list('factory-user', 3);
+};
+is FactoryUser.count, 0, 'with-transaction-rollback rolls back creates on exit';
+
+# with-transaction-rollback rolls back on exception
+try {
   with-transaction-rollback {
-    ORM::Factory.create-list('factory-user', 3);
+    ORM::Factory.create('factory-user');
+    die 'simulated failure';
   };
-  is FactoryUser.count, 0, 'rolls back creates on exit';
+};
+is FactoryUser.count, 0, 'with-transaction-rollback rolls back on exception';
 
-  try {
-    with-transaction-rollback {
-      ORM::Factory.create('factory-user');
-      die 'simulated failure';
-    };
-  };
-  is FactoryUser.count, 0, 'rolls back on exception';
-}
+# truncate-tables
+ORM::Factory.create-list('factory-user', 2);
+is FactoryUser.count, 2, 'two records present before truncate';
 
-subtest 'truncate-tables', {
-  ORM::Factory.create-list('factory-user', 2);
-  is FactoryUser.count, 2, 'created two';
+truncate-tables('factory_users');
+is FactoryUser.count, 0, 'truncate-tables clears the named table';
 
-  truncate-tables('factory_users');
-  is FactoryUser.count, 0, 'truncate-tables clears the table';
-}
-
-subtest 'truncate-all-tables', {
-  ORM::Factory.create-list('factory-user', 2);
-
-  truncate-all-tables();
-  is FactoryUser.count, 0, 'truncate-all-tables clears every table';
-}
+# truncate-all-tables
+ORM::Factory.create-list('factory-user', 2);
+truncate-all-tables();
+is FactoryUser.count, 0, 'truncate-all-tables clears every table';
 
 done-testing;
