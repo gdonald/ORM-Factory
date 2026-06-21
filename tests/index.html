@@ -1253,12 +1253,37 @@ DB-backed; a <code>db</code> folder nested deeper (<code>specs/model/db/...</cod
 <ol>
 <li><code>DATABASE_URL</code> (if set, that single URL is used and no probing is done);</li>
 <li><code>FACTORY_PG_URL</code>, <code>FACTORY_MYSQL_URL</code>, <code>FACTORY_SQLITE_URL</code> (per-adapter overrides);</li>
-<li><code>config/application.json</code> (the test database name is read from here and
-   combined with per-adapter defaults);</li>
+<li><code>config/application.json</code> (the <code>test</code> environment's primary connection
+   supplies the database name, combined with per-adapter defaults);</li>
 <li>a built-in default per adapter (PostgreSQL at <code>localhost:5432</code>, MySQL at
    <code>127.0.0.1:3306</code>, SQLite in <code>:memory:</code>).</li>
 </ol>
 <p>The SQLite suite always runs in memory.</p>
+<p><code>config/application.json</code> uses the per-environment named-connection shape that
+<code>ORM::ActiveRecord</code> reads:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span>
+<span class="normal">8</span>
+<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;parallel&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;primary&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;adapter&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sqlite&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;db/test.sqlite3&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;development&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;primary&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;adapter&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sqlite&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;db/development.sqlite3&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></td></tr></table></div>
+
+<p>The <code>test</code> environment's <code>parallel</code> key sets how many behave worker slots the
+DB-backed specs run across, and therefore how many per-worker databases get
+provisioned. Copy one of the <code>config/application.json-*-example</code> files to
+<code>config/application.json</code> to start.</p>
 <h2 id="per-test-factory-registry-reset">Per-test factory-registry reset</h2>
 <p>The factory registry is process-global mutable state. To prevent tests
 leaking definitions into each other, reset it before each example.</p>
@@ -1324,13 +1349,22 @@ possible by construction; only within-file isolation requires the manual
 same <code>reload</code> discipline applies there.</p>
 <h2 id="migration-runner">Migration runner</h2>
 <p><code>bin/factory</code> drives
-<a href="https://github.com/gdonald/ORM-ActiveRecord"><code>ORM::ActiveRecord::Schema::Migrate</code></a>
-over <code>db/migrate/</code> to set up the test schema. It is a no-op (exit 0) when
-there are no migration files, so the script is safe to invoke unconditionally
-from <code>test.raku</code>.</p>
-<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code>$<span class="w"> </span>raku<span class="w"> </span>-Ilib<span class="w"> </span>bin/factory
+<a href="https://github.com/gdonald/ORM-ActiveRecord"><code>ORM::ActiveRecord</code></a>'s schema
+tooling over <code>db/migrate/</code> to set up the test schema. It is a no-op (exit 0)
+when there are no migration files, so the script is safe to invoke
+unconditionally from <code>test.raku</code>.</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code>$<span class="w"> </span>raku<span class="w"> </span>-Ilib<span class="w"> </span>bin/factory<span class="w">            </span><span class="c1"># migrate the base database</span>
+$<span class="w"> </span>raku<span class="w"> </span>-Ilib<span class="w"> </span>bin/factory<span class="w"> </span>createdb<span class="w">   </span><span class="c1"># create the database(s), no migrate</span>
+$<span class="w"> </span>raku<span class="w"> </span>-Ilib<span class="w"> </span>bin/factory<span class="w"> </span>check<span class="w">      </span><span class="c1"># report whether they exist and are migrated</span>
 </code></pre></div></td></tr></table></div>
 
+<p>The DB-backed specs run under behave with <code>--parallel=N</code>, where <code>N</code> is the
+<code>test</code> environment's <code>parallel</code> count. behave suffixes each worker slot's
+database (<code>factory_test_0</code>, <code>factory_test_1</code>, …), so <code>test.raku</code> provisions
+those per-worker databases by passing <code>--parallel</code> to <code>createdb</code>, <code>migrate</code>,
+and <code>check</code>. The <code>t/</code> (prove6) tests run against the base, unsuffixed database.</p>
 <p>When <code>db/migrate/</code> is non-empty, the runner requires <code>ORM::ActiveRecord</code> to
 be installed (it is a <code>test-depends</code> of <code>ORM::Factory</code>).</p>
 

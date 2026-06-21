@@ -1223,7 +1223,7 @@ the generic adapter.</p>
 <ul>
 <li><code>instantiate</code> calls <code>Model.build(%attrs)</code>, returning an unsaved instance with
   <code>is-new-record === True</code>.</li>
-<li><code>persist</code> calls <code>.save-or-die</code>, so validation failures raise
+<li><code>persist</code> calls <code>.save-bang</code>, so validation failures raise
   <code>X::RecordInvalid</code> from <code>ORM::ActiveRecord</code>.</li>
 <li><code>is-valid</code> / <code>errors</code> delegate to the model's own validation pipeline.</li>
 <li><code>primary-key</code> returns the model's primary key (<code>id</code> by default).</li>
@@ -1244,7 +1244,7 @@ no <code>INSERT</code> issued:</p>
 
 <h2 id="create"><code>create</code></h2>
 <p><code>ORM::Factory.create('user')</code> runs the same pipeline as <code>build</code>, then calls
-<code>save-or-die</code> through the adapter. Model validations, callbacks, and
+<code>save-bang</code> through the adapter. Model validations, callbacks, and
 timestamps all run as usual:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
 <span class="normal">2</span>

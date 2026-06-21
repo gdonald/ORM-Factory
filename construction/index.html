@@ -1316,7 +1316,7 @@ per-factory hook:</p>
 <code>ORM::Factory.reload</code> clears it.</p>
 <h2 id="to-create"><code>to-create</code></h2>
 <p><code>to-create</code> replaces the persistence step in <code>create</code>. The default adapter
-calls <code>.save-or-die</code> (or <code>.save</code>) on the instance; the hook takes the instance
+calls <code>.save-bang</code> (or <code>.save</code>) on the instance; the hook takes the instance
 and the evaluator and is responsible for persisting it however the target
 store wants:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>

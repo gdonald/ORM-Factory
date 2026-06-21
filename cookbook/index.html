@@ -1405,7 +1405,7 @@ make it into the persisted attribute hash:</p>
 <span class="normal">12</span>
 <span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="n">User</span> {
   <span class="k">has</span> <span class="nb">Str</span>  <span class="nv">$.fname</span> <span class="k">is</span> <span class="k">rw</span>;
-  <span class="k">method</span> <span class="n">save-or-die</span> { <span class="nb">self</span> }                     <span class="c1"># or .save, or omit if you only build</span>
+  <span class="k">method</span> <span class="n">save-bang</span> { <span class="nb">self</span> }                     <span class="c1"># or .save, or omit if you only build</span>
 }
 
 <span class="n">define</span> {
@@ -1415,7 +1415,7 @@ make it into the persisted attribute hash:</p>
 };
 
 <span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;user&#39;</span>);     <span class="c1"># User.new(fname =&gt; &#39;Greg&#39;)</span>
-<span class="n">ORM::Factory</span>.<span class="n">create</span>(<span class="s">&#39;user&#39;</span>);    <span class="c1"># then .save-or-die</span>
+<span class="n">ORM::Factory</span>.<span class="n">create</span>(<span class="s">&#39;user&#39;</span>);    <span class="c1"># then .save-bang</span>
 </code></pre></div></td></tr></table></div>
 
 <p>For a non-AR, non-trivial persistence layer, write a custom adapter — see

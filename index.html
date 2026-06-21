@@ -1129,7 +1129,7 @@
 without persistence) so your specs stay declarative.</p>
 <p>It is ORM-agnostic at its core. With
 <a href="https://github.com/gdonald/ORM-ActiveRecord"><code>ORM::ActiveRecord</code></a> installed
-and auto-detected, <code>create</code> persists through the model's <code>save-or-die</code> with
+and auto-detected, <code>create</code> persists through the model's <code>save-bang</code> with
 validations, callbacks, and timestamps intact. With no ORM loaded, factories
 still build plain objects, and the <code>to-create</code> / <code>initialize-with</code> hooks let
 you target any persistence layer.</p>

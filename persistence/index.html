@@ -1162,7 +1162,7 @@ plain attribute hash without ever instantiating, persisting, or stubbing.</p>
 ORM-specific adapter is registered. It:</p>
 <ul>
 <li>instantiates via <code>$class.new(|%attrs)</code>;</li>
-<li>persists by calling <code>.save-or-die</code> if present, else <code>.save</code>, else raising
+<li>persists by calling <code>.save-bang</code> if present, else <code>.save</code>, else raising
   <code>X::ORM::Factory::Persistence::NoPersistence</code> with a clear hint;</li>
 <li>delegates <code>is-valid</code>, <code>errors</code>, <code>primary-key</code> to identically named methods
   on the instance / class if they exist, and falls back to sane defaults
@@ -1176,7 +1176,7 @@ ORM-specific adapter is registered. It:</p>
 
 <span class="k">my</span> <span class="nv">$adapter</span> = <span class="n">ORM::Factory::Persistence::Generic</span>.<span class="nb">new</span>;
 <span class="k">my</span> <span class="nv">$user</span>    = <span class="nv">$adapter</span>.<span class="n">instantiate</span>(<span class="n">User</span>, %( <span class="n">fname</span> =&gt; <span class="s">&#39;Greg&#39;</span> ));
-<span class="nv">$adapter</span>.<span class="n">persist</span>(<span class="nv">$user</span>);          <span class="c1"># invokes $user.save-or-die or $user.save</span>
+<span class="nv">$adapter</span>.<span class="n">persist</span>(<span class="nv">$user</span>);          <span class="c1"># invokes $user.save-bang or $user.save</span>
 </code></pre></div></td></tr></table></div>
 
 <h2 id="detection-and-selection">Detection and selection</h2>

@@ -1142,7 +1142,7 @@ ORM::Factory<span class="w"> </span>benchmarks<span class="w"> </span><span clas
 </code></pre></div></td></tr></table></div>
 
 <p>The harness uses the in-memory generic adapter (no DB), so the difference
-between <code>create</code> and the others reflects only the <code>save-or-die</code> call cost.</p>
+between <code>create</code> and the others reflects only the <code>save-bang</code> call cost.</p>
 <h2 id="regression-guard">Regression guard</h2>
 <p>The performance spec includes a coarse guard: <code>build-stubbed-list</code> is asserted
 to be no more than 2× slower than <code>create-list</code> over 200 records. That gap
