@@ -35,7 +35,7 @@ Ruby `!` becomes `-or-die`; Ruby `?` becomes `is-`:
 
 | factory_bot     | ORM::Factory   |
 |-----------------|----------------|
-| `save!`         | `save-or-die`  |
+| `save!`         | `save-bang`  |
 | `persisted?`    | `is-persisted` |
 | `new_record?`   | `is-new-record`|
 | `valid?`        | `is-valid`     |

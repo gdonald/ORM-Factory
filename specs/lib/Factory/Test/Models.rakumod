@@ -8,7 +8,7 @@ class User is export {
   has Str  $.email is rw;
   has Str  $.role  is rw;
   has Bool $.saved is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 class Post is export {
@@ -16,7 +16,7 @@ class Post is export {
   has Str  $.body   is rw;
   has User $.author is rw;
   has Bool $.saved  is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 class Comment is export {
@@ -24,7 +24,7 @@ class Comment is export {
   has     $.commentable  is rw;
   has     $.author       is rw;
   has Bool $.saved       is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 sub publish-globals is export {

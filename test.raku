@@ -233,7 +233,7 @@ sub url-from-config(Str:D $adapter --> Str) {
   my $json = try { from-json('config/application.json'.IO.slurp) };
   return Str without $json;
 
-  my %db   = $json<db> // %();
+  my %db   = ($json<test><primary> // $json<db>) // %();
   my $name = %db<name>;
   return Str without $name;
 
@@ -264,6 +264,18 @@ sub url-from-config(Str:D $adapter --> Str) {
   "$scheme://$auth$hp/$name$q";
 }
 
+# Worker count for behave's `--parallel`, read from the test environment's
+# `parallel` key. Drives both how many per-worker databases get provisioned and
+# how many slots behave distributes spec files across.
+sub config-parallel(--> Int) {
+  return 1 unless 'config/application.json'.IO.e;
+
+  my $json = try { from-json('config/application.json'.IO.slurp) };
+  return 1 without $json;
+
+  (($json<test> // %())<parallel> // 1).Int;
+}
+
 sub skip-message(Str:D $name, %c, Str:D $err --> Str) {
   my %a = %ADAPTERS{$name};
   my $cls = classify($err);
@@ -281,15 +293,19 @@ sub probe(Str:D $name, Str:D $url --> Capture) {
   \($ok, $err, $ok ?? '' !! skip-message($name, %c, $err));
 }
 
-# behave runs every spec file in its own process (one EVAL'd compunit per
-# invocation), giving each spec a clean per-file isolation model.
-sub run-behave(@specs --> Int) {
+# behave runs every spec file in its own invocation so each file's top-level
+# class/role declarations stay isolated (batching files into one --parallel run
+# loads several into one worker process and collides their symbols). `--parallel=N`
+# then spreads a single file's examples across N worker slots; ORM::ActiveRecord
+# suffixes each slot's database, so the DB-backed passes provision N per-worker
+# databases to match (see run-db-pass).
+sub run-behave(@specs, Int :$parallel = 1 --> Int) {
   my $fail = 0;
   my $cwd  = $*CWD.absolute;
   for @specs.map(*.absolute).sort -> $f {
     my $rel = $f.starts-with($cwd ~ '/') ?? $f.substr($cwd.chars + 1) !! $f;
     say $rel;
-    my $proc = run 'behave', $f;
+    my $proc = run 'behave', "--parallel=$parallel", $f;
     $fail = $proc.exitcode if $proc.exitcode != 0;
   }
   $fail;
@@ -303,35 +319,55 @@ sub run-prove6(@tests --> Int) {
 }
 
 # A pass runs the t/ tests (prove6) and specs/ specs (behave) for one bucket.
-sub run-pass(:@tests, :@specs --> Int) {
+sub run-pass(:@tests, :@specs, Int :$parallel = 1 --> Int) {
   my $t = run-prove6(@tests);
-  my $s = run-behave(@specs);
+  my $s = run-behave(@specs, :$parallel);
   ($t != 0 || $s != 0) ?? 1 !! 0;
 }
 
-sub run-db-pass(Str:D :$name, Str:D :$url, :@tests, :@specs --> Int) {
+sub factory-cmd(@cmd --> Int) {
+  my $proc = run :env(%*ENV, DISABLE-SQL-LOG => 'True'),
+  'raku', '-Ilib', 'bin/factory', |@cmd;
+  $proc.exitcode;
+}
+
+sub run-db-pass(Str:D :$name, Str:D :$url, :@tests, :@specs, Int :$parallel = 1 --> Int) {
   say '';
-  say "==> [{format-ts()}] adapter=$name";
+  say "==> [{format-ts()}] adapter=$name" ~ ($parallel > 1 ?? " parallel=$parallel" !! '');
   %*ENV<DATABASE_URL>     = $url;
+  %*ENV<AR_ENV>            = 'test';
   %*ENV<DISABLE-SQL-LOG> //= 'True';
   %*ENV<ORM_LOG_FILE>    //= ('log'.IO.d ?? 'log/error.log' !! '/dev/null');
 
-  # Persistence tests/specs need the test schema in place. Migrate only once
-  # bin/factory exists.
+  # Persistence tests/specs need the test schema in place. prove6 (t/) connects
+  # to the base database; behave parallel workers each connect to a per-worker
+  # database that ORM::ActiveRecord suffixes by slot, so provision both. Bail on
+  # the first provisioning failure with a clear pre-flight rather than letting
+  # every spec error individually.
   if 'bin/factory'.IO.e {
-    my $migrate = run :env(%*ENV, DISABLE-SQL-LOG => 'True'),
-    'raku', '-Ilib', 'bin/factory';
-    return $migrate.exitcode unless $migrate.exitcode == 0;
+    for ('createdb', 'migrate') -> $cmd {
+      my $rc = factory-cmd([$cmd]);
+      return $rc unless $rc == 0;
+    }
+
+    if $parallel > 1 {
+      for ('createdb', 'migrate') -> $cmd {
+        my $rc = factory-cmd([$cmd, '--parallel']);
+        return $rc unless $rc == 0;
+      }
+      my $rc = factory-cmd(['check', '--parallel']);
+      return $rc unless $rc == 0;
+    }
   }
 
-  my $fail = run-pass(:@tests, :@specs);
+  my $fail = run-pass(:@tests, :@specs, :$parallel);
 
   # `create`-strategy tests/specs leave rows behind, and one that exercises
   # migrations can alter the schema. Re-run migrations so the next test.raku
   # run starts from the canonical schema.
   if 'bin/factory'.IO.e {
-    run :env(%*ENV, DISABLE-SQL-LOG => 'True'),
-    'raku', '-Ilib', 'bin/factory';
+    factory-cmd(['migrate']);
+    factory-cmd(['migrate', '--parallel']) if $parallel > 1;
   }
 
   $fail;
@@ -479,7 +515,7 @@ if (@unit-tests || @unit-specs) && !$no-unit {
   say '';
   say "==> [{format-ts()}] unit";
   my $start = now;
-  my $rc = run-pass(:tests(@unit-tests), :specs(@unit-specs));
+  my $rc = run-pass(:tests(@unit-tests), :specs(@unit-specs), :parallel(config-parallel()));
   %durations<unit> = (now - $start).Num;
   $any-fail = True if $rc != 0;
 }
@@ -501,7 +537,7 @@ for @runs -> %r {
   }
 
   my $start = now;
-  my $rc = run-db-pass(:$name, :$url, :tests(@db-tests), :specs(@db-specs));
+  my $rc = run-db-pass(:$name, :$url, :tests(@db-tests), :specs(@db-specs), :parallel(config-parallel()));
   %durations{$name} = (now - $start).Num;
   $any-fail = True if $rc != 0;
 }

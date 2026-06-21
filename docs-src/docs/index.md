@@ -11,7 +11,7 @@ without persistence) so your specs stay declarative.
 
 It is ORM-agnostic at its core. With
 [`ORM::ActiveRecord`](https://github.com/gdonald/ORM-ActiveRecord) installed
-and auto-detected, `create` persists through the model's `save-or-die` with
+and auto-detected, `create` persists through the model's `save-bang` with
 validations, callbacks, and timestamps intact. With no ORM loaded, factories
 still build plain objects, and the `to-create` / `initialize-with` hooks let
 you target any persistence layer.

@@ -7,7 +7,7 @@ use ORM::Factory::Persistence::Generic;
 our class PlainWithSaveOrDie {
   has Str $.name is rw;
   has Bool $.saved is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 our class PlainWithSaveOnly {
@@ -46,13 +46,13 @@ describe 'ORM::Factory::Persistence::Generic', {
   }
 
   context 'persist', {
-    it 'prefers save-or-die when available', {
+    it 'prefers save-bang when available', {
       my $inst = PlainWithSaveOrDie.new(name => 'X');
       $adapter.persist($inst);
       expect($inst.saved).to.be-truthy;
     }
 
-    it 'falls back to save when save-or-die is absent', {
+    it 'falls back to save when save-bang is absent', {
       my $inst = PlainWithSaveOnly.new(name => 'X');
       $adapter.persist($inst);
       expect($inst.saved).to.be-truthy;

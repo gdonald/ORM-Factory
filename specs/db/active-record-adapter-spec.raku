@@ -44,7 +44,7 @@ describe 'ORM::Factory::Persistence::ActiveRecord', {
   }
 
   context 'persist', {
-    it 'persists a valid record via save-or-die', {
+    it 'persists a valid record via save-bang', {
       my $u = $adapter.instantiate(FactoryUser, { :fname<Greg>, :lname<Donald> });
       $adapter.persist($u);
       expect($u.is-persisted).to.be-truthy;
@@ -137,7 +137,7 @@ describe 'ORM::Factory::Persistence::ActiveRecord', {
       expect($u.is-new-record).to.be-truthy;
     }
 
-    it 'create persists via save-or-die', {
+    it 'create persists via save-bang', {
       my $u = ORM::Factory.create('factory-user');
       expect($u.is-persisted).to.be-truthy;
       expect($u.id).to.be-greater-than(0);

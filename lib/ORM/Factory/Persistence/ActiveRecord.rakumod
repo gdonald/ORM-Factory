@@ -8,7 +8,7 @@ my atomicint $STUB-COUNTER = 0;
 sub is-ar-model(Mu $instance --> Bool) {
   so $instance.^can('is-persisted')
     && so $instance.^can('is-new-record')
-    && so $instance.^can('save-or-die')
+    && so $instance.^can('save-bang')
     && so $instance.^can('attrs');
 }
 
@@ -20,12 +20,12 @@ method instantiate(Mu $class, %attrs) {
 }
 
 method persist(Mu $instance) {
-  if $instance.^can('save-or-die') {
-    $instance.save-or-die;
+  if $instance.^can('save-bang') {
+    $instance.save-bang;
   } elsif $instance.^can('save') {
     $instance.save;
   } else {
-    die "no save / save-or-die method on {$instance.^name}";
+    die "no save / save-bang method on {$instance.^name}";
   }
   $instance;
 }

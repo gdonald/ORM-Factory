@@ -7,7 +7,7 @@ use ORM::Factory::Persistence::Generic;
 our class PUser {
   has Str  $.fname is rw;
   has Bool $.saved is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 BEGIN GLOBAL::<PUser> := PUser;
@@ -23,7 +23,7 @@ class CountingAdapter does ORM::Factory::Persistence {
   }
   method persist(Mu $instance) {
     $!persist-calls++;
-    $instance.save-or-die if $instance.^can('save-or-die');
+    $instance.save-bang if $instance.^can('save-bang');
     $instance;
   }
   method stub(Mu $instance) {

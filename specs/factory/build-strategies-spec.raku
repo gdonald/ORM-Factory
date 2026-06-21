@@ -8,7 +8,7 @@ our class Person {
   has Str  $.email is rw;
   has Str  $.role  is rw;
   has Bool $.saved is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 GLOBAL::<Person> := Person;

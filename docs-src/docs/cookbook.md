@@ -140,7 +140,7 @@ Plain Raku classes work with the generic adapter:
 ```perl6
 class User {
   has Str  $.fname is rw;
-  method save-or-die { self }                     # or .save, or omit if you only build
+  method save-bang { self }                     # or .save, or omit if you only build
 }
 
 define {
@@ -150,7 +150,7 @@ define {
 };
 
 ORM::Factory.build('user');     # User.new(fname => 'Greg')
-ORM::Factory.create('user');    # then .save-or-die
+ORM::Factory.create('user');    # then .save-bang
 ```
 
 For a non-AR, non-trivial persistence layer, write a custom adapter — see

@@ -10,14 +10,14 @@ class User {
   has Str  $.greeting is rw;
   has Bool $.flag     is rw;
   has Bool $.saved    is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 class Post {
   has Str  $.title  is rw;
   has User $.author is rw;
   has Bool $.saved  is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 sub fresh {

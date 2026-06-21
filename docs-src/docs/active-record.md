@@ -13,7 +13,7 @@ the generic adapter.
 
 - `instantiate` calls `Model.build(%attrs)`, returning an unsaved instance with
   `is-new-record === True`.
-- `persist` calls `.save-or-die`, so validation failures raise
+- `persist` calls `.save-bang`, so validation failures raise
   `X::RecordInvalid` from `ORM::ActiveRecord`.
 - `is-valid` / `errors` delegate to the model's own validation pipeline.
 - `primary-key` returns the model's primary key (`id` by default).
@@ -35,7 +35,7 @@ $u.attrs<fname>;           # 'Greg'
 ## `create`
 
 `ORM::Factory.create('user')` runs the same pipeline as `build`, then calls
-`save-or-die` through the adapter. Model validations, callbacks, and
+`save-bang` through the adapter. Model validations, callbacks, and
 timestamps all run as usual:
 
 ```perl6

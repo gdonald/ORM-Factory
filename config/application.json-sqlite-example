@@ -1,6 +1,15 @@
 {
-  "db": {
-    "adapter": "sqlite",
-    "name": "db/orm_factory_test.sqlite3"
+  "test": {
+    "parallel": 4,
+    "primary": {
+      "adapter": "sqlite",
+      "name": "db/test.sqlite3"
+    }
+  },
+  "development": {
+    "primary": {
+      "adapter": "sqlite",
+      "name": "db/development.sqlite3"
+    }
   }
 }

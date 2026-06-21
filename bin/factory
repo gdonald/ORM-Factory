@@ -3,20 +3,59 @@
 use v6.d;
 BEGIN %*ENV<ORM_LOG_FILE> //= 'log/error.log' if 'log'.IO.d;
 
+# Migration and per-worker test-database tool. Subcommands mirror
+# ORM::ActiveRecord's `ar`:
+#   migrate (default)  migrate the configured database
+#   createdb           create the configured database(s), no migrate
+#   check              report whether the database(s) exist and are migrated
+# Add --parallel (or --parallel=N) to createdb/migrate/check to target the test
+# environment's per-worker databases. The worker count comes from config's test
+# `parallel` key unless N is given. behave suffixes each worker's database by its
+# slot, so these are the databases the parallel specs actually connect to.
+
 sub MAIN(*@args) {
   my $migrate-dir = 'db/migrate'.IO;
   unless $migrate-dir.d && $migrate-dir.dir.grep({ .extension eq 'raku' }) {
     exit 0;
   }
 
-  my $available = try { require ::('ORM::ActiveRecord::Schema::Migrate'); True };
+  my $available = try {
+    require ::('ORM::ActiveRecord::Schema::Migrate');
+    require ::('ORM::ActiveRecord::Schema::WorkerDbs');
+    True;
+  };
   unless $available {
-    note "bin/factory: ORM::ActiveRecord::Schema::Migrate is required to run migrations but is not available.";
+    note "bin/factory: ORM::ActiveRecord is required to run migrations but is not available.";
     note "  install it with: zef install ORM::ActiveRecord";
     exit 1;
   }
 
   require ::('ORM::ActiveRecord::Schema::Migrate') <Migrate>;
-  my $migrate-class = ::('Migrate');
-  $migrate-class.new(:@args).run;
+  require ::('ORM::ActiveRecord::Schema::WorkerDbs')
+    <&create-test-databases &migrate-test-databases &check-test-databases>;
+
+  my $parallel = False;
+  my Int $count;
+  my @cmd;
+
+  for @args -> $arg {
+    if    $arg eq '--parallel'              { $parallel = True }
+    elsif $arg ~~ /^ '--parallel=' (\d+) $/ { $parallel = True; $count = +$0 }
+    else                                    { @cmd.push: $arg }
+  }
+
+  given @cmd[0] // 'migrate' {
+    when 'createdb' { create-test-databases(:$parallel, :$count) }
+    when 'migrate'  { migrate-test-databases(:$parallel, :$count) }
+    when 'check'    {
+      my @problems = check-test-databases(:$parallel, :$count);
+
+      if @problems {
+        note "bin/factory: databases not ready:";
+        note "  - $_" for @problems;
+        exit 1;
+      }
+    }
+    default { Migrate.new(args => @cmd).run }
+  }
 }

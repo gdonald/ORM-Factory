@@ -10,14 +10,14 @@ our class User {
   has      $.via    is rw;
   has      @.events;
 
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 our class Profile {
   has User $.user is rw;
   has Str  $.tagline is rw;
   has Bool $.saved is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 BEGIN GLOBAL::<User> := User;

@@ -77,12 +77,32 @@ DB-backed; a `db` folder nested deeper (`specs/model/db/...`) is not.
 
 1. `DATABASE_URL` (if set, that single URL is used and no probing is done);
 2. `FACTORY_PG_URL`, `FACTORY_MYSQL_URL`, `FACTORY_SQLITE_URL` (per-adapter overrides);
-3. `config/application.json` (the test database name is read from here and
-   combined with per-adapter defaults);
+3. `config/application.json` (the `test` environment's primary connection
+   supplies the database name, combined with per-adapter defaults);
 4. a built-in default per adapter (PostgreSQL at `localhost:5432`, MySQL at
    `127.0.0.1:3306`, SQLite in `:memory:`).
 
 The SQLite suite always runs in memory.
+
+`config/application.json` uses the per-environment named-connection shape that
+`ORM::ActiveRecord` reads:
+
+```json
+{
+  "test": {
+    "parallel": 4,
+    "primary": { "adapter": "sqlite", "name": "db/test.sqlite3" }
+  },
+  "development": {
+    "primary": { "adapter": "sqlite", "name": "db/development.sqlite3" }
+  }
+}
+```
+
+The `test` environment's `parallel` key sets how many behave worker slots the
+DB-backed specs run across, and therefore how many per-worker databases get
+provisioned. Copy one of the `config/application.json-*-example` files to
+`config/application.json` to start.
 
 ## Per-test factory-registry reset
 
@@ -133,14 +153,22 @@ same `reload` discipline applies there.
 ## Migration runner
 
 `bin/factory` drives
-[`ORM::ActiveRecord::Schema::Migrate`](https://github.com/gdonald/ORM-ActiveRecord)
-over `db/migrate/` to set up the test schema. It is a no-op (exit 0) when
-there are no migration files, so the script is safe to invoke unconditionally
-from `test.raku`.
+[`ORM::ActiveRecord`](https://github.com/gdonald/ORM-ActiveRecord)'s schema
+tooling over `db/migrate/` to set up the test schema. It is a no-op (exit 0)
+when there are no migration files, so the script is safe to invoke
+unconditionally from `test.raku`.
 
 ```shell
-$ raku -Ilib bin/factory
+$ raku -Ilib bin/factory            # migrate the base database
+$ raku -Ilib bin/factory createdb   # create the database(s), no migrate
+$ raku -Ilib bin/factory check      # report whether they exist and are migrated
 ```
+
+The DB-backed specs run under behave with `--parallel=N`, where `N` is the
+`test` environment's `parallel` count. behave suffixes each worker slot's
+database (`factory_test_0`, `factory_test_1`, …), so `test.raku` provisions
+those per-worker databases by passing `--parallel` to `createdb`, `migrate`,
+and `check`. The `t/` (prove6) tests run against the base, unsuffixed database.
 
 When `db/migrate/` is non-empty, the runner requires `ORM::ActiveRecord` to
 be installed (it is a `test-depends` of `ORM::Factory`).

@@ -72,7 +72,7 @@ ORM::Factory.build('user').via;   # 'global'
 ## `to-create`
 
 `to-create` replaces the persistence step in `create`. The default adapter
-calls `.save-or-die` (or `.save`) on the instance; the hook takes the instance
+calls `.save-bang` (or `.save`) on the instance; the hook takes the instance
 and the evaluator and is responsible for persisting it however the target
 store wants:
 

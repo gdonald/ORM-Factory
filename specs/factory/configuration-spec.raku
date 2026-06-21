@@ -7,14 +7,14 @@ use ORM::Factory::Persistence::Generic;
 our class User {
   has Str  $.fname is rw;
   has Bool $.saved is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 our class Post {
   has Str  $.title  is rw;
   has User $.author is rw;
   has Bool $.saved  is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 BEGIN GLOBAL::<User> := User;

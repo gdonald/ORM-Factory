@@ -35,7 +35,7 @@ plain attribute hash without ever instantiating, persisting, or stubbing.
 ORM-specific adapter is registered. It:
 
 - instantiates via `$class.new(|%attrs)`;
-- persists by calling `.save-or-die` if present, else `.save`, else raising
+- persists by calling `.save-bang` if present, else `.save`, else raising
   `X::ORM::Factory::Persistence::NoPersistence` with a clear hint;
 - delegates `is-valid`, `errors`, `primary-key` to identically named methods
   on the instance / class if they exist, and falls back to sane defaults
@@ -46,7 +46,7 @@ use ORM::Factory::Persistence::Generic;
 
 my $adapter = ORM::Factory::Persistence::Generic.new;
 my $user    = $adapter.instantiate(User, %( fname => 'Greg' ));
-$adapter.persist($user);          # invokes $user.save-or-die or $user.save
+$adapter.persist($user);          # invokes $user.save-bang or $user.save
 ```
 
 ## Detection and selection

@@ -8,7 +8,7 @@ use ORM::Factory::Persistence::Generic;
 class PlainWithSaveOrDie {
   has Str  $.name  is rw;
   has Bool $.saved is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 class PlainWithSaveOnly {
@@ -36,11 +36,11 @@ class PlainNoPersistence {
 
   my $s1 = PlainWithSaveOrDie.new(name => 'X');
   $adapter.persist($s1);
-  ok $s1.saved, 'persist prefers save-or-die when available';
+  ok $s1.saved, 'persist prefers save-bang when available';
 
   my $s2 = PlainWithSaveOnly.new(name => 'X');
   $adapter.persist($s2);
-  ok $s2.saved, 'persist falls back to save when save-or-die is absent';
+  ok $s2.saved, 'persist falls back to save when save-bang is absent';
 
   dies-ok { $adapter.persist(PlainNoPersistence.new(name => 'X')) },
     'persist raises a clear error when neither method exists';

@@ -40,7 +40,7 @@ raku bin/bench --count=5000 --repeat=5
 ```
 
 The harness uses the in-memory generic adapter (no DB), so the difference
-between `create` and the others reflects only the `save-or-die` call cost.
+between `create` and the others reflects only the `save-bang` call cost.
 
 ## Regression guard
 

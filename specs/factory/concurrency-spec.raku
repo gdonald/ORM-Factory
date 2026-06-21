@@ -6,7 +6,7 @@ our class CUser {
   has Str $.fname is rw;
   has Int $.counter is rw;
   has Bool $.saved is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 BEGIN GLOBAL::<CUser> := CUser;

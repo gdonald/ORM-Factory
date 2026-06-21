@@ -2,7 +2,7 @@ use v6.d;
 use ORM::Factory::Persistence;
 
 # Duck-typed default adapter used when no ORM-specific adapter is registered.
-# It instantiates via `$class.new(|%attrs)`, persists via `.save-or-die` (or
+# It instantiates via `$class.new(|%attrs)`, persists via `.save-bang` (or
 # `.save`), and raises a clear error if neither method exists.
 unit class ORM::Factory::Persistence::Generic does ORM::Factory::Persistence;
 
@@ -19,13 +19,13 @@ method instantiate(Mu $class, %attrs) {
 }
 
 method persist(Mu $instance) {
-  if $instance.^can('save-or-die') {
-    $instance.save-or-die;
+  if $instance.^can('save-bang') {
+    $instance.save-bang;
   } elsif $instance.^can('save') {
     $instance.save;
   } else {
     die X::ORM::Factory::Persistence::NoPersistence.new(
-      message => "no save / save-or-die method on {$instance.^name}; provide a to-create hook or install an ORM adapter"
+      message => "no save / save-bang method on {$instance.^name}; provide a to-create hook or install an ORM adapter"
     );
   }
   $instance;

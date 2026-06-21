@@ -7,7 +7,7 @@ our class Profile {
   has Str  $.email is rw;
   has Str  $.nick  is rw;
   has Bool $.saved is rw = False;
-  method save-or-die { $!saved = True; self }
+  method save-bang { $!saved = True; self }
 }
 
 GLOBAL::<Profile> := Profile;

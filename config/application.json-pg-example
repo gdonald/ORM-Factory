@@ -1,11 +1,25 @@
 {
-  "db": {
-    "adapter": "pg",
-    "schema": "public",
-    "host": "localhost",
-    "port": 5432,
-    "name": "orm_factory_test",
-    "user": "postgres",
-    "password": ""
+  "test": {
+    "parallel": 4,
+    "primary": {
+      "adapter": "pg",
+      "schema": "public",
+      "host": "localhost",
+      "port": 5432,
+      "name": "orm_factory_test",
+      "user": "postgres",
+      "password": ""
+    }
+  },
+  "development": {
+    "primary": {
+      "adapter": "pg",
+      "schema": "public",
+      "host": "localhost",
+      "port": 5432,
+      "name": "orm_factory_development",
+      "user": "postgres",
+      "password": ""
+    }
   }
 }
