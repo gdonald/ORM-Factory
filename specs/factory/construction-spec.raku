@@ -1,27 +1,15 @@
 use lib 'lib';
 use BDD::Behave;
 use ORM::Factory;
+use lib 'specs/lib';
+use Factory::Test::Models;
 
-our class User {
-  has      $.fname  is rw;
-  has      $.role   is rw;
-  has      $.email  is rw;
-  has Bool $.saved  is rw = False;
-  has      $.via    is rw;
-  has      @.events;
 
-  method save-bang { $!saved = True; self }
-}
-
-our class Profile {
-  has User $.user is rw;
-  has Str  $.tagline is rw;
-  has Bool $.saved is rw = False;
-  method save-bang { $!saved = True; self }
-}
 
 BEGIN GLOBAL::<User> := User;
 BEGIN GLOBAL::<Profile> := Profile;
+
+publish-globals;
 
 describe 'initialize-with', {
   before-each {

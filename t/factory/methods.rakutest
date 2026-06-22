@@ -2,12 +2,10 @@ use v6.d;
 use lib 'lib';
 use Test;
 use ORM::Factory;
+use lib 'specs/lib';
+use Factory::Test::Models;
+publish-globals;
 
-our class User {
-  has Str  $.fname is rw;
-  has Bool $.saved is rw = False;
-  method save-bang { $!saved = True; self }
-}
 
 BEGIN GLOBAL::<User> := User;
 

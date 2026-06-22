@@ -32,7 +32,7 @@ sub MAIN(*@args) {
 
   require ::('ORM::ActiveRecord::Schema::Migrate') <Migrate>;
   require ::('ORM::ActiveRecord::Schema::WorkerDbs')
-    <&create-test-databases &migrate-test-databases &check-test-databases>;
+    <&create-test-databases &migrate-test-databases &check-test-databases &reset-test-databases>;
 
   my $parallel = False;
   my Int $count;
@@ -47,6 +47,10 @@ sub MAIN(*@args) {
   given @cmd[0] // 'migrate' {
     when 'createdb' { create-test-databases(:$parallel, :$count) }
     when 'migrate'  { migrate-test-databases(:$parallel, :$count) }
+    when 'reset'    {
+      $parallel ?? reset-test-databases(:$parallel, :$count)
+                !! Migrate.new(args => <reset --yes --quiet>).run;
+    }
     when 'check'    {
       my @problems = check-test-databases(:$parallel, :$count);
 

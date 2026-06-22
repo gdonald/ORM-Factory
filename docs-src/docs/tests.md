@@ -8,40 +8,48 @@ will be retired in favour of `specs/`.
 
 ## Running the suite
 
-`./test.raku` is the canonical entry point. It runs the unit pass first
-(DB-agnostic) and then cycles through PostgreSQL, MySQL, and SQLite — probing
-each first and skipping unreachable adapters with a message describing how to
-enable them. With `DATABASE_URL` set it runs once against that adapter (this
-is what CI does per matrix entry).
+`./test.raku` runs the whole suite (the prove6 `t/` tests, then the behave
+`specs/`) once, against the adapter named in `config/application.json` (the
+test environment's primary connection). It provisions the schema first
+(`createdb` → `reset` → `migrate`), probes the database, and skips with a
+message describing how to enable it if it is unreachable. With `DATABASE_URL`
+set it runs against that adapter instead (this is what CI does per matrix
+entry).
 
 ```shell
 $ ./test.raku
 ```
 
-When all three adapters are reachable you get a runtimes summary at the end:
+`./test-all.raku` runs the suite once per adapter by copying each
+`config/application.json-*-example` over `config/application.json` in turn,
+backing up and restoring your own config around the run. This is the single
+command that exercises PostgreSQL, MySQL, and SQLite together.
 
 ```shell
-==> Runtimes
-  unit         6.94s
-  postgres     3.49s
-  mysql        3.47s
-  sqlite       3.49s
-  total       17.55s
+$ ./test-all.raku
 ```
 
-To pick a subset of adapters, pass `--adapter`:
+To narrow a single `test.raku` run to a subset of adapters, pass `--adapter`:
 
 ```shell
 $ ./test.raku --adapter=pg
 $ ./test.raku --adapter=mysql,sqlite
 ```
 
+The behave specs run with `--parallel=N`, where `N` is the test environment's
+`parallel` count. behave's default mode runs one subprocess per spec file, up
+to `N` in flight, each on its own per-worker database. Shared test doubles live
+in [`specs/lib/Factory/Test/Models.rakumod`](../../specs/lib/Factory/Test/Models.rakumod)
+(declared once and imported) rather than inline in each spec, so behave's
+example-discovery pass — which loads every spec into one parent process — does
+not redeclare them across files.
+
 ## Running with prove6 or behave directly
 
 To run the prove6 suite once against your default adapter:
 
 ```shell
-$ prove6 -Ilib t
+$ prove6 -Ilib -Ispecs/lib t
 ```
 
 To run a single behave spec file:

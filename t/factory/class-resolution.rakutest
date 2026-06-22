@@ -2,11 +2,10 @@ use v6.d;
 use lib 'lib';
 use Test;
 use ORM::Factory;
+use lib 'specs/lib';
+use Factory::Test::Models;
+publish-globals;
 
-class User {
-  has Str $.fname;
-  has Str $.lname;
-}
 
 class Admin {
   has Str $.role;
@@ -28,7 +27,7 @@ ok GLOBAL::{'User'}:exists,
   is ORM::Factory.factory-by-name('user').class-name, 'User',
     'inference derives the camelized class name';
 
-  is ORM::Factory.factory-by-name('user').class.^name, 'User',
+  ok ORM::Factory.factory-by-name('user').class === User,
     'inference resolves the User class from GLOBAL';
 }
 

@@ -1,13 +1,13 @@
 {
   "test": {
-    "parallel": 4,
+    "parallel": 16,
     "primary": {
       "adapter": "pg",
       "schema": "public",
       "host": "localhost",
       "port": 5432,
       "name": "orm_factory_test",
-      "user": "postgres",
+      "user": "gd",
       "password": ""
     }
   },
@@ -18,7 +18,7 @@
       "host": "localhost",
       "port": 5432,
       "name": "orm_factory_development",
-      "user": "postgres",
+      "user": "gd",
       "password": ""
     }
   }

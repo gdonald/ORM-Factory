@@ -1,6 +1,6 @@
 {
   "test": {
-    "parallel": 4,
+    "parallel": 16,
     "primary": {
       "adapter": "sqlite",
       "name": "db/test.sqlite3"

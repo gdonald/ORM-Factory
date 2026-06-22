@@ -1,6 +1,6 @@
 {
   "test": {
-    "parallel": 4,
+    "parallel": 16,
     "primary": {
       "adapter": "mysql",
       "host": "127.0.0.1",

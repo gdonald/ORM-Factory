@@ -2,16 +2,10 @@ use v6.d;
 use lib 'lib';
 use Test;
 use ORM::Factory;
+use lib 'specs/lib';
+use Factory::Test::Models;
+publish-globals;
 
-class User {
-  has      $.fname is rw;
-  has      $.role  is rw;
-  has      $.email is rw;
-  has Bool $.saved is rw = False;
-  has      $.via   is rw;
-  has      @.events;
-  method save-bang { $!saved = True; self }
-}
 
 sub fresh {
   ORM::Factory.reload;

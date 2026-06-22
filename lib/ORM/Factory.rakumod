@@ -590,6 +590,10 @@ class ConfigBuilder {
     ORM::Factory.set-use-parent-strategy($b);
   }
 
+  method automatically-define-enum-variants(Bool:D $b = True --> Nil) {
+    ORM::Factory.set-automatically-define-enum-variants($b);
+  }
+
   method initialize-with(&block --> Nil) {
     ORM::Factory.set-global-initialize-with(&block);
   }
@@ -619,6 +623,7 @@ class ConfigBuilder {
 
 my Bool $ALLOW-CLASS-LOOKUP    = True;
 my Bool $USE-PARENT-STRATEGY   = True;
+my Bool $AUTO-ENUM-VARIANTS    = True;
 my Str  @DEFINITION-FILE-PATHS = ('factories.raku', 'spec/factories', 'specs/factories', 'test/factories', 't/factories');
 my %FACTORIES;
 my %ALIASES;
@@ -637,6 +642,10 @@ method set-allow-class-lookup(Bool:D $b --> Nil) { $ALLOW-CLASS-LOOKUP = $b }
 method use-parent-strategy(--> Bool) { $USE-PARENT-STRATEGY }
 
 method set-use-parent-strategy(Bool:D $b --> Nil) { $USE-PARENT-STRATEGY = $b }
+
+method automatically-define-enum-variants(--> Bool) { $AUTO-ENUM-VARIANTS }
+
+method set-automatically-define-enum-variants(Bool:D $b --> Nil) { $AUTO-ENUM-VARIANTS = $b }
 
 method definition-file-paths { @DEFINITION-FILE-PATHS.list }
 
@@ -829,6 +838,7 @@ method variant-names-for(Str:D $name --> List) {
   for resolve-chain($factory) -> $f {
     @names.append: $f.variants.keys.list;
   }
+  @names.append: enum-variant-names($factory);
   @names.unique.sort.List;
 }
 
@@ -976,7 +986,37 @@ sub find-variant-in-chain(FactoryDefinition $factory, Str:D $name) {
 sub find-variant-anywhere(FactoryDefinition $factory, Str:D $name) {
   my $local = find-variant-in-chain($factory, $name);
   return $local with $local;
-  %GLOBAL-VARIANTS{$name}:exists ?? %GLOBAL-VARIANTS{$name} !! Nil;
+  return %GLOBAL-VARIANTS{$name} if %GLOBAL-VARIANTS{$name}:exists;
+  enum-variant-for($factory, $name);
+}
+
+# Enum definitions declared on an ORM::ActiveRecord model become one variant per
+# value, each setting the enum attribute to that value (factory_bot's
+# automatically_define_enum_traits). An explicitly defined variant of the same
+# name wins, since this is consulted only after the chain and global lookups.
+sub model-enums(FactoryDefinition $factory) {
+  return %() unless ORM::Factory.automatically-define-enum-variants;
+
+  my $class = try { $factory.lookup-class };
+  return %() unless $class.^can('enums');
+
+  (try { $class.enums.hash }) // %();
+}
+
+sub enum-variant-for(FactoryDefinition $factory, Str:D $name) {
+  for model-enums($factory).kv -> $attr, %mapping {
+    next unless %mapping{$name}:exists;
+
+    return VariantDefinition.new(
+      :$name,
+      :attributes([ Attribute.new(:name($attr), :!dynamic, :has-value, :value($name)) ]),
+    );
+  }
+  Nil;
+}
+
+sub enum-variant-names(FactoryDefinition $factory --> List) {
+  model-enums($factory).values.map(*.keys.Slip).unique.List;
 }
 
 sub is-known-variant(FactoryDefinition $factory, Str:D $name --> Bool) {

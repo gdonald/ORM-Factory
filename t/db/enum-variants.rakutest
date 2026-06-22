@@ -1,0 +1,45 @@
+use lib 'lib';
+use lib 'specs/lib';
+use Test;
+use ORM::Factory;
+use Factory::Test::AR;
+
+publish-globals();
+
+plan 5;
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.set-automatically-define-enum-variants(True);
+  Order.destroy-all;
+
+  define {
+    .factory: 'order', :class(Order), -> $ { };
+  };
+
+  is ORM::Factory.build('order', 'shipped').status, 'shipped',
+     'derives one build-time variant per enum value';
+
+  is-deeply ORM::Factory.variant-names-for('order').List, ('delivered', 'pending', 'shipped'),
+     'lists every enum value among the factory variants';
+
+  is ORM::Factory.create('order', 'delivered').status, 'delivered',
+     'persists the chosen enum value through create';
+}
+
+{
+  ORM::Factory.reload;
+  ORM::Factory.set-automatically-define-enum-variants(False);
+
+  define {
+    .factory: 'order', :class(Order), -> $ { };
+  };
+
+  dies-ok { ORM::Factory.build('order', 'shipped') },
+    'does not derive enum variants when the toggle is disabled';
+
+  is ORM::Factory.variant-names-for('order').elems, 0,
+     'lists no variants for the factory when the toggle is disabled';
+
+  ORM::Factory.set-automatically-define-enum-variants(True);
+}

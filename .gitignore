@@ -11,3 +11,4 @@ docs-src/site
 .fezignore
 db/*.sqlite3
 config/application.json
+config/application.json

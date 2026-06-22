@@ -1,23 +1,16 @@
 use lib 'lib';
 use BDD::Behave;
 use ORM::Factory;
+use lib 'specs/lib';
+use Factory::Test::Models;
 use ORM::Factory::Persistence::Generic;
 
-our class User {
-  has Str  $.fname is rw;
-  has Bool $.saved is rw = False;
-  method save-bang { $!saved = True; self }
-}
 
-our class Post {
-  has Str  $.title  is rw;
-  has User $.author is rw;
-  has Bool $.saved  is rw = False;
-  method save-bang { $!saved = True; self }
-}
 
 BEGIN GLOBAL::<User> := User;
 BEGIN GLOBAL::<Post> := Post;
+
+publish-globals;
 
 describe 'ORM::Factory.lint', {
   before-each {

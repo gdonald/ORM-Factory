@@ -1,13 +1,9 @@
 use lib 'lib';
 use BDD::Behave;
 use ORM::Factory;
+use lib 'specs/lib';
+use Factory::Test::Models;
 
-our class Person {
-  has Str  $.fname is rw;
-  has Str  $.email is rw;
-  has Str  $.role  is rw;
-  has Bool $.flag  is rw;
-}
 
 our class Worker {
   has Str $.title is rw;
@@ -15,6 +11,8 @@ our class Worker {
 
 BEGIN GLOBAL::<Person> := Person;
 BEGIN GLOBAL::<Worker> := Worker;
+
+publish-globals;
 
 describe 'factory inheritance', {
   before-each {

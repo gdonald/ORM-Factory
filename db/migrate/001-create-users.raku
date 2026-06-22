@@ -1,17 +1,17 @@
 use ORM::ActiveRecord::Schema::Migration;
 
-class CreateFactoryUsers is Migration {
+class CreateUsers is Migration {
   method up {
-    self.create-table: 'factory_users', [
+    self.create-table: 'users', [
       fname => { :string, limit => 32 },
       lname => { :string, limit => 32 },
       email => { :string, limit => 128 },
       role  => { :string, limit => 32 },
     ];
-    self.add-timestamps: 'factory_users';
+    self.add-timestamps: 'users';
   }
 
   method down {
-    self.drop-table: 'factory_users';
+    self.drop-table: 'users';
   }
 }

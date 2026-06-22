@@ -13,8 +13,8 @@ ORM::Factory.reload;
 ORM::Factory.reset-persistence;
 
 my $adapter = ORM::Factory::Persistence::ActiveRecord.new;
-FactoryPost.destroy-all;
-FactoryUser.destroy-all;
+Post.destroy-all;
+User.destroy-all;
 
 # role conformance
 ok $adapter ~~ ORM::Factory::Persistence,
@@ -22,8 +22,8 @@ ok $adapter ~~ ORM::Factory::Persistence,
 
 # instantiate
 {
-  my $u = $adapter.instantiate(FactoryUser, { :fname<Greg>, :lname<Donald> });
-  isa-ok $u, FactoryUser, 'instantiate returns an AR model instance';
+  my $u = $adapter.instantiate(User, { :fname<Greg>, :lname<Donald> });
+  isa-ok $u, User, 'instantiate returns an AR model instance';
   is $u.attrs<fname>, 'Greg',   'instantiate populates attrs<fname>';
   is $u.attrs<lname>, 'Donald', 'instantiate populates attrs<lname>';
   ok $u.is-new-record,          'instantiate result is-new-record';
@@ -31,7 +31,7 @@ ok $adapter ~~ ORM::Factory::Persistence,
 
 # persist
 {
-  my $u = $adapter.instantiate(FactoryUser, { :fname<Greg>, :lname<Donald> });
+  my $u = $adapter.instantiate(User, { :fname<Greg>, :lname<Donald> });
   $adapter.persist($u);
   ok $u.is-persisted, 'persist makes record is-persisted';
   ok $u.id > 0,       'persist assigns a positive id';
@@ -39,16 +39,16 @@ ok $adapter ~~ ORM::Factory::Persistence,
 
 # persist on invalid raises
 {
-  my $u = $adapter.instantiate(FactoryUser, { :fname<Greg> });
+  my $u = $adapter.instantiate(User, { :fname<Greg> });
   dies-ok { $adapter.persist($u) }, 'persist raises on validation failure';
 }
 
 # is-valid + errors
 {
-  my $valid = $adapter.instantiate(FactoryUser, { :fname<Greg>, :lname<Donald> });
+  my $valid = $adapter.instantiate(User, { :fname<Greg>, :lname<Donald> });
   ok $adapter.is-valid($valid), 'is-valid returns True for valid record';
 
-  my $bad = $adapter.instantiate(FactoryUser, { :fname<Greg> });
+  my $bad = $adapter.instantiate(User, { :fname<Greg> });
   nok $adapter.is-valid($bad), 'is-valid returns False for invalid record';
 
   $adapter.is-valid($bad);
@@ -56,13 +56,13 @@ ok $adapter ~~ ORM::Factory::Persistence,
 }
 
 # primary-key
-is $adapter.primary-key(FactoryUser), 'id', 'primary-key defaults to id';
+is $adapter.primary-key(User), 'id', 'primary-key defaults to id';
 
 # stub
 {
   $adapter.reset-stub-counter;
 
-  my $u = $adapter.instantiate(FactoryUser, { :fname<Greg>, :lname<Donald> });
+  my $u = $adapter.instantiate(User, { :fname<Greg>, :lname<Donald> });
   my $s = $adapter.stub($u);
 
   ok $s.id > 0,         'stub id is positive';
@@ -71,8 +71,8 @@ is $adapter.primary-key(FactoryUser), 'id', 'primary-key defaults to id';
   ok $s.attrs<created_at>.defined, 'stub sets created_at';
   ok $s.attrs<updated_at>.defined, 'stub sets updated_at';
 
-  my $a = $adapter.stub($adapter.instantiate(FactoryUser, { :fname<A>, :lname<A> }));
-  my $b = $adapter.stub($adapter.instantiate(FactoryUser, { :fname<B>, :lname<B> }));
+  my $a = $adapter.stub($adapter.instantiate(User, { :fname<A>, :lname<A> }));
+  my $b = $adapter.stub($adapter.instantiate(User, { :fname<B>, :lname<B> }));
   isnt $a.id, $b.id, 'stub ids are unique';
 }
 
@@ -89,7 +89,7 @@ is $adapter.primary-key(FactoryUser), 'id', 'primary-key defaults to id';
   ORM::Factory.reset-persistence;
 
   define {
-    .factory: 'factory-user', :class(FactoryUser), {
+    .factory: 'user', :class(User), {
       .fname: 'Greg';
       .lname: 'Donald';
       .email: 'greg@example.com';
@@ -97,20 +97,20 @@ is $adapter.primary-key(FactoryUser), 'id', 'primary-key defaults to id';
     };
   };
 
-  my $built = ORM::Factory.build('factory-user');
-  isa-ok $built, FactoryUser, 'build returns a model instance';
+  my $built = ORM::Factory.build('user');
+  isa-ok $built, User, 'build returns a model instance';
   ok $built.is-new-record,    'build result is-new-record';
 
-  my $created = ORM::Factory.create('factory-user');
+  my $created = ORM::Factory.create('user');
   ok $created.is-persisted, 'create result is-persisted';
   ok $created.id > 0,       'create result has positive id';
 
-  my $stubbed = ORM::Factory.build-stubbed('factory-user');
+  my $stubbed = ORM::Factory.build-stubbed('user');
   ok $stubbed.is-persisted, 'build-stubbed result is-persisted';
   ok $stubbed.attrs<created_at>.defined, 'build-stubbed result has created_at';
 }
 
-FactoryPost.destroy-all;
-FactoryUser.destroy-all;
+Post.destroy-all;
+User.destroy-all;
 
 done-testing;

@@ -12,7 +12,7 @@ ORM::Factory.reload;
 ORM::Factory.reset-persistence;
 
 define {
-  .factory: 'factory-user', :class(FactoryUser), {
+  .factory: 'user', :class(User), {
     .fname: 'Greg';
     .lname: 'Donald';
     .email: 'greg@example.com';
@@ -20,34 +20,34 @@ define {
   };
 };
 
-FactoryPost.destroy-all;
-FactoryUser.destroy-all;
+Post.destroy-all;
+User.destroy-all;
 
 # with-transaction-rollback rolls back creates on exit
 with-transaction-rollback {
-  ORM::Factory.create-list('factory-user', 3);
+  ORM::Factory.create-list('user', 3);
 };
-is FactoryUser.count, 0, 'with-transaction-rollback rolls back creates on exit';
+is User.count, 0, 'with-transaction-rollback rolls back creates on exit';
 
 # with-transaction-rollback rolls back on exception
 try {
   with-transaction-rollback {
-    ORM::Factory.create('factory-user');
+    ORM::Factory.create('user');
     die 'simulated failure';
   };
 };
-is FactoryUser.count, 0, 'with-transaction-rollback rolls back on exception';
+is User.count, 0, 'with-transaction-rollback rolls back on exception';
 
 # truncate-tables
-ORM::Factory.create-list('factory-user', 2);
-is FactoryUser.count, 2, 'two records present before truncate';
+ORM::Factory.create-list('user', 2);
+is User.count, 2, 'two records present before truncate';
 
-truncate-tables('factory_users');
-is FactoryUser.count, 0, 'truncate-tables clears the named table';
+truncate-tables('users');
+is User.count, 0, 'truncate-tables clears the named table';
 
 # truncate-all-tables
-ORM::Factory.create-list('factory-user', 2);
+ORM::Factory.create-list('user', 2);
 truncate-all-tables();
-is FactoryUser.count, 0, 'truncate-all-tables clears every table';
+is User.count, 0, 'truncate-all-tables clears every table';
 
 done-testing;

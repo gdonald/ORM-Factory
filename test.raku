@@ -3,10 +3,10 @@
 use v6.d;
 BEGIN { chdir $*PROGRAM.parent }
 use lib 'lib';
-use lib 'specs/lib';
 use JSON::Tiny;
 use DBIish;
-use Factory::Test::Db;
+use ORM::ActiveRecord::Support::DatabaseUrl;
+use ORM::ActiveRecord::DB;
 
 $*OUT.out-buffer = False;
 
@@ -34,6 +34,64 @@ sub format-ts(--> Str) {
   sprintf '%04d-%02d-%02d %02d:%02d:%02d', $d.year, $d.month, $d.day, $d.hour, $d.minute, $d.second.Int;
 }
 
+sub pg-url-from-config(--> Str) {
+  return Str unless 'config/application.json'.IO.e;
+  
+  my $json = try { from-json('config/application.json'.IO.slurp) };
+  return Str without $json;
+  
+  # per-env shape (test.primary), with legacy flat `db` as fallback
+  my %db = ($json<test><primary> // $json<db> // %()).hash;
+  return Str unless ((%db<adapter> // 'pg').lc) ~~ /^ p [g | ostgres ] /;
+  
+  my $u = %db<user>;
+  my $p = %db<password>;
+  my $h = %db<host> // 'localhost';
+  my $port = %db<port>;
+  my $n = %db<name>;
+  return Str without $n;
+  
+  my $auth = $u ?? ($u ~ ($p ?? ":$p" !! '') ~ '@') !! '';
+  my $hp = $port ?? "$h:$port" !! $h;
+  my $q  = %db<schema> ?? "?schema={%db<schema>}" !! '';
+  "postgres://$auth$hp/$n$q";
+}
+
+sub config-primary(--> Hash) {
+  return %() unless 'config/application.json'.IO.e;
+  my $json = try { from-json('config/application.json'.IO.slurp) };
+  return %() without $json;
+  ($json<test><primary> // $json<db> // %()).hash;
+}
+
+# The adapter named in config (test env), normalized to a %ADAPTERS key, or Str
+# if config is absent / specifies none.
+sub config-adapter(--> Str) {
+  given (config-primary()<adapter> // '').lc {
+    when 'pg' | 'postgres' | 'postgresql' { 'postgres' }
+    when 'mysql' | 'mysql2' | 'mariadb'   { 'mysql' }
+    when 'sqlite' | 'sqlite3'             { 'sqlite' }
+    default                                { Str }
+  }
+}
+
+sub mysql-url-from-config(--> Str) {
+  my %db = config-primary();
+  return Str unless ((%db<adapter> // '').lc) ~~ /^ m [ysql | ariadb] /;
+
+  my $n = %db<name>;
+  return Str without $n;
+
+  my $u = %db<user>;
+  my $p = %db<password>;
+  my $h = %db<host> // '127.0.0.1';
+  my $port = %db<port>;
+
+  my $auth = $u ?? ($u ~ ($p ?? ":$p" !! '') ~ '@') !! '';
+  my $hp = $port ?? "$h:$port" !! $h;
+  "mysql://$auth$hp/$n";
+}
+
 sub try-connect(Str:D $kind, *%args --> Capture) {
   my $err;
   my $h = try {
@@ -59,6 +117,7 @@ postgres => {
   env             => 'FACTORY_PG_URL',
   default-url     => 'postgres://postgres@localhost:5432/factory_test',
   defaults        => { host => 'localhost', port => 5432, user => 'postgres', name => 'factory_test' },
+  url-from-config => &pg-url-from-config,
   connect-args    => -> %c {
     host     => %c<host>,
     port     => %c<port>.Int,
@@ -123,10 +182,11 @@ postgres => {
   },
 },
 mysql => {
-  dbiish       => 'mysql',
-  env          => 'FACTORY_MYSQL_URL',
-  default-url  => 'mysql://root@127.0.0.1:3306/factory_test',
-  defaults     => { host => '127.0.0.1', port => 3306, user => 'root', name => 'factory_test' },
+  dbiish          => 'mysql',
+  env             => 'FACTORY_MYSQL_URL',
+  default-url     => 'mysql://root@127.0.0.1:3306/factory_test',
+  defaults        => { host => '127.0.0.1', port => 3306, user => 'root', name => 'factory_test' },
+  url-from-config => &mysql-url-from-config,
   connect-args => -> %c {
     host     => %c<host>,
     port     => %c<port>.Int,
@@ -222,60 +282,6 @@ sqlite => {
   },
 };
 
-# config/application.json names one adapter and its connection. Every adapter
-# shares the database NAME; a non-matching adapter keeps its own host/port/user
-# defaults but still targets the configured name, so the file is the single
-# source of truth for the test database name across postgres, mysql, and sqlite.
-sub url-from-config(Str:D $adapter --> Str) {
-  return Str if $adapter eq 'sqlite';   # the suite always runs SQLite in :memory:
-  return Str unless 'config/application.json'.IO.e;
-
-  my $json = try { from-json('config/application.json'.IO.slurp) };
-  return Str without $json;
-
-  my %db   = ($json<test><primary> // $json<db>) // %();
-  my $name = %db<name>;
-  return Str without $name;
-
-  my %defaults = %ADAPTERS{$adapter}<defaults>;
-
-  my $cfg = (%db<adapter> // 'pg').lc;
-  $cfg = 'postgres' if $cfg eq 'pg' || $cfg eq 'postgresql';
-  $cfg = 'mysql'    if $cfg eq 'mysql2' || $cfg eq 'mariadb';
-
-  my ($host, $port, $user, $pass);
-  if $cfg eq $adapter {
-    $host = %db<host>     // %defaults<host>;
-    $port = %db<port>     // %defaults<port>;
-    $user = %db<user>     // %defaults<user>;
-    $pass = %db<password> // '';
-  } else {
-    $host = %defaults<host>;
-    $port = %defaults<port>;
-    $user = %defaults<user>;
-    $pass = '';
-  }
-
-  my $scheme = $adapter eq 'postgres' ?? 'postgres' !! 'mysql';
-  my $auth   = $user ?? ($user ~ ($pass ?? ":$pass" !! '') ~ '@') !! '';
-  my $hp     = $port ?? "$host:$port" !! $host;
-  my $q      = ($adapter eq 'postgres' && %db<schema>) ?? "?schema={%db<schema>}" !! '';
-
-  "$scheme://$auth$hp/$name$q";
-}
-
-# Worker count for behave's `--parallel`, read from the test environment's
-# `parallel` key. Drives both how many per-worker databases get provisioned and
-# how many slots behave distributes spec files across.
-sub config-parallel(--> Int) {
-  return 1 unless 'config/application.json'.IO.e;
-
-  my $json = try { from-json('config/application.json'.IO.slurp) };
-  return 1 without $json;
-
-  (($json<test> // %())<parallel> // 1).Int;
-}
-
 sub skip-message(Str:D $name, %c, Str:D $err --> Str) {
   my %a = %ADAPTERS{$name};
   my $cls = classify($err);
@@ -293,84 +299,72 @@ sub probe(Str:D $name, Str:D $url --> Capture) {
   \($ok, $err, $ok ?? '' !! skip-message($name, %c, $err));
 }
 
-# behave runs every spec file in its own invocation so each file's top-level
-# class/role declarations stay isolated (batching files into one --parallel run
-# loads several into one worker process and collides their symbols). `--parallel=N`
-# then spreads a single file's examples across N worker slots; ORM::ActiveRecord
-# suffixes each slot's database, so the DB-backed passes provision N per-worker
-# databases to match (see run-db-pass).
-sub run-behave(@specs, Int :$parallel = 1 --> Int) {
-  my $fail = 0;
-  my $cwd  = $*CWD.absolute;
-  for @specs.map(*.absolute).sort -> $f {
-    my $rel = $f.starts-with($cwd ~ '/') ?? $f.substr($cwd.chars + 1) !! $f;
-    say $rel;
-    my $proc = run 'behave', "--parallel=$parallel", $f;
-    $fail = $proc.exitcode if $proc.exitcode != 0;
-  }
-  $fail;
-}
-
-# prove6 runs the whole t/ set in a single harness invocation.
-sub run-prove6(@tests --> Int) {
-  return 0 unless @tests;
-  my $proc = run 'prove6', '-Ilib', |@tests.map(*.absolute).sort;
-  $proc.exitcode;
-}
-
-# A pass runs the t/ tests (prove6) and specs/ specs (behave) for one bucket.
-sub run-pass(:@tests, :@specs, Int :$parallel = 1 --> Int) {
-  my $t = run-prove6(@tests);
-  my $s = run-behave(@specs, :$parallel);
-  ($t != 0 || $s != 0) ?? 1 !! 0;
-}
-
-sub factory-cmd(@cmd --> Int) {
-  my $proc = run :env(%*ENV, DISABLE-SQL-LOG => 'True'),
-  'raku', '-Ilib', 'bin/factory', |@cmd;
-  $proc.exitcode;
-}
-
-sub run-db-pass(Str:D :$name, Str:D :$url, :@tests, :@specs, Int :$parallel = 1 --> Int) {
+sub run-once(Str:D :$name, Str:D :$url, Int :$parallel = 1,
+             Bool :$run-prove6 = True, Bool :$run-behave = True --> Int) {
   say '';
   say "==> [{format-ts()}] adapter=$name" ~ ($parallel > 1 ?? " parallel=$parallel" !! '');
-  %*ENV<DATABASE_URL>     = $url;
-  %*ENV<AR_ENV>            = 'test';
+  %*ENV<DATABASE_URL> = $url;
+  %*ENV<AR_ENV> = 'test';
+
+  # Keep SQL logging off and out of stdout during the specs. Under behave's
+  # --parallel runner, log lines on a worker's stdout corrupt its event stream
+  # and crash the parent reporter, so the suite must stay quiet.
   %*ENV<DISABLE-SQL-LOG> //= 'True';
   %*ENV<ORM_LOG_FILE>    //= ('log'.IO.d ?? 'log/error.log' !! '/dev/null');
 
-  # Persistence tests/specs need the test schema in place. prove6 (t/) connects
-  # to the base database; behave parallel workers each connect to a per-worker
-  # database that ORM::ActiveRecord suffixes by slot, so provision both. Bail on
-  # the first provisioning failure with a clear pre-flight rather than letting
-  # every spec error individually.
-  if 'bin/factory'.IO.e {
-    for ('createdb', 'migrate') -> $cmd {
-      my $rc = factory-cmd([$cmd]);
-      return $rc unless $rc == 0;
-    }
+  # Start each run from a clean, fully-migrated schema: ensure the database
+  # exists, drop every table, then migrate up. Resetting (not a bare migrate)
+  # is what lets a changed migration take effect, since a migration is only
+  # ever applied once.
+  for ('createdb', 'reset', 'migrate') -> $cmd {
+    my @argv = 'raku', '-Ilib', 'bin/factory', $cmd;
+    @argv.append: '--yes', '--quiet' if $cmd eq 'reset';
+    my $proc = run :env(%*ENV, DISABLE-SQL-LOG => 'True'), |@argv;
+    return $proc.exitcode unless $proc.exitcode == 0;
+  }
 
+  if $run-prove6 {
+    my $prove = run 'prove6', '-Ilib', '-Ispecs/lib', 't';
+    return $prove.exitcode unless $prove.exitcode == 0;
+  }
+
+  my @specs = find-spec-files('specs'.IO).map(*.absolute).sort;
+  my $any-behave-fail = 0;
+
+  if $run-behave {
+    # When running parallel, each behave worker slot connects to a per-worker
+    # database that ORM::ActiveRecord suffixes by slot, so create + reset +
+    # migrate that many databases and pre-flight them. Serial runs use the base
+    # database already provisioned above.
     if $parallel > 1 {
-      for ('createdb', 'migrate') -> $cmd {
-        my $rc = factory-cmd([$cmd, '--parallel']);
-        return $rc unless $rc == 0;
+      for ('createdb', 'reset', 'migrate') -> $cmd {
+        my @argv = 'raku', '-Ilib', 'bin/factory', $cmd, "--parallel=$parallel";
+        @argv.append: '--yes', '--quiet' if $cmd eq 'reset';
+        my $proc = run :env(%*ENV, DISABLE-SQL-LOG => 'True'), |@argv;
+        return $proc.exitcode unless $proc.exitcode == 0;
       }
-      my $rc = factory-cmd(['check', '--parallel']);
-      return $rc unless $rc == 0;
     }
+
+    my @check = 'raku', '-Ilib', 'bin/factory', 'check';
+    @check.push: "--parallel=$parallel" if $parallel > 1;
+    my $checked = run :env(%*ENV, DISABLE-SQL-LOG => 'True'), |@check;
+    return $checked.exitcode unless $checked.exitcode == 0;
+
+    # behave's default --parallel mode runs one subprocess per spec file, up to N
+    # in flight, each on its own per-worker database. Shared test doubles live in
+    # specs/lib (declared once) so the parent's example-discovery pass does not
+    # redeclare them across files.
+    my $proc = run 'behave', "--parallel=$parallel", |@specs;
+    $any-behave-fail = $proc.exitcode if $proc.exitcode != 0;
   }
 
-  my $fail = run-pass(:@tests, :@specs, :$parallel);
+  # Specs that mutate the schema (e.g. create-strategy rows, truncation) can
+  # leave it in a non-canonical state, so restore the base schema for the next
+  # run.
+  run :env(%*ENV, DISABLE-SQL-LOG => 'True'),
+  'raku', '-Ilib', 'bin/factory';
 
-  # `create`-strategy tests/specs leave rows behind, and one that exercises
-  # migrations can alter the schema. Re-run migrations so the next test.raku
-  # run starts from the canonical schema.
-  if 'bin/factory'.IO.e {
-    factory-cmd(['migrate']);
-    factory-cmd(['migrate', '--parallel']) if $parallel > 1;
-  }
-
-  $fail;
+  $any-behave-fail;
 }
 
 sub find-spec-files(IO::Path $dir) {
@@ -386,36 +380,32 @@ sub find-spec-files(IO::Path $dir) {
   @out;
 }
 
-sub find-test-files(IO::Path $dir) {
-  my @out;
-  for $dir.dir -> $entry {
-    next if $entry.basename.starts-with('.');
-    if $entry.d {
-      @out.append: find-test-files($entry);
-    } elsif $entry.extension eq 'rakutest' || $entry.extension eq 't' {
-      @out.push: $entry;
-    }
-  }
-  @out;
-}
+my Bool $want-prove6 = False;
+my Bool $want-behave = False;
+my Int  $parallel     = 1;
+my Int  $parallel-override;
 
-sub parse-args(--> Hash) {
+sub parse-adapter-args(--> List) {
   my %alias = pg => 'postgres', postgres => 'postgres', postgresql => 'postgres',
   mysql => 'mysql',
   sqlite => 'sqlite', sqlite3 => 'sqlite';
   my @args = @*ARGS;
   if @args.grep({ $_ eq '-h' || $_ eq '--help' }) {
     say q:to/USAGE/;
-    Usage: ./test.raku [--adapter=NAME[,NAME...]] [--unit-only|--no-unit]
-      NAME: pg|postgres|mysql|sqlite (default: all configured)
-      --unit-only  run only the DB-agnostic unit pass
-      --no-unit    skip the unit pass; run only DB-backed passes
+    Usage: ./test.raku [--adapter=NAME[,NAME...]] [--prove6] [--behave]
+      NAME:       pg|postgres|mysql|sqlite (default: the configured adapter)
+      --prove6:   run only the prove6 t/ tests
+      --behave:   run only the behave specs
+                  (give neither, or both, to run both)
+
+    Parallelism defaults to config: the test env's `parallel` key (> 1 runs the
+    behave specs across that many worker databases; 1 or absent runs serially).
+      --parallel=N: override the worker count (e.g. --parallel=2)
+      --parallel:   no effect (the config count is used)
     USAGE
     exit 0;
   }
   my @picked;
-  my $unit-only = False;
-  my $no-unit   = False;
   my $i = 0;
   while $i < @args.elems {
     my $a = @args[$i];
@@ -424,64 +414,63 @@ sub parse-args(--> Hash) {
     } elsif $a eq '--adapter' {
       die "--adapter requires a value" unless $i + 1 < @args.elems;
       @picked.append: @args[++$i];
-    } elsif $a eq '--unit-only' {
-      $unit-only = True;
-    } elsif $a eq '--no-unit' {
-      $no-unit = True;
+    } elsif $a ~~ /^ '--parallel=' (\d+) $/ {
+      $parallel-override = +$0;
+    } elsif $a eq '--parallel' {
+      # Bare flag: no effect; the config count is used.
+    } elsif $a eq '--prove6' {
+      $want-prove6 = True;
+    } elsif $a eq '--behave' {
+      $want-behave = True;
     } else {
-      die "unknown arg: $a (use --adapter=pg|mysql|sqlite, --unit-only, or --no-unit)";
+      die "unknown arg: $a (use --adapter=pg|mysql|sqlite, --parallel, --prove6, or --behave)";
     }
     $i++;
   }
-  die "--unit-only and --no-unit are mutually exclusive" if $unit-only && $no-unit;
-  my @wanted = @picked.map(*.split(',', :skip-empty)).flat.map({
+  @picked.map(*.split(',', :skip-empty)).flat.map({
       %alias{.lc} // die "unknown adapter: $_ (use pg|mysql|sqlite)"
   }).list;
-  { :@wanted, :$unit-only, :$no-unit };
 }
 
-my %opts     = parse-args();
-my @wanted   = %opts<wanted>.list;
-my $unit-only = %opts<unit-only>;
-my $no-unit   = %opts<no-unit>;
+my @wanted = parse-adapter-args();
 
-# t/ tests (prove6) and specs/ specs (behave) mirror each other. In both trees,
-# files under a top-level db/ are DB-backed (run once per reachable adapter,
-# with migration); everything else is DB-agnostic and runs once in the unit pass.
-my $specs-root = 'specs'.IO;
-my @all-specs  = $specs-root.d ?? find-spec-files($specs-root) !! ();
-my @db-specs   = @all-specs.grep({  .relative($specs-root).starts-with('db/') }).list;
-my @unit-specs = @all-specs.grep({ !.relative($specs-root).starts-with('db/') }).list;
+# With no explicit --adapter and no DATABASE_URL, run only the adapter
+# configured in application.json (test env) — don't probe the other two.
+# test-all.raku swaps in each config/application.json-*-example in turn to run
+# the whole suite once per adapter.
+if !@wanted && !%*ENV<DATABASE_URL> {
+  with config-adapter() -> $a { @wanted = ($a,); }
+}
 
-my $tests-root = 't'.IO;
-my @all-tests  = $tests-root.d ?? find-test-files($tests-root) !! ();
-my @db-tests   = @all-tests.grep({  .relative($tests-root).starts-with('db/') }).list;
-my @unit-tests = @all-tests.grep({ !.relative($tests-root).starts-with('db/') }).list;
+# Worker count: --parallel=N overrides, else the test env's `parallel` key
+# from config. > 1 runs the behave specs in parallel, 1 (or absent) serially.
+$parallel = $parallel-override // DB.env-parallel(env => 'test');
+
+# --prove6 / --behave select which suites run; neither given means run both.
+my Bool $run-prove6 = $want-prove6 || !($want-prove6 || $want-behave);
+my Bool $run-behave = $want-behave || !($want-prove6 || $want-behave);
 
 my @runs;
 my Bool $skip-probe = False;
 
-# Adapters are needed only for DB-backed tests/specs; skip all probing when
-# there are none, so the unit pass never depends on a database being present.
-if (@db-specs || @db-tests) && !$unit-only {
-  if my $external = %*ENV<DATABASE_URL> {
-    my $kind = parse-database-url($external)<adapter>;
-    my $name = $kind eq 'pg' ?? 'postgres' !! $kind;
-    @runs.push: { :$name, :url($external) };
-    $skip-probe = True;
-  } else {
-    for <postgres mysql sqlite> -> $name {
-      my %a = %ADAPTERS{$name};
-      my $url = %*ENV{%a<env>} // url-from-config($name) // %a<default-url>;
-      @runs.push: { :$name, :$url };
-    }
+if my $external = %*ENV<DATABASE_URL> {
+  my $kind = parse-database-url($external)<adapter>;
+  my $name = $kind eq 'pg' ?? 'postgres' !! $kind;
+  @runs.push: { :$name, :url($external) };
+  $skip-probe = True;
+} else {
+  for <postgres mysql sqlite> -> $name {
+    my %a = %ADAPTERS{$name};
+    my $config-url = %a<url-from-config>:exists ?? %a<url-from-config>.() !! Str;
+    my $url = %*ENV{%a<env>} // $config-url // %a<default-url>;
+    @runs.push: { :$name, :$url };
   }
+}
 
-  if @wanted {
-    my %want = @wanted.map: * => True;
-    @runs = @runs.grep({ %want{ .<name> } }).list;
-    die "no adapters matched --adapter filter ({@wanted.join(',')})" unless @runs;
-  }
+if @wanted {
+  my %want = @wanted.map: * => True;
+  @runs = @runs.grep({ %want{ .<name> } }).list;
+  die "no adapters matched --adapter filter ({@wanted.join(',')})" unless @runs;
 }
 
 my @skipped;
@@ -493,7 +482,6 @@ END {
   if %durations {
     say '';
     say '==> Runtimes';
-    printf "  %-9s %7.2fs\n", 'unit', %durations<unit> if %durations<unit>:exists;
     for @runs -> %r {
       next unless %durations{%r<name>}:exists;
       printf "  %-9s %7.2fs\n", %r<name>, %durations{%r<name>};
@@ -510,17 +498,6 @@ END {
   }
 }
 
-# Unit pass: DB-agnostic t/ tests + specs/ specs, run once.
-if (@unit-tests || @unit-specs) && !$no-unit {
-  say '';
-  say "==> [{format-ts()}] unit";
-  my $start = now;
-  my $rc = run-pass(:tests(@unit-tests), :specs(@unit-specs), :parallel(config-parallel()));
-  %durations<unit> = (now - $start).Num;
-  $any-fail = True if $rc != 0;
-}
-
-# Adapter passes: DB-backed t/ tests + specs/ specs against each reachable adapter.
 for @runs -> %r {
   my $name = %r<name>;
   my $url  = %r<url>;
@@ -537,7 +514,7 @@ for @runs -> %r {
   }
 
   my $start = now;
-  my $rc = run-db-pass(:$name, :$url, :tests(@db-tests), :specs(@db-specs), :parallel(config-parallel()));
+  my $rc = run-once(:$name, :$url, :$parallel, :$run-prove6, :$run-behave);
   %durations{$name} = (now - $start).Num;
   $any-fail = True if $rc != 0;
 }

@@ -50,6 +50,7 @@ the word "trait" (which means something specific in Raku) and partly because
 |---------------------------|-------------------------|
 | `trait :admin do ... end` | `.variant: 'admin', { ... }` |
 | `traits_for_enum :status` | `.variants-for-enum: 'status', @values` |
+| `automatically_define_enum_traits` | `automatically-define-enum-variants` (on by default; derives variants from an `ORM::ActiveRecord` enum) |
 
 ## Blocks
 

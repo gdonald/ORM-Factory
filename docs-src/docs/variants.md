@@ -219,9 +219,38 @@ ORM::Factory.build('user', 'guest').role;    # 'guest'
 ORM::Factory.build('user', 'member').role;   # 'member'
 ```
 
-The value list is explicit; no ORM enum reflection is required. (Automatic
-enum variants from an `ORM::ActiveRecord` enum column are gated on AR's enum
-support and will arrive in a later phase.)
+The value list is explicit; no ORM enum reflection is required.
+
+## Automatic enum variants
+
+When a factory's class is an `ORM::ActiveRecord` model that declares an enum,
+the enum's values become variants automatically, with no `variants-for-enum`
+call. Given a model:
+
+```perl6
+class Order is Model {
+  submethod BUILD {
+    self.enum: 'status', { pending => 0, shipped => 1, delivered => 2 };
+  }
+}
+```
+
+each enum value is a variant that sets the enum attribute to that value:
+
+```perl6
+define {
+  .factory: 'order', :class(Order), { };
+};
+
+ORM::Factory.build('order', 'shipped').status;     # 'shipped'
+ORM::Factory.create('order', 'delivered').status;  # 'delivered'
+ORM::Factory.variant-names-for('order');           # (delivered pending shipped)
+```
+
+An explicitly declared variant of the same name wins over the derived one. The
+behaviour is governed by the `automatically-define-enum-variants` toggle (on by
+default); see [Configuration](configuration.md). It applies only to AR models
+with enums, so factories for other classes are unaffected.
 
 ## Errors
 

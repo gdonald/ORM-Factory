@@ -2,23 +2,11 @@ use v6.d;
 use lib 'lib';
 use Test;
 use ORM::Factory;
+use lib 'specs/lib';
+use Factory::Test::Models;
+publish-globals;
 
-class User {
-  has Str  $.fname    is rw;
-  has Str  $.role     is rw;
-  has Str  $.status   is rw;
-  has Str  $.greeting is rw;
-  has Bool $.saved    is rw = False;
-  has      @.events;
-  method save-bang { $!saved = True; self }
-}
 
-class Post {
-  has Str  $.title  is rw;
-  has User $.author is rw;
-  has Bool $.saved  is rw = False;
-  method save-bang { $!saved = True; self }
-}
 
 sub fresh {
   ORM::Factory.reload;

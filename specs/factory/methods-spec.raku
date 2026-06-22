@@ -1,14 +1,13 @@
 use lib 'lib';
 use BDD::Behave;
 use ORM::Factory;
+use lib 'specs/lib';
+use Factory::Test::Models;
 
-our class User {
-  has Str  $.fname is rw;
-  has Bool $.saved is rw = False;
-  method save-bang { $!saved = True; self }
-}
 
 BEGIN GLOBAL::<User> := User;
+
+publish-globals;
 
 describe 'ORM::Factory bare-name helpers', {
   before-each {

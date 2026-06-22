@@ -3,8 +3,8 @@ use ORM::ActiveRecord::Model;
 
 unit module Factory::Test::AR;
 
-class FactoryUser is Model is export {
-  method table-name { 'factory_users' }
+class User is Model is export {
+  method table-name { 'users' }
 
   submethod BUILD {
     self.validate: 'fname', { :presence };
@@ -12,16 +12,25 @@ class FactoryUser is Model is export {
   }
 }
 
-class FactoryPost is Model is export {
-  method table-name { 'factory_posts' }
+class Post is Model is export {
+  method table-name { 'posts' }
 
   submethod BUILD {
     self.validate: 'title', { :presence };
-    self.belongs-to: factory_user => True;
+    self.belongs-to: user => True;
+  }
+}
+
+class Order is Model is export {
+  method table-name { 'orders' }
+
+  submethod BUILD {
+    self.enum: 'status', { pending => 0, shipped => 1, delivered => 2 };
   }
 }
 
 sub publish-globals is export {
-  GLOBAL::<FactoryUser> := FactoryUser;
-  GLOBAL::<FactoryPost> := FactoryPost;
+  GLOBAL::<User>  := User;
+  GLOBAL::<Post>  := Post;
+  GLOBAL::<Order> := Order;
 }

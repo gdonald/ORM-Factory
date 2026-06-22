@@ -1,11 +1,9 @@
 use lib 'lib';
 use BDD::Behave;
 use ORM::Factory;
+use lib 'specs/lib';
+use Factory::Test::Models;
 
-our class User {
-  has Str $.fname;
-  has Str $.lname;
-}
 
 our class Admin {
   has Str $.role;
@@ -18,6 +16,8 @@ our class Admin {
 # declarations are in GLOBAL automatically.
 BEGIN GLOBAL::<User>  := User;
 BEGIN GLOBAL::<Admin> := Admin;
+
+publish-globals;
 
 describe 'class scope visibility (sanity)', {
   it 'GLOBAL contains the spec-file User class', {

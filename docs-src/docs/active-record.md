@@ -26,7 +26,7 @@ the generic adapter.
 no `INSERT` issued:
 
 ```perl6
-my $u = ORM::Factory.build('factory-user');
+my $u = ORM::Factory.build('user');
 
 $u.is-new-record;          # True
 $u.attrs<fname>;           # 'Greg'
@@ -39,7 +39,7 @@ $u.attrs<fname>;           # 'Greg'
 timestamps all run as usual:
 
 ```perl6
-my $u = ORM::Factory.create('factory-user');
+my $u = ORM::Factory.create('user');
 
 $u.is-persisted;           # True
 $u.id;                     # > 0
@@ -50,7 +50,7 @@ If validation fails, `create` raises the AR exception unchanged:
 
 ```perl6
 try {
-  ORM::Factory.create('factory-user', fname => Nil);   # presence-of fails
+  ORM::Factory.create('user', fname => Nil);   # presence-of fails
   CATCH {
     when X::RecordInvalid {
       .messages;                                       # ('fname can't be blank',)
@@ -65,7 +65,7 @@ try {
 database:
 
 ```perl6
-my $u = ORM::Factory.build-stubbed('factory-user');
+my $u = ORM::Factory.build-stubbed('user');
 
 $u.is-persisted;           # True
 $u.is-new-record;          # False
@@ -116,13 +116,13 @@ use ORM::Factory::Cleanup;
 
 # Rolls back every change made inside the block, including failures
 with-transaction-rollback {
-  ORM::Factory.create-list('factory-user', 3);
+  ORM::Factory.create-list('user', 3);
   ...
 };
 
 # Wipes specific tables (DELETE on SQLite, TRUNCATE ... CASCADE on Postgres,
 # TRUNCATE with FK checks toggled on MySQL)
-truncate-tables('factory_users', 'factory_posts');
+truncate-tables('users', 'posts');
 
 # Wipes every table except `migrations`
 truncate-all-tables();

@@ -1,16 +1,13 @@
 use lib 'lib';
 use BDD::Behave;
 use ORM::Factory;
+use lib 'specs/lib';
+use Factory::Test::Models;
 
-our class Profile {
-  has Str  $.fname is rw;
-  has Str  $.email is rw;
-  has Str  $.nick  is rw;
-  has Bool $.saved is rw = False;
-  method save-bang { $!saved = True; self }
-}
 
 GLOBAL::<Profile> := Profile;
+
+publish-globals;
 
 describe 'per-call attribute overrides', {
   before-each {

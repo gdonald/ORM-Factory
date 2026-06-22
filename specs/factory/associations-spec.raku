@@ -1,28 +1,11 @@
 use lib 'lib';
 use BDD::Behave;
 use ORM::Factory;
+use lib 'specs/lib';
+use Factory::Test::Models;
 
-our class User {
-  has Str  $.fname is rw;
-  has Str  $.role  is rw;
-  has Bool $.saved is rw = False;
-  method save-bang { $!saved = True; self }
-}
 
-our class Post {
-  has Str  $.title  is rw;
-  has User $.author is rw;
-  has Bool $.saved  is rw = False;
-  method save-bang { $!saved = True; self }
-}
 
-our class Comment {
-  has Str $.body         is rw;
-  has     $.commentable  is rw;
-  has     $.author       is rw;
-  has Bool $.saved       is rw = False;
-  method save-bang { $!saved = True; self }
-}
 
 our class Bag {
   has $.cargo is rw;
@@ -34,6 +17,8 @@ BEGIN GLOBAL::<User>    := User;
 BEGIN GLOBAL::<Post>    := Post;
 BEGIN GLOBAL::<Comment> := Comment;
 BEGIN GLOBAL::<Bag>     := Bag;
+
+publish-globals;
 
 describe 'factory associations', {
   before-each {

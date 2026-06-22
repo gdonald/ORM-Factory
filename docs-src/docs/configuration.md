@@ -10,6 +10,7 @@ use ORM::Factory;
 ORM::Factory.configure: {
   .allow-class-lookup(True);
   .use-parent-strategy(True);
+  .automatically-define-enum-variants(True);
   .persistence(MyAdapter.new);
   .definition-file-paths(<spec/factories specs/factories>);
 
@@ -26,6 +27,7 @@ builder:
 | ---------------------- | ------------------------------------ | ------------------------------------------ |
 | allow-class-lookup     | `.allow-class-lookup(Bool)`          | `set-allow-class-lookup(Bool)`             |
 | use-parent-strategy    | `.use-parent-strategy(Bool)`         | `set-use-parent-strategy(Bool)`            |
+| automatically-define-enum-variants | `.automatically-define-enum-variants(Bool)` | `set-automatically-define-enum-variants(Bool)` |
 | persistence            | `.persistence(Persistence)`          | `set-persistence(Persistence)`             |
 | definition-file-paths  | `.definition-file-paths(*@paths)`    | `set-definition-file-paths(*@paths)`       |
 | initialize-with        | `.initialize-with(&block)`           | `set-global-initialize-with(&block)`       |
@@ -51,6 +53,20 @@ ORM::Factory.configure: { .use-parent-strategy(False) };
 
 ORM::Factory.build('post').author.saved;  # True — author was created
 ```
+
+## automatically-define-enum-variants
+
+When `True` (the default), a factory whose class is an `ORM::ActiveRecord`
+model with an enum gets one variant per enum value automatically, each setting
+the enum attribute to that value. Turn it off to require every variant to be
+declared explicitly:
+
+```raku
+ORM::Factory.configure: { .automatically-define-enum-variants(False) };
+```
+
+It affects only AR models that declare enums; see
+[Variants](variants.md#automatic-enum-variants).
 
 ## persistence
 

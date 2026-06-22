@@ -1,17 +1,13 @@
 use lib 'lib';
 use BDD::Behave;
 use ORM::Factory;
+use lib 'specs/lib';
+use Factory::Test::Models;
 
-our class Person {
-  has Str  $.fname is rw;
-  has Str  $.lname is rw;
-  has Str  $.email is rw;
-  has Str  $.role  is rw;
-  has Bool $.saved is rw = False;
-  method save-bang { $!saved = True; self }
-}
 
 GLOBAL::<Person> := Person;
+
+publish-globals;
 
 describe 'core build strategies', {
   before-each {
