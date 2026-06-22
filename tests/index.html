@@ -1220,10 +1220,10 @@ $<span class="w"> </span>./test.raku<span class="w"> </span>--adapter<span class
 <p>The behave specs run with <code>--parallel=N</code>, where <code>N</code> is the test environment's
 <code>parallel</code> count. behave's default mode runs one subprocess per spec file, up
 to <code>N</code> in flight, each on its own per-worker database. Shared test doubles live
-in <a href="../../specs/lib/Factory/Test/Models.rakumod"><code>specs/lib/Factory/Test/Models.rakumod</code></a>
-(declared once and imported) rather than inline in each spec, so behave's
-example-discovery pass — which loads every spec into one parent process — does
-not redeclare them across files.</p>
+in <code>specs/lib/Factory/Test/Models.rakumod</code> (declared once and imported) rather
+than inline in each spec. behave's example-discovery pass loads every spec into
+one parent process, so a double declared inline in several specs would redeclare
+across files; keeping them in one module avoids that.</p>
 <h2 id="running-with-prove6-or-behave-directly">Running with prove6 or behave directly</h2>
 <p>To run the prove6 suite once against your default adapter:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code>$<span class="w"> </span>prove6<span class="w"> </span>-Ilib<span class="w"> </span>-Ispecs/lib<span class="w"> </span>t
