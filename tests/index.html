@@ -1194,37 +1194,39 @@ still expects it), and <code>specs/</code> is the BDD-style suite run by
 <a href="https://github.com/gdonald/BDD-Behave"><code>behave</code></a>. Long-term the <code>t/</code> tree
 will be retired in favour of <code>specs/</code>.</p>
 <h2 id="running-the-suite">Running the suite</h2>
-<p><code>./test.raku</code> is the canonical entry point. It runs the unit pass first
-(DB-agnostic) and then cycles through PostgreSQL, MySQL, and SQLite — probing
-each first and skipping unreachable adapters with a message describing how to
-enable them. With <code>DATABASE_URL</code> set it runs once against that adapter (this
-is what CI does per matrix entry).</p>
+<p><code>./test.raku</code> runs the whole suite (the prove6 <code>t/</code> tests, then the behave
+<code>specs/</code>) once, against the adapter named in <code>config/application.json</code> (the
+test environment's primary connection). It provisions the schema first
+(<code>createdb</code> → <code>reset</code> → <code>migrate</code>), probes the database, and skips with a
+message describing how to enable it if it is unreachable. With <code>DATABASE_URL</code>
+set it runs against that adapter instead (this is what CI does per matrix
+entry).</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code>$<span class="w"> </span>./test.raku
 </code></pre></div></td></tr></table></div>
 
-<p>When all three adapters are reachable you get a runtimes summary at the end:</p>
-<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
-<span class="normal">2</span>
-<span class="normal">3</span>
-<span class="normal">4</span>
-<span class="normal">5</span>
-<span class="normal">6</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="o">==</span>&gt;<span class="w"> </span>Runtimes
-<span class="w">  </span>unit<span class="w">         </span><span class="m">6</span>.94s
-<span class="w">  </span>postgres<span class="w">     </span><span class="m">3</span>.49s
-<span class="w">  </span>mysql<span class="w">        </span><span class="m">3</span>.47s
-<span class="w">  </span>sqlite<span class="w">       </span><span class="m">3</span>.49s
-<span class="w">  </span>total<span class="w">       </span><span class="m">17</span>.55s
+<p><code>./test-all.raku</code> runs the suite once per adapter by copying each
+<code>config/application.json-*-example</code> over <code>config/application.json</code> in turn,
+backing up and restoring your own config around the run. This is the single
+command that exercises PostgreSQL, MySQL, and SQLite together.</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code>$<span class="w"> </span>./test-all.raku
 </code></pre></div></td></tr></table></div>
 
-<p>To pick a subset of adapters, pass <code>--adapter</code>:</p>
+<p>To narrow a single <code>test.raku</code> run to a subset of adapters, pass <code>--adapter</code>:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
 <span class="normal">2</span></pre></div></td><td class="code"><div><pre><span></span><code>$<span class="w"> </span>./test.raku<span class="w"> </span>--adapter<span class="o">=</span>pg
 $<span class="w"> </span>./test.raku<span class="w"> </span>--adapter<span class="o">=</span>mysql,sqlite
 </code></pre></div></td></tr></table></div>
 
+<p>The behave specs run with <code>--parallel=N</code>, where <code>N</code> is the test environment's
+<code>parallel</code> count. behave's default mode runs one subprocess per spec file, up
+to <code>N</code> in flight, each on its own per-worker database. Shared test doubles live
+in <a href="../../specs/lib/Factory/Test/Models.rakumod"><code>specs/lib/Factory/Test/Models.rakumod</code></a>
+(declared once and imported) rather than inline in each spec, so behave's
+example-discovery pass — which loads every spec into one parent process — does
+not redeclare them across files.</p>
 <h2 id="running-with-prove6-or-behave-directly">Running with prove6 or behave directly</h2>
 <p>To run the prove6 suite once against your default adapter:</p>
-<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code>$<span class="w"> </span>prove6<span class="w"> </span>-Ilib<span class="w"> </span>t
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code>$<span class="w"> </span>prove6<span class="w"> </span>-Ilib<span class="w"> </span>-Ispecs/lib<span class="w"> </span>t
 </code></pre></div></td></tr></table></div>
 
 <p>To run a single behave spec file:</p>

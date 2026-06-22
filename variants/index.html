@@ -706,6 +706,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#automatic-enum-variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic enum variants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#errors" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1228,6 +1239,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#automatic-enum-variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic enum variants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#errors" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1540,9 +1562,42 @@ attribute to its value:</p>
 <span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;user&#39;</span>, <span class="s">&#39;member&#39;</span>).<span class="k">role</span>;   <span class="c1"># &#39;member&#39;</span>
 </code></pre></div></td></tr></table></div>
 
-<p>The value list is explicit; no ORM enum reflection is required. (Automatic
-enum variants from an <code>ORM::ActiveRecord</code> enum column are gated on AR's enum
-support and will arrive in a later phase.)</p>
+<p>The value list is explicit; no ORM enum reflection is required.</p>
+<h2 id="automatic-enum-variants">Automatic enum variants</h2>
+<p>When a factory's class is an <code>ORM::ActiveRecord</code> model that declares an enum,
+the enum's values become variants automatically, with no <code>variants-for-enum</code>
+call. Given a model:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nb">Order</span> <span class="k">is</span> <span class="n">Model</span> {
+  <span class="k">submethod</span> <span class="nb">BUILD</span> {
+    <span class="nb">self</span>.<span class="n">enum:</span> <span class="s">&#39;status&#39;</span>, { <span class="n">pending</span> =&gt; <span class="mi">0</span>, <span class="n">shipped</span> =&gt; <span class="mi">1</span>, <span class="n">delivered</span> =&gt; <span class="mi">2</span> };
+  }
+}
+</code></pre></div></td></tr></table></div>
+
+<p>each enum value is a variant that sets the enum attribute to that value:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
+  .<span class="n">factory:</span> <span class="s">&#39;order&#39;</span>, :<span class="n">class</span>(<span class="nb">Order</span>), { };
+};
+
+<span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;order&#39;</span>, <span class="s">&#39;shipped&#39;</span>).<span class="nb">status</span>;     <span class="c1"># &#39;shipped&#39;</span>
+<span class="n">ORM::Factory</span>.<span class="n">create</span>(<span class="s">&#39;order&#39;</span>, <span class="s">&#39;delivered&#39;</span>).<span class="nb">status</span>;  <span class="c1"># &#39;delivered&#39;</span>
+<span class="n">ORM::Factory</span>.<span class="n">variant-names-for</span>(<span class="s">&#39;order&#39;</span>);           <span class="c1"># (delivered pending shipped)</span>
+</code></pre></div></td></tr></table></div>
+
+<p>An explicitly declared variant of the same name wins over the derived one. The
+behaviour is governed by the <code>automatically-define-enum-variants</code> toggle (on by
+default); see <a href="../configuration/">Configuration</a>. It applies only to AR models
+with enums, so factories for other classes are unaffected.</p>
 <h2 id="errors">Errors</h2>
 <ul>
 <li>An unknown variant at build time raises <code>X::ORM::Factory::UnknownVariant</code>.</li>

@@ -1236,7 +1236,7 @@ no <code>INSERT</code> issued:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
 <span class="normal">2</span>
 <span class="normal">3</span>
-<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">my</span> <span class="nv">$u</span> = <span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;factory-user&#39;</span>);
+<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">my</span> <span class="nv">$u</span> = <span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;user&#39;</span>);
 
 <span class="nv">$u</span>.<span class="n">is-new-record</span>;          <span class="c1"># True</span>
 <span class="nv">$u</span>.<span class="n">attrs</span><span class="s">&lt;fname&gt;</span>;           <span class="c1"># &#39;Greg&#39;</span>
@@ -1250,7 +1250,7 @@ timestamps all run as usual:</p>
 <span class="normal">2</span>
 <span class="normal">3</span>
 <span class="normal">4</span>
-<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">my</span> <span class="nv">$u</span> = <span class="n">ORM::Factory</span>.<span class="n">create</span>(<span class="s">&#39;factory-user&#39;</span>);
+<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">my</span> <span class="nv">$u</span> = <span class="n">ORM::Factory</span>.<span class="n">create</span>(<span class="s">&#39;user&#39;</span>);
 
 <span class="nv">$u</span>.<span class="n">is-persisted</span>;           <span class="c1"># True</span>
 <span class="nv">$u</span>.<span class="nb">id</span>;                     <span class="c1"># &gt; 0</span>
@@ -1266,7 +1266,7 @@ timestamps all run as usual:</p>
 <span class="normal">6</span>
 <span class="normal">7</span>
 <span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">try</span> {
-  <span class="n">ORM::Factory</span>.<span class="n">create</span>(<span class="s">&#39;factory-user&#39;</span>, <span class="n">fname</span> =&gt; <span class="nb">Nil</span>);   <span class="c1"># presence-of fails</span>
+  <span class="n">ORM::Factory</span>.<span class="n">create</span>(<span class="s">&#39;user&#39;</span>, <span class="n">fname</span> =&gt; <span class="nb">Nil</span>);   <span class="c1"># presence-of fails</span>
   <span class="k">CATCH</span> {
     <span class="k">when</span> <span class="o">X</span>::<span class="n">RecordInvalid</span> {
       .<span class="n">messages</span>;                                       <span class="c1"># (&#39;fname can&#39;t be blank&#39;,)</span>
@@ -1284,7 +1284,7 @@ database:</p>
 <span class="normal">4</span>
 <span class="normal">5</span>
 <span class="normal">6</span>
-<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">my</span> <span class="nv">$u</span> = <span class="n">ORM::Factory</span>.<span class="n">build-stubbed</span>(<span class="s">&#39;factory-user&#39;</span>);
+<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">my</span> <span class="nv">$u</span> = <span class="n">ORM::Factory</span>.<span class="n">build-stubbed</span>(<span class="s">&#39;user&#39;</span>);
 
 <span class="nv">$u</span>.<span class="n">is-persisted</span>;           <span class="c1"># True</span>
 <span class="nv">$u</span>.<span class="n">is-new-record</span>;          <span class="c1"># False</span>
@@ -1342,13 +1342,13 @@ adapter directly:</p>
 
 <span class="c1"># Rolls back every change made inside the block, including failures</span>
 <span class="n">with-transaction-rollback</span> {
-  <span class="n">ORM::Factory</span>.<span class="n">create-list</span>(<span class="s">&#39;factory-user&#39;</span>, <span class="mi">3</span>);
+  <span class="n">ORM::Factory</span>.<span class="n">create-list</span>(<span class="s">&#39;user&#39;</span>, <span class="mi">3</span>);
   ...
 };
 
 <span class="c1"># Wipes specific tables (DELETE on SQLite, TRUNCATE ... CASCADE on Postgres,</span>
 <span class="c1"># TRUNCATE with FK checks toggled on MySQL)</span>
-<span class="n">truncate-tables</span>(<span class="s">&#39;factory_users&#39;</span>, <span class="s">&#39;factory_posts&#39;</span>);
+<span class="n">truncate-tables</span>(<span class="s">&#39;users&#39;</span>, <span class="s">&#39;posts&#39;</span>);
 
 <span class="c1"># Wipes every table except `migrations`</span>
 <span class="n">truncate-all-tables</span>();

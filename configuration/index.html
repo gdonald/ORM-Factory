@@ -818,6 +818,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#automatically-define-enum-variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        automatically-define-enum-variants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#persistence" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1096,6 +1107,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#automatically-define-enum-variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        automatically-define-enum-variants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#persistence" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1160,11 +1182,13 @@ option.</p>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
-<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">ORM::Factory</span>;
+<span class="normal">12</span>
+<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">ORM::Factory</span>;
 
 <span class="n">ORM::Factory</span>.<span class="n">configure:</span> {
   .<span class="n">allow-class-lookup</span>(<span class="nb">True</span>);
   .<span class="n">use-parent-strategy</span>(<span class="nb">True</span>);
+  .<span class="n">automatically-define-enum-variants</span>(<span class="nb">True</span>);
   .<span class="n">persistence</span>(<span class="n">MyAdapter</span>.<span class="nb">new</span>);
   .<span class="n">definition-file-paths</span>(<span class="s">&lt;spec/factories specs/factories&gt;</span>);
 
@@ -1194,6 +1218,11 @@ builder:</p>
 <td>use-parent-strategy</td>
 <td><code>.use-parent-strategy(Bool)</code></td>
 <td><code>set-use-parent-strategy(Bool)</code></td>
+</tr>
+<tr>
+<td>automatically-define-enum-variants</td>
+<td><code>.automatically-define-enum-variants(Bool)</code></td>
+<td><code>set-automatically-define-enum-variants(Bool)</code></td>
 </tr>
 <tr>
 <td>persistence</td>
@@ -1238,6 +1267,16 @@ surrounding strategy. A per-association <code>:strategy(...)</code> still wins:<
 <span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;post&#39;</span>).<span class="n">author</span>.<span class="n">saved</span>;  <span class="c1"># True — author was created</span>
 </code></pre></div></td></tr></table></div>
 
+<h2 id="automatically-define-enum-variants">automatically-define-enum-variants</h2>
+<p>When <code>True</code> (the default), a factory whose class is an <code>ORM::ActiveRecord</code>
+model with an enum gets one variant per enum value automatically, each setting
+the enum attribute to that value. Turn it off to require every variant to be
+declared explicitly:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">configure:</span> { .<span class="n">automatically-define-enum-variants</span>(<span class="nb">False</span>) };
+</code></pre></div></td></tr></table></div>
+
+<p>It affects only AR models that declare enums; see
+<a href="../variants/#automatic-enum-variants">Variants</a>.</p>
 <h2 id="persistence">persistence</h2>
 <p>Installs a specific persistence adapter, overriding auto-detection:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">configure:</span> { .<span class="n">persistence</span>(<span class="n">MyAdapter</span>.<span class="nb">new</span>) };
