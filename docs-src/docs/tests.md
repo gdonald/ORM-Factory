@@ -39,10 +39,10 @@ $ ./test.raku --adapter=mysql,sqlite
 The behave specs run with `--parallel=N`, where `N` is the test environment's
 `parallel` count. behave's default mode runs one subprocess per spec file, up
 to `N` in flight, each on its own per-worker database. Shared test doubles live
-in [`specs/lib/Factory/Test/Models.rakumod`](../../specs/lib/Factory/Test/Models.rakumod)
-(declared once and imported) rather than inline in each spec, so behave's
-example-discovery pass — which loads every spec into one parent process — does
-not redeclare them across files.
+in `specs/lib/Factory/Test/Models.rakumod` (declared once and imported) rather
+than inline in each spec. behave's example-discovery pass loads every spec into
+one parent process, so a double declared inline in several specs would redeclare
+across files; keeping them in one module avoids that.
 
 ## Running with prove6 or behave directly
 
