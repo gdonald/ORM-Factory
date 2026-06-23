@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../collections/">
+        <link rel="prev" href="../dsl-design/">
       
       
-        <link rel="next" href="../dependent-attrs/">
+        <link rel="next" href="../build-strategies/">
       
       
         
@@ -23,7 +23,7 @@
     
     
       
-        <title>Overrides - ORM::Factory</title>
+        <title>Bare-name DSL - ORM::Factory</title>
       
     
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#per-call-overrides" class="md-skip">
+        <a href="#bare-name-dsl" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overrides
+              Bare-name DSL
             
           </span>
         </div>
@@ -274,10 +274,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../bare-name-dsl/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bare-name DSL
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -293,6 +320,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-three-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The three forms
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keywords" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keywords
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#attributes-attr-vs-attrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attributes: attr vs attrs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -382,37 +473,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overrides
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../overrides/" class="md-nav__link">
         
   
   
@@ -428,70 +492,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#static-override-of-a-static-attribute" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Static override of a static attribute
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#static-override-of-a-dynamic-attribute" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Static override of a dynamic attribute
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#block-override" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Block override
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dependent-attributes-see-the-override" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dependent attributes see the override
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1090,10 +1090,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#static-override-of-a-static-attribute" class="md-nav__link">
+  <a href="#the-three-forms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Static override of a static attribute
+        The three forms
       
     </span>
   </a>
@@ -1101,10 +1101,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#static-override-of-a-dynamic-attribute" class="md-nav__link">
+  <a href="#keywords" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Static override of a dynamic attribute
+        Keywords
       
     </span>
   </a>
@@ -1112,10 +1112,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#block-override" class="md-nav__link">
+  <a href="#attributes-attr-vs-attrs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Block override
+        Attributes: attr vs attrs
       
     </span>
   </a>
@@ -1123,10 +1123,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dependent-attributes-see-the-override" class="md-nav__link">
+  <a href="#building" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dependent attributes see the override
+        Building
       
     </span>
   </a>
@@ -1150,33 +1150,52 @@
 
 
 
-<h1 id="per-call-overrides">Per-call overrides</h1>
-<p>Every build method — <code>build</code>, <code>create</code>, <code>attributes-for</code>, <code>build-stubbed</code>,
-and their <code>-list</code> / <code>-pair</code> cousins — accepts named arguments that override
-attributes for that call only. The original definition is untouched.</p>
-<h2 id="static-override-of-a-static-attribute">Static override of a static attribute</h2>
+<h1 id="bare-name-dsl">Bare-name DSL</h1>
+<p><code>ORM::Factory::DSL</code> is an opt-in module that defines factories without the
+leading-dot method-call syntax. It is plain Raku (exported subs over a dynamic
+builder), so it carries no slang, no macro, no precompilation risk, and full
+editor tooling. The canonical dotted form is unchanged and remains the default.</p>
+<p>Use this module <strong>instead of</strong> <code>ORM::Factory</code>; it re-exports the build and query
+helpers, so it is self-contained.</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">use</span> <span class="n">ORM::Factory::DSL</span>;
+</code></pre></div></td></tr></table></div>
+
+<h2 id="the-three-forms">The three forms</h2>
+<p>All three define the same factory and dispatch to the same builders. Pick per
+taste; they can be mixed in one block.</p>
+<p>Canonical dotted form (<code>use ORM::Factory</code>):</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
 <span class="normal">2</span>
 <span class="normal">3</span>
 <span class="normal">4</span>
 <span class="normal">5</span>
 <span class="normal">6</span>
-<span class="normal">7</span>
-<span class="normal">8</span>
-<span class="normal">9</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
-  .<span class="n">factory:</span> <span class="s">&#39;profile&#39;</span>, {
+<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
+  .<span class="n">factory:</span> <span class="s">&#39;user&#39;</span>, {
     .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
-    .<span class="n">nick:</span>  <span class="s">&#39;gd&#39;</span>;
+    .<span class="n">email:</span> { <span class="n">generate</span>(<span class="s">&#39;email&#39;</span>) };
+    .<span class="n">variant:</span> <span class="s">&#39;admin&#39;</span>, { .<span class="n">role:</span> <span class="s">&#39;admin&#39;</span> };
   };
 };
-
-<span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;profile&#39;</span>, :<span class="n">fname</span><span class="s">&lt;Alice&gt;</span>).<span class="n">fname</span>;   <span class="c1"># &#39;Alice&#39;</span>
-<span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;profile&#39;</span>, :<span class="n">fname</span><span class="s">&lt;Alice&gt;</span>).<span class="n">nick</span>;    <span class="c1"># &#39;gd&#39;  (untouched)</span>
 </code></pre></div></td></tr></table></div>
 
-<h2 id="static-override-of-a-dynamic-attribute">Static override of a dynamic attribute</h2>
-<p>A static override replaces a block defined on the factory with the literal
-value:</p>
+<p>Bare-name keyword form (<code>use ORM::Factory::DSL</code>):</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
+  <span class="n">factory</span> <span class="s">&#39;user&#39;</span>, {
+    <span class="n">attr</span> <span class="s">&#39;fname&#39;</span>, <span class="s">&#39;Greg&#39;</span>;
+    <span class="n">attr</span> <span class="s">&#39;email&#39;</span>, { <span class="n">generate</span>(<span class="s">&#39;email&#39;</span>) };
+    <span class="n">variant</span> <span class="s">&#39;admin&#39;</span>, { <span class="n">attr</span> <span class="s">&#39;role&#39;</span>, <span class="s">&#39;admin&#39;</span> };
+  };
+};
+</code></pre></div></td></tr></table></div>
+
+<p>Colon-pair form (also <code>ORM::Factory::DSL</code>):</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
 <span class="normal">2</span>
 <span class="normal">3</span>
@@ -1185,38 +1204,102 @@ value:</p>
 <span class="normal">6</span>
 <span class="normal">7</span>
 <span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
-  .<span class="n">factory:</span> <span class="s">&#39;profile&#39;</span>, {
-    .<span class="n">fname:</span> <span class="s">&#39;Greg&#39;</span>;
-    .<span class="n">email:</span> { .<span class="n">fname</span>.<span class="nb">lc</span> ~ <span class="s">&#39;@example.com&#39;</span> };
+  <span class="n">factory</span> <span class="s">&#39;user&#39;</span>, {
+    <span class="n">attrs</span>(
+      :<span class="n">fname</span><span class="s">&lt;Greg&gt;</span>,
+      :<span class="n">email</span>({ <span class="n">generate</span>(<span class="s">&#39;email&#39;</span>) }),
+    );
+  };
+};
+</code></pre></div></td></tr></table></div>
+
+<h2 id="keywords">Keywords</h2>
+<p>Every DSL keyword is available as a bare sub: <code>factory</code>, <code>variant</code>, <code>transient</code>,
+<code>sequence</code>, <code>association</code>, <code>before</code>, <code>after</code>, <code>callback</code>, <code>to-create</code>,
+<code>initialize-with</code>, <code>skip-create</code>, <code>variants-for-enum</code>, plus <code>define</code> and
+<code>modify</code>. They dispatch to the active builder, so nested blocks (factory,
+variant, transient) retarget correctly:</p>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">define</span> {
+  <span class="n">sequence</span> <span class="s">&#39;email&#39;</span>, -&gt; <span class="nv">$n</span> { <span class="s">&quot;user{$n}\@example.com&quot;</span> };
+
+  <span class="n">factory</span> <span class="s">&#39;user&#39;</span>, {
+    <span class="n">attr</span> <span class="s">&#39;fname&#39;</span>, <span class="s">&#39;Greg&#39;</span>;
+    <span class="n">attr</span> <span class="s">&#39;email&#39;</span>, { <span class="n">generate</span>(<span class="s">&#39;email&#39;</span>) };
+
+    <span class="n">variant</span> <span class="s">&#39;admin&#39;</span>, { <span class="n">attr</span> <span class="s">&#39;role&#39;</span>, <span class="s">&#39;admin&#39;</span> };
+
+    <span class="nb">after</span> <span class="s">&#39;build&#39;</span>, -&gt; <span class="nv">$user</span>, $ { <span class="nv">$user</span>.<span class="k">role</span> //= <span class="s">&#39;member&#39;</span> };
+  };
+
+  <span class="n">factory</span> <span class="s">&#39;post&#39;</span>, {
+    <span class="n">attr</span> <span class="s">&#39;title&#39;</span>, <span class="s">&#39;Hello&#39;</span>;
+    <span class="n">association</span> <span class="s">&#39;author&#39;</span>, :<span class="n">factory</span><span class="s">&lt;user&gt;</span>;
   };
 };
 
-<span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;profile&#39;</span>, :<span class="n">email</span><span class="s">&lt;x@y.z&gt;</span>).<span class="n">email</span>;   <span class="c1"># &#39;x@y.z&#39;</span>
+<span class="n">build</span>(<span class="s">&#39;user&#39;</span>, <span class="s">&#39;admin&#39;</span>).<span class="k">role</span>;     <span class="c1"># &#39;admin&#39;</span>
+<span class="n">build</span>(<span class="s">&#39;post&#39;</span>).<span class="n">author</span>.<span class="n">fname</span>;      <span class="c1"># &#39;Greg&#39;</span>
 </code></pre></div></td></tr></table></div>
 
-<h2 id="block-override">Block override</h2>
-<p>Pass a callable to override with a fresh block. The block runs against the
-evaluator, so it can read other attributes via <code>$_</code>:</p>
-<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
-<span class="normal">2</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;profile&#39;</span>, :<span class="n">fname</span><span class="s">&lt;Alice&gt;</span>, :<span class="n">nick</span>({ .<span class="n">fname</span>.<span class="nb">uc</span> })).<span class="n">nick</span>;
-<span class="c1"># &#39;ALICE&#39;</span>
-</code></pre></div></td></tr></table></div>
-
-<p>Overrides apply uniformly across all four build strategies:</p>
+<h2 id="attributes-attr-vs-attrs">Attributes: <code>attr</code> vs <code>attrs</code></h2>
+<p><code>attr NAME, VALUE</code> is the explicit setter. A <code>Callable</code> value is a dynamic
+(lazily evaluated) attribute, the same as the dotted <code>.name: { ... }</code> form.
+<code>attr</code> preserves declaration order, so it is the form to use for a dependent
+chain that must read in a fixed order:</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
 <span class="normal">2</span>
-<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">attributes-for</span>(<span class="s">&#39;profile&#39;</span>, :<span class="n">fname</span><span class="s">&lt;Carol&gt;</span>)<span class="s">&lt;fname&gt;</span>;   <span class="c1"># &#39;Carol&#39;</span>
-<span class="n">ORM::Factory</span>.<span class="n">create</span>(<span class="s">&#39;profile&#39;</span>,         :<span class="n">fname</span><span class="s">&lt;Carol&gt;</span>).<span class="n">fname</span>;    <span class="c1"># &#39;Carol&#39;</span>
-<span class="n">ORM::Factory</span>.<span class="n">build-stubbed</span>(<span class="s">&#39;profile&#39;</span>,  :<span class="n">fname</span><span class="s">&lt;Carol&gt;</span>).<span class="n">fname</span>;    <span class="c1"># &#39;Carol&#39;</span>
+<span class="normal">3</span>
+<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">factory</span> <span class="s">&#39;user&#39;</span>, {
+  <span class="n">attr</span> <span class="s">&#39;fname&#39;</span>, <span class="s">&#39;Greg&#39;</span>;
+  <span class="n">attr</span> <span class="s">&#39;slug&#39;</span>,  { <span class="nv">$_</span>.<span class="n">fname</span>.<span class="nb">lc</span> };   <span class="c1"># reads a prior attribute</span>
+};
 </code></pre></div></td></tr></table></div>
 
-<h2 id="dependent-attributes-see-the-override">Dependent attributes see the override</h2>
-<p>The override goes through the evaluator before any dependent attribute is
-resolved, so a block that reads <code>.fname</code> sees the overridden value:</p>
+<p><code>attrs(:NAME&lt;VALUE&gt;, ...)</code> takes a colon-pair list. A <code>Callable</code> value is again
+a dynamic attribute. Because the pairs arrive as named arguments, their order is
+<strong>not</strong> preserved across the list; use sequential <code>attr</code> calls when order
+matters.</p>
 <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
-<span class="normal">2</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">ORM::Factory</span>.<span class="n">build</span>(<span class="s">&#39;profile&#39;</span>, :<span class="n">fname</span><span class="s">&lt;Alice&gt;</span>).<span class="n">email</span>;
-<span class="c1"># &#39;alice@example.com&#39;</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">factory</span> <span class="s">&#39;user&#39;</span>, {
+  <span class="n">attrs</span>(
+    :<span class="n">fname</span><span class="s">&lt;Greg&gt;</span>,
+    :<span class="n">lname</span><span class="s">&lt;Donald&gt;</span>,
+    :<span class="n">email</span>({ <span class="n">generate</span>(<span class="s">&#39;email&#39;</span>) }),
+  );
+};
 </code></pre></div></td></tr></table></div>
+
+<p>A dynamic value must be a flexible-arity <code>{ ... }</code> block, not a strict
+<code>-&gt; { ... }</code>, because the evaluator passes the block an argument (the same rule
+as the dotted form).</p>
+<h2 id="building">Building</h2>
+<p>The build and query helpers are re-exported, so no separate <code>use ORM::Factory</code>
+is needed: <code>build</code>, <code>create</code>, <code>build-stubbed</code>, <code>attributes-for</code>, the <code>-list</code> and
+<code>-pair</code> variants, <code>generate</code>, <code>generate-list</code>, and <code>reload</code>.</p>
 
 
 
