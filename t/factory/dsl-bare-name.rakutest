@@ -1,0 +1,72 @@
+use v6.d;
+use lib 'lib';
+use lib 'specs/lib';
+use Test;
+use ORM::Factory::DSL;
+use Factory::Test::Models;
+
+publish-globals;
+
+# Mirror of specs/factory/dsl-bare-name-spec.raku: the opt-in bare-name DSL
+# (keyword form + colon-pair form), dispatching to the same builders as the
+# canonical dotted DSL.
+
+plan 8;
+
+# keyword form with explicit attr setters
+{
+  reload;
+  define {
+    sequence 'email', -> $n { "user{$n}\@example.com" };
+
+    factory 'user', {
+      attr 'fname', 'Greg';
+      attr 'lname', 'Donald';
+      attr 'email', { generate('email') };
+
+      variant 'admin', {
+        attr 'role', 'admin';
+      };
+    };
+  };
+
+  is build('user').fname, 'Greg',              'keyword form sets a static attribute';
+  is build('user').email, 'user2@example.com', 'keyword form evaluates a dynamic attribute';
+  is build('user', 'admin').role, 'admin',     'keyword form applies a variant at build time';
+  is build('user').role, Str,                  'variant attribute is unset without the variant';
+}
+
+# colon-pair form
+{
+  reload;
+  define {
+    factory 'user', {
+      attrs(
+        :fname<Greg>,
+        :lname<Donald>,
+        :email({ 'greg@example.com' }),
+      );
+    };
+  };
+
+  is build('user').fname, 'Greg',              'colon-pair form sets static attributes';
+  is build('user').email, 'greg@example.com',  'colon-pair Callable value is a dynamic attribute';
+}
+
+# associations and build helpers
+{
+  reload;
+  define {
+    factory 'user', {
+      attr 'fname', 'Greg';
+    };
+
+    factory 'post', {
+      attr 'title', 'Hello';
+      association 'author', :factory<user>;
+    };
+  };
+
+  is build('post').author.fname, 'Greg',   'bare-name keyword builds an explicit association';
+  is attributes-for('post')<title>, 'Hello', 're-exported build helpers work (attributes-for)';
+}

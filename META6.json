@@ -18,6 +18,7 @@
   ],
   "provides": {
     "ORM::Factory": "lib/ORM/Factory.rakumod",
+    "ORM::Factory::DSL": "lib/ORM/Factory/DSL.rakumod",
     "ORM::Factory::Persistence": "lib/ORM/Factory/Persistence.rakumod",
     "ORM::Factory::Persistence::Generic": "lib/ORM/Factory/Persistence/Generic.rakumod",
     "ORM::Factory::Persistence::ActiveRecord": "lib/ORM/Factory/Persistence/ActiveRecord.rakumod",

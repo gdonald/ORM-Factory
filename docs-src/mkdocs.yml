@@ -3,6 +3,7 @@ nav:
   - Home: index.md
   - Getting started: getting-started.md
   - DSL design: dsl-design.md
+  - Bare-name DSL: bare-name-dsl.md
   - Build strategies: build-strategies.md
   - Strategies: strategy.md
   - Collections: collections.md
