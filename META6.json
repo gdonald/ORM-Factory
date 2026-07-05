@@ -9,11 +9,11 @@
   "depends": [],
   "build-depends": [],
   "test-depends": [
-    "BDD::Behave:auth<zef:gdonald>",
     "DBIish",
     "JSON::Tiny",
     "META6",
     "URI",
+    "BDD::Behave:auth<zef:gdonald>",
     "ORM::ActiveRecord:auth<zef:gdonald>"
   ],
   "provides": {
