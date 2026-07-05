@@ -354,7 +354,8 @@ sub run-once(Str:D :$name, Str:D :$url, Int :$parallel = 1,
     # in flight, each on its own per-worker database. Shared test doubles live in
     # specs/lib (declared once) so the parent's example-discovery pass does not
     # redeclare them across files.
-    my $proc = run 'behave', "--parallel=$parallel", |@specs;
+    my $proc = run :env(%*ENV, DISABLE-SQL-LOG => 'True'),
+    'behave', "--parallel=$parallel", |@specs;
     $any-behave-fail = $proc.exitcode if $proc.exitcode != 0;
   }
 
