@@ -1,0 +1,9 @@
+# Silence ORM::ActiveRecord SQL logging inside every behave worker.
+#
+# behave forwards this file to each worker with --config, so it is EVAL'd
+# in the worker's own process before any spec loads. Setting the flag here
+# means ORM::ActiveRecord reads it from the worker's own %*ENV, rather than
+# relying on the value surviving the parent-to-worker process spawn (a
+# hyphenated env name does not propagate on every platform). SQL log lines
+# on a worker's stdout would otherwise corrupt its JSON event stream.
+%*ENV<DISABLE-SQL-LOG> = 'True';

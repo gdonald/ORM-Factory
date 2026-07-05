@@ -355,7 +355,7 @@ sub run-once(Str:D :$name, Str:D :$url, Int :$parallel = 1,
     # specs/lib (declared once) so the parent's example-discovery pass does not
     # redeclare them across files.
     my $proc = run :env(%*ENV, DISABLE-SQL-LOG => 'True'),
-    'behave', "--parallel=$parallel", |@specs;
+    'behave', '--config', '.behave', "--parallel=$parallel", |@specs;
     $any-behave-fail = $proc.exitcode if $proc.exitcode != 0;
   }
 
