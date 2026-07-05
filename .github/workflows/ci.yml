@@ -27,8 +27,8 @@ jobs:
 
       - name: Install from github
         run: |
-          zef install --/test https://github.com/gdonald/BDD::Behave.git
-          zef install --/test https://github.com/gdonald/ORM-ActiveRecord.git
+          zef install --/test --force-install https://github.com/gdonald/BDD::Behave.git
+          zef install --/test --force-install https://github.com/gdonald/ORM-ActiveRecord.git
       - name: Install Dependencies
         run: zef install --/test --test-depends --deps-only .
 
