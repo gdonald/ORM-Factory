@@ -27,7 +27,7 @@ jobs:
 
       - name: Install from github
         run: |
-          zef install --/test --force-install https://github.com/gdonald/BDD::Behave.git
+          zef install --/test --force-install https://github.com/gdonald/BDD-Behave.git
           zef install --/test --force-install https://github.com/gdonald/ORM-ActiveRecord.git
       - name: Install Dependencies
         run: zef install --/test --test-depends --deps-only .
@@ -97,8 +97,8 @@ jobs:
       - name: Raku version
         run: raku --version
 
-      - name: Install ORM::ActiveRecord (sibling; not yet in the zef ecosystem)
-        run: zef install --/test https://github.com/gdonald/ORM-ActiveRecord.git
+      - name: Install ORM::ActiveRecord
+        run: zef install --/test --force-install https://github.com/gdonald/ORM-ActiveRecord.git
 
       - name: Install Dependencies
         run: zef install --/test --test-depends --deps-only .
