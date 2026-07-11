@@ -2,6 +2,12 @@
 
 All notable changes to `ORM::Factory` are documented here.
 
+## 0.9.1
+
+### Fixed
+
+- Silence `ORM::ActiveRecord` SQL logging in each `behave` worker through a `.behave` config file, so SQL log lines no longer corrupt a worker's JSON event stream in CI.
+
 ## 0.9.0
 
 ### Added
