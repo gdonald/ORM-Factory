@@ -94,7 +94,7 @@ describe 'performance guards', {
     }
   }
 
-  context 'evaluator memoisation', {
+  context 'evaluator memoization', {
     it 'computes each attribute at most once per build', {
       my $hits = 0;
 

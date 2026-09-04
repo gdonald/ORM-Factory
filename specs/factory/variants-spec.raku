@@ -246,7 +246,7 @@ describe 'factory variants', {
     }
   }
 
-  context 'parameterised variant via a transient default + override', {
+  context 'parameterized variant via a transient default + override', {
     before-each {
       define {
         .factory: 'user', {

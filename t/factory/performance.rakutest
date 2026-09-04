@@ -112,7 +112,7 @@ subtest 'attributes-for issues zero adapter calls', {
   ORM::Factory.reset-persistence;
 }
 
-subtest 'evaluator memoises attributes per build', {
+subtest 'evaluator memoizes attributes per build', {
   ORM::Factory.reload;
   ORM::Factory.reset-persistence;
 

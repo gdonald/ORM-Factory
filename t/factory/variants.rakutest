@@ -222,7 +222,7 @@ sub fresh {
   };
 
   is ORM::Factory.build('user', 'greeted').greeting, 'Hello, World',
-    'parameterised variant uses transient default';
+    'parameterized variant uses transient default';
 
   is ORM::Factory.build('user', 'greeted', :salute<Greg>).greeting,
     'Hello, Greg',

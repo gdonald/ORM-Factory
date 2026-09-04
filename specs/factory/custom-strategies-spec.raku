@@ -172,7 +172,7 @@ describe 'custom strategies', {
       expect(ORM::Factory.build('note').title).to.eq('HI');
     }
 
-    it 'restoring the original class restores the built-in behaviour', {
+    it 'restoring the original class restores the built-in behavior', {
       ORM::Factory.register-strategy('build', ORM::Factory::BuildStrategy);
       expect(ORM::Factory.build('note').title).to.eq('hi');
     }

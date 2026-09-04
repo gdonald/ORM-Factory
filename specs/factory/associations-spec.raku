@@ -146,7 +146,7 @@ describe 'factory associations', {
     }
   }
 
-  context 'use-parent-strategy default behaviour', {
+  context 'use-parent-strategy default behavior', {
     before-each {
       define {
         .factory: 'user', :aliases<author>, { .fname: 'Greg' };
